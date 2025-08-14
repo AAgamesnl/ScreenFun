@@ -1,42 +1,42 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Party Host</title>
-  <link rel="stylesheet" href="/css/style.css" />
-</head>
-<body class="host">
-  <div class="topbar">
-    <div>
-      <button id="btnCreate">Nieuwe Room</button>
-      <span id="roomCode"></span>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Party Host</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body class="host">
+    <div class="topbar">
+      <div>
+        <button id="btnCreate">Nieuwe Room</button>
+        <span id="roomCode"></span>
+      </div>
+      <div class="ip-picker">
+        <label for="ipSelect">Jouw IP:</label>
+        <select id="ipSelect"></select>
+        <button id="btnMakeQR">QR maken</button>
+      </div>
     </div>
-    <div class="ip-picker">
-      <label for="ipSelect">Jouw IP:</label>
-      <select id="ipSelect"></select>
-      <button id="btnMakeQR">QR maken</button>
-    </div>
-  </div>
 
-  <div class="main">
-    <div class="left">
-      <h2>Spelers</h2>
-      <ul id="players"></ul>
-      <button id="btnStart" disabled>Start spel</button>
-      <button id="btnNext" disabled>Volgende</button>
+    <div class="main">
+      <div class="left">
+        <h2>Spelers</h2>
+        <ul id="players"></ul>
+        <button id="btnStart" disabled>Start spel</button>
+        <button id="btnNext" disabled>Volgende</button>
+      </div>
+      <div class="right">
+        <div id="host3d" class="three-container"></div>
+        <div id="qrWrap"><canvas id="qr"></canvas></div>
+        <div id="joinUrl"></div>
+        <div id="screen"></div>
+      </div>
     </div>
-    <div class="right">
-      <div id="qrWrap"><canvas id="qr"></canvas></div>
-      <div id="joinUrl"></div>
-      <div id="threeD"><canvas id="renderCanvas" class="canvas3d"></canvas></div>
-      <div id="screen"></div>
-    </div>
-  </div>
 
-  <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script src="/js/host3d.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/host.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
+    <script src="/js/three-init.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/host.js"></script>
+  </body>
 </html>
