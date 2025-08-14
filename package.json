@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "node ./node_modules/ts-node-dev/bin.js --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "start-screenfun": "powershell -ExecutionPolicy Bypass -File .\\start-screenfun.ps1"
   },
   "dependencies": {
     "express": "^4.19.2",

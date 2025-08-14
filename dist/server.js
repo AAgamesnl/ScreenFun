@@ -78,6 +78,7 @@ function startQuestion(room) {
         durationMs: q.durationMs,
         serverNow: now,
         deadline: room.roundDeadline,
+        players: Array.from(room.players.values()).map(p => ({ id: p.id, name: p.name })),
     };
     io.to(room.code).emit('question:show', safeQuestion); // to players
     io.to(room.hostId).emit('question:show', safeQuestion); // to host screen
@@ -154,6 +155,7 @@ io.on('connection', (socket) => {
             name: String(payload.name || 'Player'),
             score: 0,
             ready: false,
+            powerups: ['freeze', 'gloop', 'flash'],
         };
         room.players.set(socket.id, player);
         socket.join(room.code);
@@ -199,6 +201,19 @@ io.on('connection', (socket) => {
             startQuestion(room);
             return ack?.({ ok: true });
         }
+    });
+    socket.on('player:usePower', (payload) => {
+        const room = getRoomByCode(payload.code);
+        if (!room || room.state !== 'question')
+            return;
+        const user = room.players.get(socket.id);
+        if (!user || !user.powerups.includes(payload.type))
+            return;
+        const target = room.players.get(payload.targetId);
+        if (!target)
+            return;
+        user.powerups = user.powerups.filter(p => p !== payload.type);
+        io.to(target.id).emit('power:applied', { type: payload.type, from: user.name });
     });
     socket.on('player:answer', (payload) => {
         const room = getRoomByCode(payload.code);
