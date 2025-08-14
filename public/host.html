@@ -27,12 +27,15 @@
       <button id="btnNext" disabled>Volgende</button>
     </div>
     <div class="right">
+      <div id="host3d" class="three-container"></div>
       <div id="qrWrap"><canvas id="qr"></canvas></div>
       <div id="joinUrl"></div>
       <div id="screen"></div>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
+  <script src="/js/three-init.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/host.js"></script>
 </body>
