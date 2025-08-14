@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body class="player">
+  <canvas id="playerCanvas" class="canvas3d"></canvas>
   <div id="join">
     <h2>Join Room</h2>
     <form id="joinForm">
@@ -35,6 +36,8 @@
     <ul id="scores"></ul>
   </div>
 
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="/js/player3d.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/player.js"></script>
 </body>
