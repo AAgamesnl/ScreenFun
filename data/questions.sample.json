@@ -1,0 +1,38 @@
+[
+  {
+    "id": "q1",
+    "text": "Welke kleur krijg je als je blauw en geel mengt?",
+    "options": [
+      "Paars",
+      "Groen",
+      "Oranje",
+      "Rood"
+    ],
+    "correctIndex": 1,
+    "durationMs": 12000
+  },
+  {
+    "id": "q2",
+    "text": "Hoeveel spelers telt een standaard voetbalteam op het veld?",
+    "options": [
+      "9",
+      "10",
+      "11",
+      "12"
+    ],
+    "correctIndex": 2,
+    "durationMs": 12000
+  },
+  {
+    "id": "q3",
+    "text": "Wat is de hoofdstad van Canada?",
+    "options": [
+      "Toronto",
+      "Vancouver",
+      "Ottawa",
+      "Montreal"
+    ],
+    "correctIndex": 2,
+    "durationMs": 12000
+  }
+]

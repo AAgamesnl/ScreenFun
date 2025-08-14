@@ -1,0 +1,18 @@
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#0b0e14;color:#e6e6e6}
+a{color:inherit}
+.hidden{display:none}
+.host .topbar, .player .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#131722;border-bottom:1px solid #222}
+.main{display:flex;gap:24px;padding:16px}
+.left{flex:1}
+.right{flex:1;display:flex;flex-direction:column;align-items:center;gap:12px}
+#qrWrap{background:#fff;padding:8px;border-radius:8px}
+#players, #lobbyPlayers, #scores{list-style:none;padding:0;margin:8px 0}
+#players li, #lobbyPlayers li, #scores li{padding:6px 8px;border-bottom:1px solid #222}
+button{background:#2d6cdf;border:0;border-radius:8px;color:#fff;padding:10px 14px;font-weight:600;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+#screen{margin-top:12px;width:100%;min-height:220px;border:1px solid #222;border-radius:8px;padding:12px}
+.option{border:1px solid #333;border-radius:8px;padding:10px;margin:8px 0;cursor:pointer}
+.option.locked{opacity:.6;pointer-events:none}
+.timer{margin-top:8px;font-weight:700}
+.ip-picker{display:flex;align-items:center;gap:8px}
+#joinUrl{font-size:14px;color:#b9c2d0;word-break:break-all}
