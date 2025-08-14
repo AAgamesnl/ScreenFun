@@ -1,58 +1,14 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Player</title>
-  <link rel="stylesheet" href="/css/style.css" />
+  <title>ScreenFun Player</title>
+  <link rel="stylesheet" href="/styles.css" />
 </head>
-<body class="player">
-<<<<<<< HEAD
-  <canvas id="playerCanvas" class="canvas3d"></canvas>
-=======
-  <div id="player3d" class="three-container"></div>
->>>>>>> origin/main
-  <div id="join">
-    <h2>Join Room</h2>
-    <form id="joinForm">
-      <input id="code" placeholder="Roomcode (bv. ABCD)" maxlength="8" required />
-      <input id="name" placeholder="Jouw naam" required />
-      <button>Join</button>
-    </form>
-    <div id="joinMsg"></div>
-  </div>
-
-  <div id="lobby" class="hidden">
-    <h2>Lobby <span id="lobbyCode"></span></h2>
-    <div>Spelers:</div>
-    <ul id="lobbyPlayers"></ul>
-    <label><input type="checkbox" id="readyChk" /> Ready</label>
-  </div>
-
-  <div id="question" class="hidden">
-    <h2 id="qText"></h2>
-    <div id="opts"></div>
-    <div class="timer"><span id="timer"></span></div>
-    <div id="powerups">
-      <select id="powerTarget"></select>
-      <div id="powerButtons"></div>
-    </div>
-  </div>
-  <div id="powerOverlay" class="hidden"></div>
-
-  <div id="scoreboard" class="hidden">
-    <h2>Scorebord</h2>
-    <ul id="scores"></ul>
-  </div>
-
-<<<<<<< HEAD
-  <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script src="/js/player3d.js"></script>
-=======
-  <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
-  <script src="/js/three-init.js"></script>
->>>>>>> origin/main
+<body class="tv-safe">
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/player.js"></script>
+  <main id="app"></main>
+  <script type="module" src="/js/player.js"></script>
 </body>
 </html>
