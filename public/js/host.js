@@ -12,6 +12,10 @@
   const btnMakeQR = $("btnMakeQR");
   const joinUrlDiv = $("joinUrl");
 
+  if (window.initQuizMaster) {
+    window.initQuizMaster('host3d');
+  }
+
   async function fetchIPs() {
     try {
       const res = await fetch('/api/ips');
