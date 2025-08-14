@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start: Local server (PowerShell)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\start-screenfun.ps1"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Git: Fetch+Checkout PR (by number)",
+      "type": "shell",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "git fetch origin pull/${input:pr}/head:pr-${input:pr} && git checkout pr-${input:pr}"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Git: Update main (pull --ff-only)",
+      "type": "shell",
+      "command": "git",
+      "args": [
+        "pull",
+        "--ff-only"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "pr",
+      "type": "promptString",
+      "description": "PR-nummer (bv. 123)"
+    }
+  ]
+}
