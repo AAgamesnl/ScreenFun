@@ -1,3 +1,4 @@
+// Networking helpers and typed protocol for ScreenFun
 // Wrapper around the Socket.IO client. Exposes typed send and receive helpers.
 export class Net {
     constructor() {
