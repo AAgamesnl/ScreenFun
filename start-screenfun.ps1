@@ -51,24 +51,7 @@ $ServerCmd = "`"$NodePath`" `"$ProjectPath\dist\server.js`""
 Write-Host "`n[Step] Server starten..."
 Start-Process -FilePath "powershell.exe" -ArgumentList "-NoExit","-Command",$ServerCmd -WorkingDirectory $ProjectPath
 
-# 4) Healthcheck (best-effort) en host openen
-$HealthUrl = "http://localhost:$Port/health"
-$ok = $false
-for ($i=0; $i -lt 20; $i++) {
-  try {
-    $r = Invoke-WebRequest -UseBasicParsing -Uri $HealthUrl -TimeoutSec 1
-    if ($r.StatusCode -ge 200 -and $r.StatusCode -lt 300) { $ok = $true; break }
-  } catch {}
-  Start-Sleep -Milliseconds 300
-}
-if ($ok) {
-  Start-Process "http://localhost:$Port/host.html"
-  Write-Host "Host geopend in je browser." -ForegroundColor Green
-} else {
-  # Geen /health? Wacht even en open toch de hostpagina.
-  Start-Sleep -Seconds 2
-  Start-Process "http://localhost:$Port/host.html"
-  Write-Host "Kon /health niet bevestigen; hostpagina toch geopend. Als die niet laadt, check de serverconsole." -ForegroundColor Yellow
-}
-
-Write-Host "`nKlaar. Laat het servervenster open tijdens het spelen." -ForegroundColor Cyan
+# --- GEEN automatische browser-open meer ---
+Write-Host "`nServer gestart. Open zelf in je browser:" -ForegroundColor Green
+Write-Host "  http://localhost:$Port/host.html" -ForegroundColor Cyan
+Write-Host "Laat het servervenster open tijdens het spelen." -ForegroundColor Cyan
