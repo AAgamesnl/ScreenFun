@@ -5,10 +5,12 @@
       "name": "Start ScreenFun",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/index.js",
-      "cwd": "${workspaceFolder}",
-      "console": "externalTerminal"
-      // "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe" // Update this path if Node.js is installed elsewhere
+      "program": "${workspaceFolder}/start-screenfun.cmd",
+      "console": "integratedTerminal",
+      "runtimeExecutable": "cmd.exe",
+      "runtimeArgs": ["/C"],
+      "stopOnEntry": false,
+      "internalConsoleOptions": "neverOpen"
     }
   ]
 }
