@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body class="player">
+  <div id="player3d" class="three-container"></div>
   <div id="join">
     <h2>Join Room</h2>
     <form id="joinForm">
@@ -28,13 +29,20 @@
     <h2 id="qText"></h2>
     <div id="opts"></div>
     <div class="timer"><span id="timer"></span></div>
+    <div id="powerups">
+      <select id="powerTarget"></select>
+      <div id="powerButtons"></div>
+    </div>
   </div>
+  <div id="powerOverlay" class="hidden"></div>
 
   <div id="scoreboard" class="hidden">
     <h2>Scorebord</h2>
     <ul id="scores"></ul>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
+  <script src="/js/three-init.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/player.js"></script>
 </body>
