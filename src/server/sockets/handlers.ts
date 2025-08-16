@@ -42,6 +42,7 @@ function setupHostHandlers(socket: TypedSocket, context: GameContext) {
   const { ROOMS, io } = context;
 
   socket.on("host:createRoom", async (_, ack) => {
+    console.log("Host creating room, socket ID:", socket.id);
     const code = makeCode(ROOMS);
     const room: Room = {
       code,
@@ -53,6 +54,12 @@ function setupHostHandlers(socket: TypedSocket, context: GameContext) {
       questionOrder: []
     };
     ROOMS.set(code, room);
+    
+    console.log("Room created:", code, "Host ID:", socket.id);
+    
+    // Send room info to host immediately
+    broadcastLobby(room, io);
+    
     ack?.({ ok: true, code });
   });
 
@@ -193,6 +200,7 @@ function roomChannel(code: string): string {
 }
 
 function broadcastLobby(room: Room, io: TypedServer) {
+  console.log("Broadcasting lobby update for room:", room.code, "to host:", room.hostId);
   const lobby = {
     code: room.code,
     players: Array.from(room.players.values()).map((p: Player) => ({
@@ -204,8 +212,10 @@ function broadcastLobby(room: Room, io: TypedServer) {
     state: room.state
   };
 
+  console.log("Lobby data:", lobby);
   io.to(roomChannel(room.code)).emit("lobby:update", lobby);
   io.to(room.hostId).emit("lobby:update", lobby);
+  console.log("Sent lobby:update to room channel and host");
 }
 
 function startQuestion(room: Room, context: GameContext) {

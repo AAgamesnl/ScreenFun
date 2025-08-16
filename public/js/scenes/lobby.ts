@@ -1,11 +1,17 @@
 import type { S2C, PlayerInfo } from "../net";
 import type { Scene } from "./scene-manager";
+import type { Net } from "../net";
 
 /** Lobby scene showing room code and players. */
 export class LobbyScene implements Scene {
   private el?: HTMLElement;
   private roomCode?: string;
   private players: PlayerInfo[] = [];
+  private net: Net | undefined;
+
+  constructor(net?: Net) {
+    this.net = net;
+  }
 
   mount(root: HTMLElement): void {
     this.el = document.createElement("div");
@@ -31,6 +37,19 @@ export class LobbyScene implements Scene {
       this.roomCode = msg.code;
       this.players = msg.players;
       this.updateDisplay();
+      
+      // Generate QR code when we get room info
+      if (this.roomCode && this.net) {
+        const joinUrl = `${window.location.origin}/player.html?code=${this.roomCode}`;
+        this.net.requestQRCode(joinUrl, (dataUrl) => {
+          if (dataUrl) {
+            const qrImg = document.getElementById('qr') as HTMLImageElement;
+            if (qrImg) {
+              qrImg.src = dataUrl;
+            }
+          }
+        });
+      }
     }
   }
 

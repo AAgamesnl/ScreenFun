@@ -6,7 +6,7 @@ import { LobbyScene } from './scenes/lobby';
 const net = new Net();
 const sceneRoot = document.getElementById('scene') as HTMLElement;
 const scenes = new SceneManager(sceneRoot);
-scenes.set(new LobbyScene());
+scenes.set(new LobbyScene(net));
 
 // Forward messages from server to active scene
 net.onMessage(msg => scenes.dispatch(msg));

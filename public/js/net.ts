@@ -10,6 +10,7 @@ export type PlayerInfo = {
 
 export type C2S =
   | { t: 'host:create' }
+  | { t: 'host:qr'; joinUrl: string }
   | { t: 'player:join'; code: string; name: string; avatar: string }
   | { t: 'player:ready'; code: string; ready: boolean }
   | { t: 'category:vote'; pick: number }
@@ -31,7 +32,10 @@ export type S2C =
 
 // Wrapper around the Socket.IO client. Exposes typed send and receive helpers.
 export class Net {
-  private socket: { emit: (event: string, ...args: unknown[]) => void; on: (event: string, callback: (...args: unknown[]) => void) => void };
+  private socket: { 
+    emit: (event: string, ...args: unknown[]) => void; 
+    on: (event: string, callback: (...args: unknown[]) => void) => void 
+  };
   private messageCallbacks: Array<(msg: S2C) => void> = [];
 
   constructor() {
@@ -76,6 +80,8 @@ export class Net {
   send(msg: C2S): void {
     if (msg.t === 'host:create') {
       this.socket.emit('host:createRoom');
+    } else if (msg.t === 'host:qr') {
+      this.socket.emit('host:qr', { joinUrl: msg.joinUrl });
     } else if (msg.t === 'player:join') {
       this.socket.emit('player:join', { code: msg.code, name: msg.name, avatar: msg.avatar });
     } else if (msg.t === 'player:ready') {
@@ -96,5 +102,17 @@ export class Net {
   ping(): void {
     const t0 = Date.now();
     this.send({ t: 'ping', t0 });
+  }
+
+  /** Request QR code generation */
+  requestQRCode(joinUrl: string, callback: (dataUrl: string | null) => void): void {
+    this.socket.emit('host:qr', { joinUrl }, (response: { ok: boolean; dataUrl?: string; error?: string }) => {
+      if (response.ok && response.dataUrl) {
+        callback(response.dataUrl);
+      } else {
+        console.error('QR code generation failed:', response.error);
+        callback(null);
+      }
+    });
   }
 }
