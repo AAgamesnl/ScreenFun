@@ -204,6 +204,43 @@ function endQuestion(room: Room) {
 }
 
 io.on("connection", (socket) => {
+  // Handle typed messages from client
+  socket.on("msg", async (msg: any) => {
+    try {
+      if (msg.t === "host:create") {
+        const code = makeCode();
+        const room: Room = {
+          code,
+          hostId: socket.id,
+          players: new Map(),
+          createdAt: Date.now(),
+          state: "lobby",
+          currentQuestionIndex: 0,
+          questionOrder: [...Array(questions.length).keys()],
+        };
+        ROOMS.set(code, room);
+        socket.join(roomChannel(code));
+
+        // Generate QR code URL
+        const joinUrl = `http://localhost:${PORT}/player.html?code=${code}`;
+        const dataUrl = await QRCode.toDataURL(joinUrl);
+
+        // Send room info to host
+        socket.emit("msg", {
+          t: "room",
+          code,
+          players: [],
+          state: "lobby",
+        });
+
+        // Update QR code in HTML
+        socket.emit("qr:update", { dataUrl });
+      }
+    } catch (error) {
+      console.error("Message handling error:", error);
+    }
+  });
+
   // Clock sync: client sends t0; server replies with t0 + t1
   socket.on("time:ping", (t0: number) => {
     socket.emit("time:pong", { t0, t1: Date.now() });

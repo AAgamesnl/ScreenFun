@@ -1,21 +1,78 @@
-:root{
-  --bg:#0b0e14; --panel:#121826; --text:#f5f7fb; --muted:#a7b0c0;
-  --accent:#6ee7ff; --accent-2:#ffdf6e; --danger:#ff6e6e; --success:#6effa8;
-  --card:#0f1422; --shadow: 0 8px 24px rgba(0,0,0,.35);
-  --radius:20px; --radius-sm:14px; --pad:18px;
+:root {
+  --bg: #0b0e14;
+  --panel: #121826;
+  --text: #f5f7fb;
+  --muted: #a7b0c0;
+  --accent: #6ee7ff;
+  --accent-2: #ffdf6e;
+  --danger: #ff6e6e;
+  --success: #6effa8;
+  --card: #0f1422;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --radius: 20px;
+  --radius-sm: 14px;
+  --pad: 18px;
   --tv-safe: min(4vw, 32px);
   --font-title: ui-sans-serif, Inter, "SF Pro", Arial, sans-serif;
 }
-html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-title);}
-.tv-safe{padding:var(--tv-safe);}
-.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);}
-.btn{display:inline-flex;gap:.6rem;align-items:center;padding:.9rem 1.2rem;border-radius:999px;border:0;background:var(--accent);color:#031018;font-weight:700;cursor:pointer;}
-.btn.secondary{background:#20283a;color:var(--text);}
-.grid{display:grid;gap:1rem;}
-.full{width:100%}
-.progress{height:10px;background:#20283a;border-radius:999px;overflow:hidden}
-.progress > i{display:block;height:100%;background:var(--accent);width:0%}
-.timer-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.35rem .75rem;border-radius:999px;background:#20283a}
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-title);
+}
+.tv-safe {
+  padding: var(--tv-safe);
+}
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.btn {
+  display: inline-flex;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.9rem 1.2rem;
+  border-radius: 999px;
+  border: 0;
+  background: var(--accent);
+  color: #031018;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn.secondary {
+  background: #20283a;
+  color: var(--text);
+}
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+.full {
+  width: 100%;
+}
+.progress {
+  height: 10px;
+  background: #20283a;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress > i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+}
+.timer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: #20283a;
+}
 
 /* Lobby Scene Styles */
 .lobby-scene {
