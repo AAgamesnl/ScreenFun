@@ -1,43 +1,15 @@
 // Server ScreenFun
 import express from "express";
 import http from "http";
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 import path from "path";
 import fs from "fs";
 import os from "os";
-import QRCode from "qrcode";
 
-type Player = {
-  id: string;
-  name: string;
-  score: number;
-  ready: boolean;
-  answeredCurrent?: boolean;
-  lastAnswerIndex?: number | null;
-  powerups: string[];
-};
-
-type Question = {
-  id: string;
-  text: string;
-  options: string[];
-  correctIndex: number;
-  durationMs: number;
-};
-
-type RoomState = "lobby" | "question" | "reveal" | "scoreboard";
-
-type Room = {
-  code: string;
-  hostId: string;
-  players: Map<string, Player>; // key = socket.id
-  createdAt: number;
-  state: RoomState;
-  currentQuestionIndex: number;
-  questionOrder: number[];
-  roundDeadline?: number;
-  roundTimer?: NodeJS.Timeout;
-};
+import type {
+  Question,
+  Room
+} from "./types";
 
 const app = express();
 const server = http.createServer(app);
@@ -95,7 +67,7 @@ app.get("/api/ips", (_req, res) => {
   const nets = os.networkInterfaces();
   const ips: string[] = [];
   Object.values(nets).forEach((ifaces) => {
-    (ifaces || []).forEach((ni: any) => {
+    (ifaces || []).forEach((ni: os.NetworkInterfaceInfo) => {
       if (ni && ni.family === "IPv4" && !ni.internal) ips.push(ni.address);
     });
   });
@@ -106,8 +78,12 @@ const questions: Question[] = JSON.parse(
   fs.readFileSync(path.join(__root, "data", "questions.sample.json"), "utf-8")
 );
 
+// Import typed socket handlers
+import { setupSocketHandlers } from "./server/sockets/handlers";
+
 const ROOMS = new Map<string, Room>();
 
+<<<<<<< HEAD
 function makeCode(): string {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I,O,1,0
   let code = "";
@@ -391,6 +367,13 @@ io.on("connection", (socket) => {
       }
     }
   });
+=======
+// Setup typed socket.io handlers
+setupSocketHandlers(io, {
+  ROOMS,
+  questions,
+  io
+>>>>>>> 53fb9d1daaa8024815c287f5def432f7c7cfb777
 });
 
 server.listen(PORT, () => {

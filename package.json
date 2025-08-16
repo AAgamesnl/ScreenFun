@@ -3,9 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node ./node_modules/ts-node-dev/bin.js --respawn --transpile-only src/server.ts",
-    "build": "tsc && tsc -p public/tsconfig.json",
+    "dev": "tsc -w",
+    "build": "tsc -p .",
     "start": "node dist/server.js",
+    "typecheck": "tsc -p . --noEmit",
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "test": "echo \"No tests yet\" && exit 0",
+    "prune": "ts-prune",
+    "depcheck": "depcheck",
     "start-screenfun": "powershell -ExecutionPolicy Bypass -File .\\start-screenfun.ps1"
   },
   "dependencies": {
@@ -14,9 +20,17 @@
     "socket.io": "^4.7.5"
   },
   "devDependencies": {
+    "@eslint/js": "^9.33.0",
     "@types/express": "^4.17.21",
     "@types/node": "^20.19.10",
+    "@types/qrcode": "^1.5.5",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
+    "depcheck": "^1.4.7",
+    "eslint": "^9.33.0",
+    "prettier": "^3.6.2",
     "ts-node-dev": "^2.0.0",
+    "ts-prune": "^0.10.3",
     "typescript": "^5.4.5",
     "undici-types": "^7.13.0"
   }
