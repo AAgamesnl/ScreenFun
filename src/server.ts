@@ -1,11 +1,11 @@
 // Server ScreenFun
-import express from 'express';
-import http from 'http';
-import { Server, Socket } from 'socket.io';
-import path from 'path';
-import fs from 'fs';
-import os from 'os';
-import QRCode from 'qrcode';
+import express from "express";
+import http from "http";
+import { Server, Socket } from "socket.io";
+import path from "path";
+import fs from "fs";
+import os from "os";
+import QRCode from "qrcode";
 
 type Player = {
   id: string;
@@ -25,7 +25,7 @@ type Question = {
   durationMs: number;
 };
 
-type RoomState = 'lobby' | 'question' | 'reveal' | 'scoreboard';
+type RoomState = "lobby" | "question" | "reveal" | "scoreboard";
 
 type Room = {
   code: string;
@@ -45,41 +45,52 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
-const __root = path.join(__dirname, '..');
+const __root = path.join(__dirname, "..");
+
+// Configure MIME types for JavaScript modules
+express.static.mime.define({
+  "application/javascript": ["js", "mjs"],
+  "text/javascript": ["js"],
+});
 
 // Serve static files with basic caching headers
 app.use(
-  express.static(path.join(__root, 'public'), {
-    maxAge: '1h',
+  express.static(path.join(__root, "public"), {
+    maxAge: "1h",
     etag: false,
+    setHeaders: (res, path) => {
+      if (path.endsWith(".js")) {
+        res.setHeader("Content-Type", "application/javascript");
+      }
+    },
   })
 );
 
 // Simple health check endpoint
-app.get('/health', (_req, res) => {
-  res.status(200).send('ok');
+app.get("/health", (_req, res) => {
+  res.status(200).send("ok");
 });
 
-app.get('/api/ips', (_req, res) => {
+app.get("/api/ips", (_req, res) => {
   const nets = os.networkInterfaces();
   const ips: string[] = [];
   Object.values(nets).forEach((ifaces) => {
     (ifaces || []).forEach((ni: any) => {
-      if (ni && ni.family === 'IPv4' && !ni.internal) ips.push(ni.address);
+      if (ni && ni.family === "IPv4" && !ni.internal) ips.push(ni.address);
     });
   });
   res.json({ ips });
 });
 
 const questions: Question[] = JSON.parse(
-  fs.readFileSync(path.join(__root, 'data', 'questions.sample.json'), 'utf-8')
+  fs.readFileSync(path.join(__root, "data", "questions.sample.json"), "utf-8")
 );
 
 const ROOMS = new Map<string, Room>();
 
 function makeCode(): string {
-  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I,O,1,0
-  let code = '';
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I,O,1,0
+  let code = "";
   for (let i = 0; i < 4; i++) {
     code += alphabet[Math.floor(Math.random() * alphabet.length)];
   }
@@ -97,26 +108,29 @@ function roomChannel(code: string): string {
 
 function ensureHost(socket: Socket, room: Room) {
   if (socket.id !== room.hostId) {
-    throw new Error('Only host can perform this action.');
+    throw new Error("Only host can perform this action.");
   }
 }
 
 function broadcastLobby(room: Room) {
   const lobby = {
     code: room.code,
-    players: Array.from(room.players.values()).map(p => ({
-      id: p.id, name: p.name, ready: p.ready, score: p.score
+    players: Array.from(room.players.values()).map((p) => ({
+      id: p.id,
+      name: p.name,
+      ready: p.ready,
+      score: p.score,
     })),
     state: room.state,
   };
-  io.to(roomChannel(room.code)).emit('lobby:update', lobby);
+  io.to(roomChannel(room.code)).emit("lobby:update", lobby);
   // Host screen might not be in the room; ensure it receives updates
-  io.to(room.hostId).emit('lobby:update', lobby);
+  io.to(room.hostId).emit("lobby:update", lobby);
 }
 
 function startQuestion(room: Room) {
-  room.state = 'question';
-  room.players.forEach(p => {
+  room.state = "question";
+  room.players.forEach((p) => {
     p.answeredCurrent = false;
     p.lastAnswerIndex = null;
   });
@@ -134,11 +148,14 @@ function startQuestion(room: Room) {
     durationMs: q.durationMs,
     serverNow: now,
     deadline: room.roundDeadline,
-    players: Array.from(room.players.values()).map(p => ({ id: p.id, name: p.name })),
+    players: Array.from(room.players.values()).map((p) => ({
+      id: p.id,
+      name: p.name,
+    })),
   };
 
-  io.to(roomChannel(room.code)).emit('question:show', safeQuestion); // to players
-  io.to(room.hostId).emit('question:show', safeQuestion); // to host screen
+  io.to(roomChannel(room.code)).emit("question:show", safeQuestion); // to players
+  io.to(room.hostId).emit("question:show", safeQuestion); // to host screen
 
   // Timer to end round
   if (room.roundTimer) clearTimeout(room.roundTimer);
@@ -146,12 +163,12 @@ function startQuestion(room: Room) {
 }
 
 function endQuestion(room: Room) {
-  room.state = 'reveal';
+  room.state = "reveal";
   const qIndex = room.questionOrder[room.currentQuestionIndex];
   const q = questions[qIndex];
 
   // Calculate scores
-  room.players.forEach(p => {
+  room.players.forEach((p) => {
     if (p.lastAnswerIndex === q.correctIndex) {
       p.score += 100; // simple scoring
     }
@@ -159,7 +176,7 @@ function endQuestion(room: Room) {
 
   const results = {
     correctIndex: q.correctIndex,
-    players: Array.from(room.players.values()).map(p => ({
+    players: Array.from(room.players.values()).map((p) => ({
       id: p.id,
       name: p.name,
       answer: p.lastAnswerIndex ?? null,
@@ -168,28 +185,28 @@ function endQuestion(room: Room) {
     })),
   };
 
-  io.to(roomChannel(room.code)).emit('question:result', results);
-  io.to(room.hostId).emit('question:result', results);
+  io.to(roomChannel(room.code)).emit("question:result", results);
+  io.to(room.hostId).emit("question:result", results);
 
-  room.state = 'scoreboard';
-  io.to(roomChannel(room.code)).emit('scoreboard:update', results.players);
-  io.to(room.hostId).emit('scoreboard:update', results.players);
+  room.state = "scoreboard";
+  io.to(roomChannel(room.code)).emit("scoreboard:update", results.players);
+  io.to(room.hostId).emit("scoreboard:update", results.players);
 }
 
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   // Clock sync: client sends t0; server replies with t0 + t1
-  socket.on('time:ping', (t0: number) => {
-    socket.emit('time:pong', { t0, t1: Date.now() });
+  socket.on("time:ping", (t0: number) => {
+    socket.emit("time:pong", { t0, t1: Date.now() });
   });
 
-  socket.on('host:createRoom', async (_: any, ack?: Function) => {
+  socket.on("host:createRoom", async (_: any, ack?: Function) => {
     const code = makeCode();
     const room: Room = {
       code,
       hostId: socket.id,
       players: new Map(),
       createdAt: Date.now(),
-      state: 'lobby',
+      state: "lobby",
       currentQuestionIndex: 0,
       questionOrder: [...Array(questions.length).keys()],
     };
@@ -199,35 +216,42 @@ io.on('connection', (socket) => {
     ack?.({ code });
   });
 
-  socket.on('host:qrMake', async (payload: { joinUrl: string }, ack?: Function) => {
-    try {
-      const dataUrl = await QRCode.toDataURL(payload.joinUrl);
-      ack?.({ ok: true, dataUrl });
-    } catch (e: any) {
-      ack?.({ ok: false, error: e?.message || 'QR error' });
+  socket.on(
+    "host:qrMake",
+    async (payload: { joinUrl: string }, ack?: Function) => {
+      try {
+        const dataUrl = await QRCode.toDataURL(payload.joinUrl);
+        ack?.({ ok: true, dataUrl });
+      } catch (e: any) {
+        ack?.({ ok: false, error: e?.message || "QR error" });
+      }
     }
-  });
+  );
 
-  socket.on('player:join', (payload: { code: string; name: string }, ack?: Function) => {
-    const code = payload.code?.toUpperCase?.();
-    const room = getRoomByCode(code);
-    if (!room) return ack?.({ ok: false, error: 'Room niet gevonden' });
-    if (room.state !== 'lobby') return ack?.({ ok: false, error: 'Spel is al gestart' });
+  socket.on(
+    "player:join",
+    (payload: { code: string; name: string }, ack?: Function) => {
+      const code = payload.code?.toUpperCase?.();
+      const room = getRoomByCode(code);
+      if (!room) return ack?.({ ok: false, error: "Room niet gevonden" });
+      if (room.state !== "lobby")
+        return ack?.({ ok: false, error: "Spel is al gestart" });
 
-    const player: Player = {
-      id: socket.id,
-      name: String(payload.name || 'Player'),
-      score: 0,
-      ready: false,
-      powerups: ['freeze', 'gloop', 'flash'],
-    };
-    room.players.set(socket.id, player);
-    socket.join(roomChannel(room.code));
-    broadcastLobby(room);
-    ack?.({ ok: true, player });
-  });
+      const player: Player = {
+        id: socket.id,
+        name: String(payload.name || "Player"),
+        score: 0,
+        ready: false,
+        powerups: ["freeze", "gloop", "flash"],
+      };
+      room.players.set(socket.id, player);
+      socket.join(roomChannel(room.code));
+      broadcastLobby(room);
+      ack?.({ ok: true, player });
+    }
+  );
 
-  socket.on('player:setReady', (payload: { code: string; ready: boolean }) => {
+  socket.on("player:setReady", (payload: { code: string; ready: boolean }) => {
     const room = getRoomByCode(payload.code);
     if (!room) return;
     const p = room.players.get(socket.id);
@@ -236,11 +260,13 @@ io.on('connection', (socket) => {
     broadcastLobby(room);
   });
 
-  socket.on('host:startGame', (payload: { code: string }, ack?: Function) => {
+  socket.on("host:startGame", (payload: { code: string }, ack?: Function) => {
     const room = getRoomByCode(payload.code);
-    if (!room) return ack?.({ ok: false, error: 'Room niet gevonden' });
-    if (socket.id !== room.hostId) return ack?.({ ok: false, error: 'Only host' });
-    if (room.players.size < 1) return ack?.({ ok: false, error: 'Minstens 1 speler nodig' });
+    if (!room) return ack?.({ ok: false, error: "Room niet gevonden" });
+    if (socket.id !== room.hostId)
+      return ack?.({ ok: false, error: "Only host" });
+    if (room.players.size < 1)
+      return ack?.({ ok: false, error: "Minstens 1 speler nodig" });
 
     room.questionOrder.sort(() => Math.random() - 0.5);
     room.currentQuestionIndex = 0;
@@ -248,14 +274,15 @@ io.on('connection', (socket) => {
     ack?.({ ok: true });
   });
 
-  socket.on('host:next', (payload: { code: string }, ack?: Function) => {
+  socket.on("host:next", (payload: { code: string }, ack?: Function) => {
     const room = getRoomByCode(payload.code);
-    if (!room) return ack?.({ ok: false, error: 'Room niet gevonden' });
-    if (socket.id !== room.hostId) return ack?.({ ok: false, error: 'Only host' });
+    if (!room) return ack?.({ ok: false, error: "Room niet gevonden" });
+    if (socket.id !== room.hostId)
+      return ack?.({ ok: false, error: "Only host" });
 
     room.currentQuestionIndex++;
     if (room.currentQuestionIndex >= room.questionOrder.length) {
-      room.state = 'lobby';
+      room.state = "lobby";
       broadcastLobby(room);
       return ack?.({ ok: true, done: true });
     } else {
@@ -264,31 +291,42 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('player:usePower', (payload: { code: string; targetId: string; type: string }) => {
-    const room = getRoomByCode(payload.code);
-    if (!room || room.state !== 'question') return;
-    const user = room.players.get(socket.id);
-    if (!user || !user.powerups.includes(payload.type)) return;
-    const target = room.players.get(payload.targetId);
-    if (!target) return;
-    user.powerups = user.powerups.filter(p => p !== payload.type);
-    io.to(target.id).emit('power:applied', { type: payload.type, from: user.name });
-  });
+  socket.on(
+    "player:usePower",
+    (payload: { code: string; targetId: string; type: string }) => {
+      const room = getRoomByCode(payload.code);
+      if (!room || room.state !== "question") return;
+      const user = room.players.get(socket.id);
+      if (!user || !user.powerups.includes(payload.type)) return;
+      const target = room.players.get(payload.targetId);
+      if (!target) return;
+      user.powerups = user.powerups.filter((p) => p !== payload.type);
+      io.to(target.id).emit("power:applied", {
+        type: payload.type,
+        from: user.name,
+      });
+    }
+  );
 
-  socket.on('player:answer', (payload: { code: string; answerIndex: number }) => {
-    const room = getRoomByCode(payload.code);
-    if (!room || room.state !== 'question') return;
-    const p = room.players.get(socket.id);
-    if (!p || p.answeredCurrent) return;
-    p.answeredCurrent = true; // lock first answer
-    p.lastAnswerIndex = Number.isInteger(payload.answerIndex) ? payload.answerIndex : null;
-  });
+  socket.on(
+    "player:answer",
+    (payload: { code: string; answerIndex: number }) => {
+      const room = getRoomByCode(payload.code);
+      if (!room || room.state !== "question") return;
+      const p = room.players.get(socket.id);
+      if (!p || p.answeredCurrent) return;
+      p.answeredCurrent = true; // lock first answer
+      p.lastAnswerIndex = Number.isInteger(payload.answerIndex)
+        ? payload.answerIndex
+        : null;
+    }
+  );
 
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     for (const room of ROOMS.values()) {
       if (room.hostId === socket.id) {
         if (room.roundTimer) clearTimeout(room.roundTimer);
-        io.to(roomChannel(room.code)).emit('room:closed');
+        io.to(roomChannel(room.code)).emit("room:closed");
         ROOMS.delete(room.code);
       } else if (room.players.has(socket.id)) {
         room.players.delete(socket.id);
