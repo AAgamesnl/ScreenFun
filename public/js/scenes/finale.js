@@ -7,7 +7,8 @@ export class FinaleScene {
         root.appendChild(this.el);
     }
     unmount() {
-        this.el?.remove();
+        var _a;
+        (_a = this.el) === null || _a === void 0 ? void 0 : _a.remove();
     }
     onMessage(_msg) {
         // handle finale ticks

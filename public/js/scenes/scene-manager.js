@@ -6,12 +6,14 @@ export class SceneManager {
     }
     /** Replace the currently active scene. */
     set(scene) {
-        this.current?.unmount();
+        var _a;
+        (_a = this.current) === null || _a === void 0 ? void 0 : _a.unmount();
         this.current = scene;
         this.current.mount(this.root);
     }
     /** Forward a message to the active scene. */
     dispatch(msg) {
-        this.current?.onMessage(msg);
+        var _a;
+        (_a = this.current) === null || _a === void 0 ? void 0 : _a.onMessage(msg);
     }
 }
