@@ -1,14 +1,16 @@
 // Server ScreenFun
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import http from "http";
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 import path from "path";
 import fs from "fs";
 import os from "os";
+import * as QRCode from "qrcode";
 
 import type {
   Question,
-  Room
+  Room,
+  Player
 } from "./types";
 
 const app = express();
@@ -20,7 +22,7 @@ const PORT = process.env.PORT || 3000;
 const __root = path.join(__dirname, "..");
 
 // Middleware to handle ES6 module imports without .js extension
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   // If the request is for a JS file in the js/ directory without extension
   if (req.path.startsWith("/js/") && !path.extname(req.path)) {
     const jsPath = req.path + ".js";
@@ -36,7 +38,7 @@ app.use((req, res, next) => {
 });
 
 // Favicon handler (avoid 404 spam). Serve a lightweight SVG icon.
-app.get("/favicon.ico", (_req, res) => {
+app.get("/favicon.ico", (_req: Request, res: Response) => {
   const svgPath = path.join(__root, "public", "favicon.svg");
   if (fs.existsSync(svgPath)) {
     res.type("image/svg+xml").send(fs.readFileSync(svgPath, "utf-8"));
@@ -50,7 +52,7 @@ app.use(
   express.static(path.join(__root, "public"), {
     maxAge: "1h",
     etag: false,
-    setHeaders: (res, filePath) => {
+    setHeaders: (res: Response, filePath: string) => {
       if (filePath.endsWith(".js")) {
         res.setHeader("Content-Type", "application/javascript; charset=utf-8");
       }
@@ -59,11 +61,11 @@ app.use(
 );
 
 // Simple health check endpoint
-app.get("/health", (_req, res) => {
+app.get("/health", (_req: Request, res: Response) => {
   res.status(200).send("ok");
 });
 
-app.get("/api/ips", (_req, res) => {
+app.get("/api/ips", (_req: Request, res: Response) => {
   const nets = os.networkInterfaces();
   const ips: string[] = [];
   Object.values(nets).forEach((ifaces) => {
@@ -125,23 +127,25 @@ function broadcastLobby(room: Room) {
 
 function startQuestion(room: Room) {
   room.state = "question";
+
+  // Reset players' answer state
   room.players.forEach((p) => {
     p.answeredCurrent = false;
     p.lastAnswerIndex = null;
   });
 
-  const qIndex = room.questionOrder[room.currentQuestionIndex];
-  const q = questions[qIndex];
-  const now = Date.now();
-  room.roundDeadline = now + q.durationMs;
+  const questionIndex = room.questionOrder[room.currentQuestionIndex];
+  const question = questions[questionIndex ?? 0];
 
-  // Send question without the correct answer index
+  const durationMs = question?.durationMs ?? 30000;
+  room.roundDeadline = Date.now() + durationMs;
+
+  // Safe question object without correct answer
   const safeQuestion = {
-    id: q.id,
-    text: q.text,
-    options: q.options,
-    durationMs: q.durationMs,
-    serverNow: now,
+    id: question?.id,
+    text: question?.text ?? "",
+    options: question?.options ?? [],
+    durationMs,
     deadline: room.roundDeadline,
     players: Array.from(room.players.values()).map((p) => ({
       id: p.id,
@@ -149,23 +153,26 @@ function startQuestion(room: Room) {
     })),
   };
 
-  io.to(roomChannel(room.code)).emit("question:show", safeQuestion); // to players
-  io.to(room.hostId).emit("question:show", safeQuestion); // to host screen
+  io.to(roomChannel(room.code)).emit("question:show", safeQuestion);
+  io.to(room.hostId).emit("question:show", safeQuestion);
 
-  // Timer to end round
   if (room.roundTimer) clearTimeout(room.roundTimer);
-  room.roundTimer = setTimeout(() => endQuestion(room), q.durationMs + 250); // small buffer
+  room.roundTimer = setTimeout(() => endQuestion(room), durationMs + 250);
 }
 
 function endQuestion(room: Room) {
   room.state = "reveal";
   const qIndex = room.questionOrder[room.currentQuestionIndex];
-  const q = questions[qIndex];
+  const q = questions[qIndex ?? 0];
+
+  if (!q) {
+    return;
+  }
 
   // Calculate scores
   room.players.forEach((p) => {
     if (p.lastAnswerIndex === q.correctIndex) {
-      p.score += 100; // simple scoring
+      p.score += 100;
     }
   });
 
@@ -188,191 +195,11 @@ function endQuestion(room: Room) {
   io.to(room.hostId).emit("scoreboard:update", results.players);
 }
 
-io.on("connection", (socket) => {
-  // Handle typed messages from client
-  socket.on("msg", async (msg: any) => {
-    try {
-      if (msg.t === "host:create") {
-        const code = makeCode();
-        const room: Room = {
-          code,
-          hostId: socket.id,
-          players: new Map(),
-          createdAt: Date.now(),
-          state: "lobby",
-          currentQuestionIndex: 0,
-          questionOrder: [...Array(questions.length).keys()],
-        };
-        ROOMS.set(code, room);
-        socket.join(roomChannel(code));
-
-        // Generate QR code URL
-        const joinUrl = `http://localhost:${PORT}/player.html?code=${code}`;
-        const dataUrl = await QRCode.toDataURL(joinUrl);
-
-        // Send room info to host
-        socket.emit("msg", {
-          t: "room",
-          code,
-          players: [],
-          state: "lobby",
-        });
-
-        // Update QR code in HTML
-        socket.emit("qr:update", { dataUrl });
-      }
-    } catch (error) {
-      console.error("Message handling error:", error);
-    }
-  });
-
-  // Clock sync: client sends t0; server replies with t0 + t1
-  socket.on("time:ping", (t0: number) => {
-    socket.emit("time:pong", { t0, t1: Date.now() });
-  });
-
-  socket.on("host:createRoom", async (_: any, ack?: Function) => {
-    const code = makeCode();
-    const room: Room = {
-      code,
-      hostId: socket.id,
-      players: new Map(),
-      createdAt: Date.now(),
-      state: "lobby",
-      currentQuestionIndex: 0,
-      questionOrder: [...Array(questions.length).keys()],
-    };
-    ROOMS.set(code, room);
-    // Host joins room for easier broadcasting
-    socket.join(roomChannel(code));
-    ack?.({ code });
-  });
-
-  socket.on(
-    "host:qrMake",
-    async (payload: { joinUrl: string }, ack?: Function) => {
-      try {
-        const dataUrl = await QRCode.toDataURL(payload.joinUrl);
-        ack?.({ ok: true, dataUrl });
-      } catch (e: any) {
-        ack?.({ ok: false, error: e?.message || "QR error" });
-      }
-    }
-  );
-
-  socket.on(
-    "player:join",
-    (payload: { code: string; name: string }, ack?: Function) => {
-      const code = payload.code?.toUpperCase?.();
-      const room = getRoomByCode(code);
-      if (!room) return ack?.({ ok: false, error: "Room niet gevonden" });
-      if (room.state !== "lobby")
-        return ack?.({ ok: false, error: "Spel is al gestart" });
-
-      const player: Player = {
-        id: socket.id,
-        name: String(payload.name || "Player"),
-        score: 0,
-        ready: false,
-        powerups: ["freeze", "gloop", "flash"],
-      };
-      room.players.set(socket.id, player);
-      socket.join(roomChannel(room.code));
-      broadcastLobby(room);
-      ack?.({ ok: true, player });
-    }
-  );
-
-  socket.on("player:setReady", (payload: { code: string; ready: boolean }) => {
-    const room = getRoomByCode(payload.code);
-    if (!room) return;
-    const p = room.players.get(socket.id);
-    if (!p) return;
-    p.ready = !!payload.ready;
-    broadcastLobby(room);
-  });
-
-  socket.on("host:startGame", (payload: { code: string }, ack?: Function) => {
-    const room = getRoomByCode(payload.code);
-    if (!room) return ack?.({ ok: false, error: "Room niet gevonden" });
-    if (socket.id !== room.hostId)
-      return ack?.({ ok: false, error: "Only host" });
-    if (room.players.size < 1)
-      return ack?.({ ok: false, error: "Minstens 1 speler nodig" });
-
-    room.questionOrder.sort(() => Math.random() - 0.5);
-    room.currentQuestionIndex = 0;
-    startQuestion(room);
-    ack?.({ ok: true });
-  });
-
-  socket.on("host:next", (payload: { code: string }, ack?: Function) => {
-    const room = getRoomByCode(payload.code);
-    if (!room) return ack?.({ ok: false, error: "Room niet gevonden" });
-    if (socket.id !== room.hostId)
-      return ack?.({ ok: false, error: "Only host" });
-
-    room.currentQuestionIndex++;
-    if (room.currentQuestionIndex >= room.questionOrder.length) {
-      room.state = "lobby";
-      broadcastLobby(room);
-      return ack?.({ ok: true, done: true });
-    } else {
-      startQuestion(room);
-      return ack?.({ ok: true });
-    }
-  });
-
-  socket.on(
-    "player:usePower",
-    (payload: { code: string; targetId: string; type: string }) => {
-      const room = getRoomByCode(payload.code);
-      if (!room || room.state !== "question") return;
-      const user = room.players.get(socket.id);
-      if (!user || !user.powerups.includes(payload.type)) return;
-      const target = room.players.get(payload.targetId);
-      if (!target) return;
-      user.powerups = user.powerups.filter((p) => p !== payload.type);
-      io.to(target.id).emit("power:applied", {
-        type: payload.type,
-        from: user.name,
-      });
-    }
-  );
-
-  socket.on(
-    "player:answer",
-    (payload: { code: string; answerIndex: number }) => {
-      const room = getRoomByCode(payload.code);
-      if (!room || room.state !== "question") return;
-      const p = room.players.get(socket.id);
-      if (!p || p.answeredCurrent) return;
-      p.answeredCurrent = true; // lock first answer
-      p.lastAnswerIndex = Number.isInteger(payload.answerIndex)
-        ? payload.answerIndex
-        : null;
-    }
-  );
-
-  socket.on("disconnect", () => {
-    for (const room of ROOMS.values()) {
-      if (room.hostId === socket.id) {
-        if (room.roundTimer) clearTimeout(room.roundTimer);
-        io.to(roomChannel(room.code)).emit("room:closed");
-        ROOMS.delete(room.code);
-      } else if (room.players.has(socket.id)) {
-        room.players.delete(socket.id);
-        broadcastLobby(room);
-      }
-    }
-  });
-=======
 // Setup typed socket.io handlers
 setupSocketHandlers(io, {
   ROOMS,
   questions,
   io
->>>>>>> 53fb9d1daaa8024815c287f5def432f7c7cfb777
 });
 
 server.listen(PORT, () => {
