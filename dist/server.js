@@ -16,18 +16,27 @@ const server = http_1.default.createServer(app);
 const io = new socket_io_1.Server(server);
 const PORT = process.env.PORT || 3000;
 const __root = path_1.default.join(__dirname, "..");
-// Configure MIME types for JavaScript modules
-express_1.default.static.mime.define({
-    "application/javascript": ["js", "mjs"],
-    "text/javascript": ["js"],
+// Middleware to handle ES6 module imports without .js extension
+app.use((req, res, next) => {
+    // If the request is for a JS file in the js/ directory without extension
+    if (req.path.startsWith("/js/") && !path_1.default.extname(req.path)) {
+        const jsPath = req.path + ".js";
+        const fullPath = path_1.default.join(__root, "public", jsPath);
+        // Check if the .js file exists
+        if (fs_1.default.existsSync(fullPath)) {
+            req.url = jsPath;
+            return res.sendFile(fullPath);
+        }
+    }
+    next();
 });
 // Serve static files with basic caching headers
 app.use(express_1.default.static(path_1.default.join(__root, "public"), {
     maxAge: "1h",
     etag: false,
-    setHeaders: (res, path) => {
-        if (path.endsWith(".js")) {
-            res.setHeader("Content-Type", "application/javascript");
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith(".js")) {
+            res.setHeader("Content-Type", "application/javascript; charset=utf-8");
         }
     },
 }));

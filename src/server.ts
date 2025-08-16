@@ -47,10 +47,20 @@ const PORT = process.env.PORT || 3000;
 
 const __root = path.join(__dirname, "..");
 
-// Configure MIME types for JavaScript modules
-express.static.mime.define({
-  "application/javascript": ["js", "mjs"],
-  "text/javascript": ["js"],
+// Middleware to handle ES6 module imports without .js extension
+app.use((req, res, next) => {
+  // If the request is for a JS file in the js/ directory without extension
+  if (req.path.startsWith("/js/") && !path.extname(req.path)) {
+    const jsPath = req.path + ".js";
+    const fullPath = path.join(__root, "public", jsPath);
+
+    // Check if the .js file exists
+    if (fs.existsSync(fullPath)) {
+      req.url = jsPath;
+      return res.sendFile(fullPath);
+    }
+  }
+  next();
 });
 
 // Serve static files with basic caching headers
@@ -58,9 +68,9 @@ app.use(
   express.static(path.join(__root, "public"), {
     maxAge: "1h",
     etag: false,
-    setHeaders: (res, path) => {
-      if (path.endsWith(".js")) {
-        res.setHeader("Content-Type", "application/javascript");
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith(".js")) {
+        res.setHeader("Content-Type", "application/javascript; charset=utf-8");
       }
     },
   })
