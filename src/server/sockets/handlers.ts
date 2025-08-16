@@ -4,6 +4,7 @@ import type {
   Player,
   Question
 } from "../../types";
+import * as QRCode from "qrcode";
 
 type TypedSocket = Socket;
 type TypedServer = Server;
@@ -57,7 +58,7 @@ function setupHostHandlers(socket: TypedSocket, context: GameContext) {
 
   socket.on("host:qr", async (payload, ack) => {
     try {
-      const dataUrl = await import("qrcode").then(QR => QR.toDataURL(payload.joinUrl));
+      const dataUrl = await QRCode.toDataURL(payload.joinUrl);
       ack?.({ ok: true, dataUrl });
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : "QR error";

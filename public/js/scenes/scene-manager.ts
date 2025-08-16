@@ -15,6 +15,11 @@ export class SceneManager {
   private current: Scene | null = null;
   constructor(private root: HTMLElement) {}
 
+  /** Get the currently active scene. */
+  get currentScene(): Scene | null {
+    return this.current;
+  }
+
   /** Replace the currently active scene. */
   set(scene: Scene): void {
     this.current?.unmount();
