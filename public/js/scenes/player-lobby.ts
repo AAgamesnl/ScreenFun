@@ -7,7 +7,7 @@ export class PlayerLobbyScene implements Scene {
   private roomCode?: string;
   private players: PlayerInfo[] = [];
   private myId?: string;
-  private onReady?: (ready: boolean) => void;
+  private onReady: ((ready: boolean) => void) | undefined;
 
   constructor(onReady?: (ready: boolean) => void) {
     if (onReady) {
