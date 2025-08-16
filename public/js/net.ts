@@ -1,14 +1,24 @@
 // Networking helpers and typed protocol for ScreenFun
+
+export type PlayerInfo = {
+  id: string;
+  name: string;
+  avatar: string;
+  score: number;
+  ready: boolean;
+};
+
 export type C2S =
   | { t: 'host:create' }
   | { t: 'player:join'; code: string; name: string; avatar: string }
   | { t: 'player:ready'; ready: boolean }
+  | { t: 'category:vote'; pick: number }
+  | { t: 'pp:select'; kind: 'Freeze' | 'Gloop' | 'Double'; targetId?: string }
   | { t: 'answer'; roundId: string; choiceIndex: number; sentAt: number }
-  | { t: 'pp:select'; kind: string; targetId?: string }
   | { t: 'ping'; t0: number };
 
 export type S2C =
-  | { t: 'room'; code: string; players: Array<{ id: string; name: string; avatar: string; score: number; ready: boolean }>; state: string }
+  | { t: 'room'; code: string; players: PlayerInfo[]; state: string }
   | { t: 'category'; options: string[]; endsAt: number }
   | { t: 'powerplays'; options: string[]; endsAt: number }
   | { t: 'question'; roundId: string; text: string; choices: string[]; endsAt: number }
