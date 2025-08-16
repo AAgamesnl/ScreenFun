@@ -16,7 +16,15 @@ const server = http_1.default.createServer(app);
 const io = new socket_io_1.Server(server);
 const PORT = process.env.PORT || 3000;
 const __root = path_1.default.join(__dirname, '..');
-app.use(express_1.default.static(path_1.default.join(__root, 'public')));
+// Serve static files with basic caching headers
+app.use(express_1.default.static(path_1.default.join(__root, 'public'), {
+    maxAge: '1h',
+    etag: false,
+}));
+// Simple health check endpoint
+app.get('/health', (_req, res) => {
+    res.status(200).send('ok');
+});
 app.get('/api/ips', (_req, res) => {
     const nets = os_1.default.networkInterfaces();
     const ips = [];
@@ -43,6 +51,9 @@ function makeCode() {
 function getRoomByCode(code) {
     return ROOMS.get(code.toUpperCase());
 }
+function roomChannel(code) {
+    return `room:${code}`;
+}
 function ensureHost(socket, room) {
     if (socket.id !== room.hostId) {
         throw new Error('Only host can perform this action.');
@@ -56,7 +67,7 @@ function broadcastLobby(room) {
         })),
         state: room.state,
     };
-    io.to(room.code).emit('lobby:update', lobby);
+    io.to(roomChannel(room.code)).emit('lobby:update', lobby);
     // Host screen might not be in the room; ensure it receives updates
     io.to(room.hostId).emit('lobby:update', lobby);
 }
@@ -80,7 +91,7 @@ function startQuestion(room) {
         deadline: room.roundDeadline,
         players: Array.from(room.players.values()).map(p => ({ id: p.id, name: p.name })),
     };
-    io.to(room.code).emit('question:show', safeQuestion); // to players
+    io.to(roomChannel(room.code)).emit('question:show', safeQuestion); // to players
     io.to(room.hostId).emit('question:show', safeQuestion); // to host screen
     // Timer to end round
     if (room.roundTimer)
@@ -107,10 +118,10 @@ function endQuestion(room) {
             score: p.score,
         })),
     };
-    io.to(room.code).emit('question:result', results);
+    io.to(roomChannel(room.code)).emit('question:result', results);
     io.to(room.hostId).emit('question:result', results);
     room.state = 'scoreboard';
-    io.to(room.code).emit('scoreboard:update', results.players);
+    io.to(roomChannel(room.code)).emit('scoreboard:update', results.players);
     io.to(room.hostId).emit('scoreboard:update', results.players);
 }
 io.on('connection', (socket) => {
@@ -131,7 +142,7 @@ io.on('connection', (socket) => {
         };
         ROOMS.set(code, room);
         // Host joins room for easier broadcasting
-        socket.join(code);
+        socket.join(roomChannel(code));
         ack?.({ code });
     });
     socket.on('host:qrMake', async (payload, ack) => {
@@ -158,7 +169,7 @@ io.on('connection', (socket) => {
             powerups: ['freeze', 'gloop', 'flash'],
         };
         room.players.set(socket.id, player);
-        socket.join(room.code);
+        socket.join(roomChannel(room.code));
         broadcastLobby(room);
         ack?.({ ok: true, player });
     });
@@ -230,7 +241,7 @@ io.on('connection', (socket) => {
             if (room.hostId === socket.id) {
                 if (room.roundTimer)
                     clearTimeout(room.roundTimer);
-                io.to(room.code).emit('room:closed');
+                io.to(roomChannel(room.code)).emit('room:closed');
                 ROOMS.delete(room.code);
             }
             else if (room.players.has(socket.id)) {
