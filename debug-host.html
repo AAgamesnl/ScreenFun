@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ScreenFun Host Debug</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="alternate icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    #debug-log {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      width: 300px;
+      max-height: 400px;
+      background: rgba(0,0,0,0.8);
+      color: lime;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 10px;
+      overflow-y: auto;
+      z-index: 1000;
+      border: 1px solid #333;
+    }
+    #debug-log div {
+      margin-bottom: 5px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body class="tv-safe">
+  <div id="debug-log"></div>
+
+  <header id="top" class="grid">
+    <div id="roomCode"></div>
+    <img id="qr" alt="QR" style="max-width: 200px; max-height: 200px;" />
+  </header>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/libs/babylon.js"></script>
+  <script src="/libs/babylon.gui.min.js"></script>
+  <main id="scene"></main>
+  <footer id="status"></footer>
+
+  <script>
+    // Override console.log to show in debug panel
+    const debugLog = document.getElementById('debug-log');
+    const originalLog = console.log;
+    const originalError = console.error;
+
+    function addDebugMessage(level, ...args) {
+      const div = document.createElement('div');
+      div.style.color = level === 'error' ? '#ff6666' : '#66ff66';
+      div.textContent = `[${level}] ${args.join(' ')}`;
+      debugLog.appendChild(div);
+      debugLog.scrollTop = debugLog.scrollHeight;
+
+      // Call original console method
+      if (level === 'error') {
+        originalError.apply(console, args);
+      } else {
+        originalLog.apply(console, args);
+      }
+    }
+
+    console.log = (...args) => addDebugMessage('log', ...args);
+    console.error = (...args) => addDebugMessage('error', ...args);
+
+    console.log('Debug host page loaded');
+  </script>
+
+  <script type="module" src="/js/host.js"></script>
+</body>
+</html>

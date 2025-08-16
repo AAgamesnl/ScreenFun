@@ -10,6 +10,7 @@ export type PlayerInfo = {
 
 export type C2S =
   | { t: 'host:create' }
+  | { t: 'host:qr'; joinUrl: string }
   | { t: 'player:join'; code: string; name: string; avatar: string }
   | { t: 'player:ready'; code: string; ready: boolean }
   | { t: 'category:vote'; pick: number }
@@ -19,6 +20,7 @@ export type C2S =
 
 export type S2C =
   | { t: 'room'; code: string; players: PlayerInfo[]; state: string }
+  | { t: 'qr'; dataUrl: string }
   | { t: 'category'; options: string[]; endsAt: number }
   | { t: 'powerplays'; options: string[]; endsAt: number }
   | { t: 'question'; roundId: string; text: string; choices: string[]; endsAt: number }
@@ -31,13 +33,16 @@ export type S2C =
 
 // Wrapper around the Socket.IO client. Exposes typed send and receive helpers.
 export class Net {
-  private socket: { emit: (event: string, ...args: unknown[]) => void; on: (event: string, callback: (...args: unknown[]) => void) => void };
+  private socket: {
+    emit: (event: string, ...args: unknown[]) => void;
+    on: (event: string, callback: (...args: unknown[]) => void) => void;
+  };
   private messageCallbacks: Array<(msg: S2C) => void> = [];
 
   constructor() {
     // io global is injected via /socket.io/socket.io.js
     this.socket = (window as unknown as { io: () => { emit: (event: string, ...args: unknown[]) => void; on: (event: string, callback: (...args: unknown[]) => void) => void } }).io();
-    
+
     // Set up listeners for server-to-client events
     this.socket.on('lobby:update', (...args) => {
       const payload = args[0] as { code: string; players: PlayerInfo[]; state: string };
@@ -75,7 +80,24 @@ export class Net {
   /** Send a typed message to the server. */
   send(msg: C2S): void {
     if (msg.t === 'host:create') {
-      this.socket.emit('host:createRoom');
+      this.socket.emit('host:createRoom', undefined, (response: { ok: boolean; code?: string; error?: string }) => {
+        if (response.ok && response.code) {
+          // The host:createRoom acknowledgment is handled differently - we wait for lobby:update
+          console.log('Room created with code:', response.code);
+        } else {
+          console.error('Failed to create room:', response.error);
+        }
+      });
+    } else if (msg.t === 'host:qr') {
+      console.log("Sending QR request:", msg);
+      this.socket.emit('host:qr', { joinUrl: msg.joinUrl }, (response: { ok: boolean; dataUrl?: string; error?: string }) => {
+        console.log("QR response received:", response);
+        if (response.ok && response.dataUrl) {
+          this.messageCallbacks.forEach(cb => cb({ t: 'qr', dataUrl: response.dataUrl! }));
+        } else {
+          console.error('QR code generation failed:', response.error);
+        }
+      });
     } else if (msg.t === 'player:join') {
       this.socket.emit('player:join', { code: msg.code, name: msg.name, avatar: msg.avatar });
     } else if (msg.t === 'player:ready') {

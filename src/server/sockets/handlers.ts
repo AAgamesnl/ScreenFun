@@ -1,5 +1,5 @@
 import type { Server, Socket } from "socket.io";
-import type { 
+import type {
   Room,
   Player,
   Question
@@ -26,8 +26,8 @@ export function setupSocketHandlers(io: TypedServer, context: GameContext) {
 
     // Host event handlers
     setupHostHandlers(socket, context);
-    
-    // Player event handlers  
+
+    // Player event handlers
     setupPlayerHandlers(socket, context);
 
     // Cleanup on disconnect
@@ -57,11 +57,14 @@ function setupHostHandlers(socket: TypedSocket, context: GameContext) {
   });
 
   socket.on("host:qr", async (payload, ack) => {
+    console.log("QR code request received:", payload);
     try {
       const dataUrl = await QRCode.toDataURL(payload.joinUrl);
+      console.log("QR code generated successfully");
       ack?.({ ok: true, dataUrl });
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : "QR error";
+      console.error("QR code generation failed:", errorMessage);
       ack?.({ ok: false, error: errorMessage });
     }
   });
@@ -121,10 +124,10 @@ function setupPlayerHandlers(socket: TypedSocket, context: GameContext) {
   socket.on("player:ready", (payload, ack) => {
     const room = getRoomByCode(payload.code, ROOMS);
     if (!room) return ack?.({ ok: false, error: "Room niet gevonden" });
-    
+
     const player = room.players.get(socket.id);
     if (!player) return ack?.({ ok: false, error: "Player niet gevonden" });
-    
+
     player.ready = payload.ready;
     broadcastLobby(room, context.io);
     ack?.({ ok: true });

@@ -1,7 +1,8 @@
 /** Lobby scene showing room code and players. */
 export class LobbyScene {
-    constructor() {
+    constructor(net) {
         this.players = [];
+        this.net = net;
     }
     mount(root) {
         this.el = document.createElement("div");
@@ -26,6 +27,10 @@ export class LobbyScene {
             this.roomCode = msg.code;
             this.players = msg.players;
             this.updateDisplay();
+            this.generateQRCode();
+        }
+        else if (msg.t === "qr") {
+            this.displayQRCode(msg.dataUrl);
         }
     }
     updateDisplay() {
@@ -52,6 +57,32 @@ export class LobbyScene {
            </div>`)
                     .join("");
             }
+        }
+    }
+    generateQRCode() {
+        if (this.roomCode && this.net) {
+            console.log("Generating QR code for room:", this.roomCode);
+            // Construct the join URL
+            const baseUrl = window.location.origin;
+            const joinUrl = `${baseUrl}/player.html?code=${this.roomCode}`;
+            console.log("Join URL:", joinUrl);
+            // Request QR code generation
+            this.net.send({ t: 'host:qr', joinUrl });
+        }
+        else {
+            console.log("Cannot generate QR code - missing room code or net instance:", { roomCode: this.roomCode, hasNet: !!this.net });
+        }
+    }
+    displayQRCode(dataUrl) {
+        console.log("Displaying QR code:", dataUrl.substring(0, 50) + "...");
+        const qrImg = document.getElementById("qr");
+        if (qrImg) {
+            qrImg.src = dataUrl;
+            qrImg.style.display = "block";
+            console.log("QR code image updated");
+        }
+        else {
+            console.error("QR code image element not found");
         }
     }
 }

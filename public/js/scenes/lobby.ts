@@ -6,6 +6,11 @@ export class LobbyScene implements Scene {
   private el?: HTMLElement;
   private roomCode?: string;
   private players: PlayerInfo[] = [];
+  private net?: any; // Add reference to network instance
+
+  constructor(net?: any) {
+    this.net = net;
+  }
 
   mount(root: HTMLElement): void {
     this.el = document.createElement("div");
@@ -31,6 +36,9 @@ export class LobbyScene implements Scene {
       this.roomCode = msg.code;
       this.players = msg.players;
       this.updateDisplay();
+      this.generateQRCode();
+    } else if (msg.t === "qr") {
+      this.displayQRCode(msg.dataUrl);
     }
   }
 
@@ -62,6 +70,33 @@ export class LobbyScene implements Scene {
           )
           .join("");
       }
+    }
+  }
+
+  private generateQRCode(): void {
+    if (this.roomCode && this.net) {
+      console.log("Generating QR code for room:", this.roomCode);
+      // Construct the join URL
+      const baseUrl = window.location.origin;
+      const joinUrl = `${baseUrl}/player.html?code=${this.roomCode}`;
+      console.log("Join URL:", joinUrl);
+
+      // Request QR code generation
+      this.net.send({ t: 'host:qr', joinUrl });
+    } else {
+      console.log("Cannot generate QR code - missing room code or net instance:", { roomCode: this.roomCode, hasNet: !!this.net });
+    }
+  }
+
+  private displayQRCode(dataUrl: string): void {
+    console.log("Displaying QR code:", dataUrl.substring(0, 50) + "...");
+    const qrImg = document.getElementById("qr") as HTMLImageElement;
+    if (qrImg) {
+      qrImg.src = dataUrl;
+      qrImg.style.display = "block";
+      console.log("QR code image updated");
+    } else {
+      console.error("QR code image element not found");
     }
   }
 }
