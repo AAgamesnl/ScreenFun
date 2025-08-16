@@ -83,7 +83,6 @@ import { setupSocketHandlers } from "./server/sockets/handlers";
 
 const ROOMS = new Map<string, Room>();
 
-<<<<<<< HEAD
 function makeCode(): string {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I,O,1,0
   let code = "";
