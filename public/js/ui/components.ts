@@ -38,8 +38,7 @@ export function progressBar(el: HTMLElement, pct: number): void {
 
 /** Draw a simple countdown ring on a canvas element. */
 export function ringTimer(canvas: HTMLCanvasElement, remainingMs: number, totalMs = remainingMs): void {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+  const ctx = canvas.getContext('2d')!;
   const start = Date.now();
   const radius = canvas.width / 2;
   function tick() {
