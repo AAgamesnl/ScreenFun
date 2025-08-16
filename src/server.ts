@@ -1,7 +1,7 @@
 // Server ScreenFun
 import express from "express";
 import http from "http";
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 import path from "path";
 import fs from "fs";
 import os from "os";
@@ -85,7 +85,7 @@ app.get("/api/ips", (_req, res) => {
   const nets = os.networkInterfaces();
   const ips: string[] = [];
   Object.values(nets).forEach((ifaces) => {
-    (ifaces || []).forEach((ni: any) => {
+    (ifaces || []).forEach((ni: os.NetworkInterfaceInfo) => {
       if (ni && ni.family === "IPv4" && !ni.internal) ips.push(ni.address);
     });
   });
@@ -116,11 +116,7 @@ function roomChannel(code: string): string {
   return `room:${code}`;
 }
 
-function ensureHost(socket: Socket, room: Room) {
-  if (socket.id !== room.hostId) {
-    throw new Error("Only host can perform this action.");
-  }
-}
+
 
 function broadcastLobby(room: Room) {
   const lobby = {
@@ -211,7 +207,7 @@ io.on("connection", (socket) => {
     socket.emit("time:pong", { t0, t1: Date.now() });
   });
 
-  socket.on("host:createRoom", async (_: any, ack?: Function) => {
+  socket.on("host:createRoom", async (_: unknown, ack?: (response: { ok: boolean; code?: string; error?: string }) => void) => {
     const code = makeCode();
     const room: Room = {
       code,
@@ -225,7 +221,7 @@ io.on("connection", (socket) => {
     ROOMS.set(code, room);
     // Host joins room for easier broadcasting
     socket.join(roomChannel(code));
-    ack?.({ code });
+    ack?.({ ok: true, code });
   });
 
   socket.on(
@@ -234,8 +230,9 @@ io.on("connection", (socket) => {
       try {
         const dataUrl = await QRCode.toDataURL(payload.joinUrl);
         ack?.({ ok: true, dataUrl });
-      } catch (e: any) {
-        ack?.({ ok: false, error: e?.message || "QR error" });
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : "QR error";
+        ack?.({ ok: false, error: errorMessage });
       }
     }
   );

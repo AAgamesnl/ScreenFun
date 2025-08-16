@@ -30,11 +30,10 @@ export type S2C =
 
 // Wrapper around the Socket.IO client. Exposes typed send and receive helpers.
 export class Net {
-  private socket: any;
+  private socket: { emit: (event: string, data?: unknown) => void; on: (event: string, callback: (data: unknown) => void) => void };
   constructor() {
     // io global is injected via /socket.io/socket.io.js
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.socket = (window as any).io();
+    this.socket = (window as unknown as { io: () => { emit: (event: string, data?: unknown) => void; on: (event: string, callback: (data: unknown) => void) => void } }).io();
   }
 
   /** Send a typed message to the server. */
@@ -44,7 +43,7 @@ export class Net {
 
   /** Register a listener for server messages. */
   onMessage(cb: (msg: S2C) => void): void {
-    this.socket.on('msg', cb);
+    this.socket.on('msg', cb as (data: unknown) => void);
   }
 
   /** Utility for ping/pong clock sync. */
