@@ -1,6 +1,31 @@
+# Dependencies
 node_modules/
+
+# Build outputs
 dist/
-.env
+build/
+
+# Generated files
+public/js/**/*.js
+!public/js/*.ts
+
+# Logs
+*.log
 npm-debug.log*
 yarn-*.log*
+
+# Environment
+.env
+.env.local
+.env.production
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+
+# Cache
+.cache/
+.turbo/
