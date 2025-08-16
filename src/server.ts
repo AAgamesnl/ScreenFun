@@ -146,7 +146,8 @@ function startQuestion(room: Room) {
   });
 
   const qIndex = room.questionOrder[room.currentQuestionIndex];
-  const q = questions[qIndex];
+  if (qIndex === undefined || qIndex < 0 || qIndex >= questions.length) return; // Safety check
+  const q = questions[qIndex]!; // Non-null assertion after bounds check
   const now = Date.now();
   room.roundDeadline = now + q.durationMs;
 
@@ -175,7 +176,8 @@ function startQuestion(room: Room) {
 function endQuestion(room: Room) {
   room.state = "reveal";
   const qIndex = room.questionOrder[room.currentQuestionIndex];
-  const q = questions[qIndex];
+  if (qIndex === undefined || qIndex < 0 || qIndex >= questions.length) return; // Safety check
+  const q = questions[qIndex]!; // Non-null assertion after bounds check
 
   // Calculate scores
   room.players.forEach((p) => {

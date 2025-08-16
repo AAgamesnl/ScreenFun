@@ -1,0 +1,20 @@
+# Generated code and build artifacts
+*.min.js binary
+*.map binary
+*.zip binary
+dist/** linguist-generated
+build/** linguist-generated
+coverage/** linguist-generated
+public/js/**/*.js linguist-generated
+
+# Large assets as binary
+public/**/*.min.* binary
+
+# Ensure consistent line endings
+* text=auto
+*.js text eol=lf
+*.ts text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.css text eol=lf
+*.html text eol=lf
