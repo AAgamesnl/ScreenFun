@@ -153,7 +153,7 @@ io.on("connection", (socket) => {
     // Handle typed messages from client
     socket.on("msg", async (msg) => {
         try {
-            if (msg.t === 'host:create') {
+            if (msg.t === "host:create") {
                 const code = makeCode();
                 const room = {
                     code,
@@ -171,17 +171,17 @@ io.on("connection", (socket) => {
                 const dataUrl = await qrcode_1.default.toDataURL(joinUrl);
                 // Send room info to host
                 socket.emit("msg", {
-                    t: 'room',
+                    t: "room",
                     code,
                     players: [],
-                    state: 'lobby'
+                    state: "lobby",
                 });
                 // Update QR code in HTML
                 socket.emit("qr:update", { dataUrl });
             }
         }
         catch (error) {
-            console.error('Message handling error:', error);
+            console.error("Message handling error:", error);
         }
     });
     // Clock sync: client sends t0; server replies with t0 + t1
