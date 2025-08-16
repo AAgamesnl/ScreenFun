@@ -30,6 +30,16 @@ app.use((req, res, next) => {
     }
     next();
 });
+// Favicon handler (avoid 404 spam). Serve a lightweight SVG icon.
+app.get("/favicon.ico", (_req, res) => {
+    const svgPath = path_1.default.join(__root, "public", "favicon.svg");
+    if (fs_1.default.existsSync(svgPath)) {
+        res.type("image/svg+xml").send(fs_1.default.readFileSync(svgPath, "utf-8"));
+    }
+    else {
+        res.status(204).end(); // no content if missing
+    }
+});
 // Serve static files with basic caching headers
 app.use(express_1.default.static(path_1.default.join(__root, "public"), {
     maxAge: "1h",
