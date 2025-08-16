@@ -74,3 +74,105 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font
   max-width: 200px;
   max-height: 200px;
 }
+
+/* Join Scene Styles */
+.join-scene {
+  text-align: center;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.join-content h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: var(--accent);
+}
+
+.join-form {
+  max-width: 400px;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.join-form input {
+  padding: 1rem;
+  border: 2px solid var(--panel);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--text);
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.join-form input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.join-form button {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+}
+
+.error {
+  background: var(--danger);
+  color: white;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  margin-top: 1rem;
+}
+
+/* Player Lobby Scene Styles */
+.player-lobby-scene {
+  padding: 2rem;
+  text-align: center;
+}
+
+.player-lobby-content h1 {
+  font-size: 2.5rem;
+  color: var(--success);
+  margin-bottom: 2rem;
+}
+
+#room-info {
+  background: var(--card);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  margin-bottom: 2rem;
+}
+
+#room-code-display {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+#player-count {
+  color: var(--muted);
+}
+
+#ready-section {
+  margin-bottom: 2rem;
+}
+
+#ready-btn {
+  font-size: 1.2rem;
+  padding: 1rem 2rem;
+  margin-bottom: 1rem;
+}
+
+#ready-status {
+  color: var(--muted);
+  font-style: italic;
+}
+
+#other-players h3 {
+  color: var(--text);
+  margin-bottom: 1rem;
+}

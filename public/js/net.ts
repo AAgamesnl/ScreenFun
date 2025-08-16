@@ -11,7 +11,7 @@ export type PlayerInfo = {
 export type C2S =
   | { t: 'host:create' }
   | { t: 'player:join'; code: string; name: string; avatar: string }
-  | { t: 'player:ready'; ready: boolean }
+  | { t: 'player:ready'; code: string; ready: boolean }
   | { t: 'category:vote'; pick: number }
   | { t: 'pp:select'; kind: 'Freeze' | 'Gloop' | 'Double'; targetId?: string }
   | { t: 'answer'; roundId: string; choiceIndex: number; sentAt: number }
