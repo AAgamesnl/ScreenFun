@@ -10,6 +10,7 @@ const sceneRoot = document.getElementById('app') as HTMLElement;
 const scenes = new SceneManager(sceneRoot);
 
 // Player state
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let currentPlayerName = '';
 let currentRoomCode = '';
 let myPlayerId = '';

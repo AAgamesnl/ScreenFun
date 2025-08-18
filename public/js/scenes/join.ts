@@ -1,6 +1,5 @@
 import type { S2C } from '../net';
 import type { Scene } from './scene-manager';
-import { randomAvatar } from '../ui/avatars';
 
 /** Join scene for players to enter room code and name. */
 export class JoinScene implements Scene {
@@ -53,7 +52,6 @@ export class JoinScene implements Scene {
     const form = this.el.querySelector('#join-form') as HTMLFormElement;
     const codeInput = this.el.querySelector('#room-code') as HTMLInputElement;
     const nameInput = this.el.querySelector('#player-name') as HTMLInputElement;
-    const errorDiv = this.el.querySelector('#join-error') as HTMLElement;
 
     // Auto-uppercase room code
     codeInput.addEventListener('input', () => {

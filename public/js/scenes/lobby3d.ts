@@ -78,7 +78,7 @@ export class Lobby3DScene implements Scene {
     );
     
     // Add lighting
-    const light = new BABYLON.HemisphericLight(
+    new BABYLON.HemisphericLight(
       'lobbyLight',
       new BABYLON.Vector3(0, 1, 0),
       this.scene
