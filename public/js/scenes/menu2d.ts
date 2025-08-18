@@ -398,8 +398,7 @@ export class Menu2DScene implements Scene {
     
     let blinkIndex = 0;
     const scheduleNextBlink = () => {
-      const pattern = blinkPatterns[blinkIndex];
-      if (!pattern) return;
+      const pattern = blinkPatterns[blinkIndex]!; // Safe due to modulo operation
       const delay = pattern[0];
       const duration = pattern[1];
       blinkIndex = (blinkIndex + 1) % blinkPatterns.length;
@@ -427,8 +426,7 @@ export class Menu2DScene implements Scene {
     
     let speakIndex = 0;
     const scheduleNextSpeak = () => {
-      const pattern = speakPatterns[speakIndex];
-      if (!pattern) return;
+      const pattern = speakPatterns[speakIndex]!; // Safe due to modulo operation
       const delay = pattern[0];
       const duration = pattern[1];
       speakIndex = (speakIndex + 1) % speakPatterns.length;
