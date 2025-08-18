@@ -3,7 +3,7 @@
   "configurations": [
 
     {
-      "name": "Start ScreenFun",
+      "name": "Start Tapfrenzy",
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/dist/src/server.js",

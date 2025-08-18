@@ -41,7 +41,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}\\start-screenfun.ps1"
+  "${workspaceFolder}\\start-tapfrenzy.ps1"
       ],
       "problemMatcher": []
     },

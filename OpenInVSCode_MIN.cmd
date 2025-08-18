@@ -14,8 +14,8 @@ if exist "%CODE1%" (
 )
 
 rem Open workspace als die bestaat, anders de map
-if exist "%DIR%screenfun.code-workspace" (
-  "%CODE%" --reuse-window "%DIR%screenfun.code-workspace"
+if exist "%DIR%tapfrenzy.code-workspace" (
+  "%CODE%" --reuse-window "%DIR%tapfrenzy.code-workspace"
 ) else (
   "%CODE%" --reuse-window "%DIR%"
 )
