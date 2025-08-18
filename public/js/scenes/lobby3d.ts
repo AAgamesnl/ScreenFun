@@ -116,36 +116,40 @@ export class Lobby3DScene implements Scene {
 
     const BABYLON = window.BABYLON;
 
-    // Create AAA quality futuristic platform/stage with PBR
+    // Create HIGH-POLY AAA quality futuristic platform/stage with PBR
     const platform = BABYLON.MeshBuilder.CreateCylinder('platform', {
       height: 0.3,
       diameterTop: 14,
       diameterBottom: 14,
-      tessellation: 16
+      tessellation: 64 // Quadrupled for much smoother curves
     }, this.scene);
     platform.position.y = -0.15;
 
     const platformMaterial = new BABYLON.PBRMaterial('platformMat', this.scene);
-    platformMaterial.baseColor = new BABYLON.Color3(0.1, 0.15, 0.3);
-    platformMaterial.metallicFactor = 0.8;
-    platformMaterial.roughnessFactor = 0.2;
-    platformMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.1, 0.2);
+    platformMaterial.baseColor = new BABYLON.Color3(0.08, 0.12, 0.25);
+    platformMaterial.metallicFactor = 0.9;
+    platformMaterial.roughnessFactor = 0.15;
+    platformMaterial.emissiveColor = new BABYLON.Color3(0.03, 0.06, 0.15);
+    platformMaterial.clearCoat.isEnabled = true;
+    platformMaterial.clearCoat.intensity = 0.6;
     platform.material = platformMaterial;
 
-    // Create glowing edge rings with enhanced materials
+    // Create high-detail glowing edge rings with enhanced materials
     for (let i = 0; i < 3; i++) {
       const ring = BABYLON.MeshBuilder.CreateTorus(`ring${i}`, {
         diameter: 11 + i * 2.5,
         thickness: 0.15,
-        tessellation: 32
+        tessellation: 64 // Doubled for smoother curves
       }, this.scene);
       ring.position.y = 0.3 + i * 0.1;
       
       const ringMaterial = new BABYLON.PBRMaterial(`ringMat${i}`, this.scene);
       ringMaterial.baseColor = new BABYLON.Color3(0.2, 0.6, 1.0);
-      ringMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.3, 0.6);
-      ringMaterial.metallicFactor = 0.9;
-      ringMaterial.roughnessFactor = 0.1;
+      ringMaterial.emissiveColor = new BABYLON.Color3(0.4, 0.8, 1.5);
+      ringMaterial.metallicFactor = 0.95;
+      ringMaterial.roughnessFactor = 0.05;
+      ringMaterial.clearCoat.isEnabled = true;
+      ringMaterial.clearCoat.intensity = 0.7;
       ring.material = ringMaterial;
 
       // Animate ring rotation with different speeds
@@ -328,12 +332,46 @@ export class Lobby3DScene implements Scene {
         y: 1.5
       };
 
-      // Create AAA quality avatar with bubble-totems
+      // Create high-poly AAA quality avatar with detailed geometry
       const avatar = BABYLON.MeshBuilder.CreateSphere(`avatar${index}`, {
         diameter: 1.0,
-        segments: 32
+        segments: 64 // Doubled for much smoother sphere
       }, this.scene);
       avatar.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
+
+      // === ADD HUMANOID BODY PARTS ===
+      
+      // Simple arms for humanoid appearance
+      const armLeft = BABYLON.MeshBuilder.CreateCapsule(`armLeft${index}`, {
+        radius: 0.08,
+        height: 0.6,
+        tessellation: 16
+      }, this.scene);
+      armLeft.position = new BABYLON.Vector3(pos.x - 0.4, pos.y, pos.z);
+      armLeft.rotation.z = Math.PI / 6;
+
+      const armRight = BABYLON.MeshBuilder.CreateCapsule(`armRight${index}`, {
+        radius: 0.08,
+        height: 0.6,
+        tessellation: 16
+      }, this.scene);
+      armRight.position = new BABYLON.Vector3(pos.x + 0.4, pos.y, pos.z);
+      armRight.rotation.z = -Math.PI / 6;
+
+      // Simple legs for humanoid appearance  
+      const legLeft = BABYLON.MeshBuilder.CreateCapsule(`legLeft${index}`, {
+        radius: 0.1,
+        height: 0.8,
+        tessellation: 16
+      }, this.scene);
+      legLeft.position = new BABYLON.Vector3(pos.x - 0.2, pos.y - 0.8, pos.z);
+
+      const legRight = BABYLON.MeshBuilder.CreateCapsule(`legRight${index}`, {
+        radius: 0.1,
+        height: 0.8,
+        tessellation: 16
+      }, this.scene);
+      legRight.position = new BABYLON.Vector3(pos.x + 0.2, pos.y - 0.8, pos.z);
 
       // Create PBR material for avatar with bubble effect
       const avatarMaterial = new BABYLON.PBRMaterial(`avatarMat${index}`, this.scene);
@@ -352,25 +390,35 @@ export class Lobby3DScene implements Scene {
         avatarMaterial.roughnessFactor = 0.4;
       }
       
-      // Glassmorphism effect
+      // Enhanced glassmorphism effect with clearcoat
       avatarMaterial.alpha = 0.8;
       avatarMaterial.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
+      avatarMaterial.clearCoat.isEnabled = true;
+      avatarMaterial.clearCoat.intensity = 0.5;
       avatar.material = avatarMaterial;
+      
+      // Apply similar material to body parts
+      armLeft.material = avatarMaterial;
+      armRight.material = avatarMaterial;
+      legLeft.material = avatarMaterial;
+      legRight.material = avatarMaterial;
 
-      // Create bubble-totem pedestal
+      // Create high-detail bubble-totem pedestal
       const pedestal = BABYLON.MeshBuilder.CreateCylinder(`pedestal${index}`, {
         height: 0.3,
         diameterTop: 1.2,
         diameterBottom: 1.4,
-        tessellation: 16
+        tessellation: 48 // Tripled for smoother curves
       }, this.scene);
       pedestal.position = new BABYLON.Vector3(pos.x, pos.y - 0.7, pos.z);
       
       const pedestalMaterial = new BABYLON.PBRMaterial(`pedestalMat${index}`, this.scene);
-      pedestalMaterial.baseColor = new BABYLON.Color3(0.2, 0.3, 0.4);
-      pedestalMaterial.metallicFactor = 0.8;
-      pedestalMaterial.roughnessFactor = 0.2;
-      pedestalMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.1, 0.15);
+      pedestalMaterial.baseColor = new BABYLON.Color3(0.15, 0.25, 0.4);
+      pedestalMaterial.metallicFactor = 0.9;
+      pedestalMaterial.roughnessFactor = 0.15;
+      pedestalMaterial.emissiveColor = new BABYLON.Color3(0.03, 0.08, 0.16);
+      pedestalMaterial.clearCoat.isEnabled = true;
+      pedestalMaterial.clearCoat.intensity = 0.4;
       pedestal.material = pedestalMaterial;
 
       // Ready badge - floating bubble above avatar
@@ -446,7 +494,7 @@ export class Lobby3DScene implements Scene {
         this.scene.beginAnimation(pedestal, 0, 60, true);
       }
 
-      this.playerAvatars.push(avatar, nameplate, pedestal);
+      this.playerAvatars.push(avatar, nameplate, pedestal, armLeft, armRight, legLeft, legRight);
     });
   }
 

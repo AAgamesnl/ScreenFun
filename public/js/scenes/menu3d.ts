@@ -567,68 +567,156 @@ export class Menu3DScene implements Scene {
     const BABYLON = window.BABYLON;
 
     // Create a complex Buzzer character (AAA quality placeholder)
-    // Main body - rounded capsule shape
+    // Main body - high-poly rounded capsule shape
     const buzzerBody = BABYLON.MeshBuilder.CreateCapsule('buzzerBody', {
       radius: 0.5,
       height: 1.2,
-      tessellation: 32
+      tessellation: 64 // Doubled for smoother curves
     }, this.scene);
     buzzerBody.position = new BABYLON.Vector3(4, 0.6, 2);
 
-    // Head - slightly flattened sphere
+    // Head - high-poly slightly flattened sphere
     const buzzerHead = BABYLON.MeshBuilder.CreateSphere('buzzerHead', {
       diameter: 0.8,
-      segments: 32
+      segments: 64 // Doubled for smoother curves
     }, this.scene);
     buzzerHead.position = new BABYLON.Vector3(4, 1.4, 2);
     buzzerHead.scaling.y = 0.9; // Slightly flattened
 
-    // Eyes - glowing spheres
-    const eyeLeft = BABYLON.MeshBuilder.CreateSphere('eyeLeft', {diameter: 0.12}, this.scene);
+    // Eyes - high-detail glowing spheres
+    const eyeLeft = BABYLON.MeshBuilder.CreateSphere('eyeLeft', {
+      diameter: 0.12, 
+      segments: 24 // Higher detail
+    }, this.scene);
     eyeLeft.position = new BABYLON.Vector3(3.75, 1.55, 2.15);
     
-    const eyeRight = BABYLON.MeshBuilder.CreateSphere('eyeRight', {diameter: 0.12}, this.scene);
+    const eyeRight = BABYLON.MeshBuilder.CreateSphere('eyeRight', {
+      diameter: 0.12,
+      segments: 24 // Higher detail
+    }, this.scene);
     eyeRight.position = new BABYLON.Vector3(4.25, 1.55, 2.15);
 
-    // Mouth - torus for speaker grille
+    // Mouth - high-detail torus for speaker grille
     const mouth = BABYLON.MeshBuilder.CreateTorus('mouth', {
       diameter: 0.25,
       thickness: 0.03,
-      tessellation: 16
+      tessellation: 32 // Doubled for smoother curves
     }, this.scene);
     mouth.position = new BABYLON.Vector3(4, 1.25, 2.2);
 
-    // PBR Materials for AAA look
-    // Main body material - metallic orange
+    // === ADDITIONAL HIGH-DETAIL BODY PARTS ===
+    
+    // Arms - detailed capsules
+    const armLeft = BABYLON.MeshBuilder.CreateCapsule('armLeft', {
+      radius: 0.15,
+      height: 0.8,
+      tessellation: 24
+    }, this.scene);
+    armLeft.position = new BABYLON.Vector3(3.2, 1.0, 2);
+    armLeft.rotation.z = Math.PI / 6;
+
+    const armRight = BABYLON.MeshBuilder.CreateCapsule('armRight', {
+      radius: 0.15,
+      height: 0.8,
+      tessellation: 24
+    }, this.scene);
+    armRight.position = new BABYLON.Vector3(4.8, 1.0, 2);
+    armRight.rotation.z = -Math.PI / 6;
+
+    // Hands - detailed spheres
+    const handLeft = BABYLON.MeshBuilder.CreateSphere('handLeft', {
+      diameter: 0.25,
+      segments: 20
+    }, this.scene);
+    handLeft.position = new BABYLON.Vector3(2.9, 0.7, 2);
+
+    const handRight = BABYLON.MeshBuilder.CreateSphere('handRight', {
+      diameter: 0.25,
+      segments: 20
+    }, this.scene);
+    handRight.position = new BABYLON.Vector3(5.1, 0.7, 2);
+
+    // Antenna for communication
+    const antenna = BABYLON.MeshBuilder.CreateCylinder('antenna', {
+      height: 0.4,
+      diameterTop: 0.02,
+      diameterBottom: 0.04,
+      tessellation: 12
+    }, this.scene);
+    antenna.position = new BABYLON.Vector3(4, 2.4, 2);
+
+    // Antenna tip - glowing orb
+    const antennaTip = BABYLON.MeshBuilder.CreateSphere('antennaTip', {
+      diameter: 0.08,
+      segments: 12
+    }, this.scene);
+    antennaTip.position = new BABYLON.Vector3(4, 2.6, 2);
+
+    // === ENHANCED PBR MATERIALS FOR HIGH-QUALITY LOOK ===
+    
+    // Main body material - premium metallic orange with clearcoat
     const bodyMaterial = new BABYLON.PBRMaterial('buzzerBodyMat', this.scene);
-    bodyMaterial.baseColor = new BABYLON.Color3(1.0, 0.5, 0.1);
-    bodyMaterial.metallicFactor = 0.8;
-    bodyMaterial.roughnessFactor = 0.2;
-    bodyMaterial.emissiveColor = new BABYLON.Color3(0.3, 0.15, 0.05);
+    bodyMaterial.baseColor = new BABYLON.Color3(1.0, 0.4, 0.05);
+    bodyMaterial.metallicFactor = 0.9;
+    bodyMaterial.roughnessFactor = 0.15;
+    bodyMaterial.emissiveColor = new BABYLON.Color3(0.4, 0.12, 0.02);
+    bodyMaterial.clearCoat.isEnabled = true;
+    bodyMaterial.clearCoat.intensity = 0.4;
     buzzerBody.material = bodyMaterial;
 
-    // Head material - glossy white/silver
+    // Head material - premium ceramic-metal composite
     const headMaterial = new BABYLON.PBRMaterial('buzzerHeadMat', this.scene);
-    headMaterial.baseColor = new BABYLON.Color3(0.9, 0.9, 0.95);
-    headMaterial.metallicFactor = 0.7;
-    headMaterial.roughnessFactor = 0.1;
-    headMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.1, 0.15);
+    headMaterial.baseColor = new BABYLON.Color3(0.95, 0.95, 0.98);
+    headMaterial.metallicFactor = 0.8;
+    headMaterial.roughnessFactor = 0.08;
+    headMaterial.emissiveColor = new BABYLON.Color3(0.15, 0.15, 0.2);
+    headMaterial.clearCoat.isEnabled = true;
+    headMaterial.clearCoat.intensity = 0.6;
     buzzerHead.material = headMaterial;
 
-    // Eye material - bright glowing blue
+    // Eye material - brilliant glowing crystal
     const eyeMaterial = new BABYLON.PBRMaterial('eyeMat', this.scene);
-    eyeMaterial.baseColor = new BABYLON.Color3(0.2, 0.8, 1.0);
-    eyeMaterial.emissiveColor = new BABYLON.Color3(0.5, 1.0, 1.5);
+    eyeMaterial.baseColor = new BABYLON.Color3(0.1, 0.7, 1.0);
+    eyeMaterial.emissiveColor = new BABYLON.Color3(0.8, 1.5, 2.2);
     eyeMaterial.roughnessFactor = 0.0;
+    eyeMaterial.metallicFactor = 0.0;
     eyeLeft.material = eyeMaterial;
     eyeRight.material = eyeMaterial;
 
-    // Mouth material - dark metallic
+    // Mouth material - premium dark metallic
     const mouthMaterial = new BABYLON.PBRMaterial('mouthMat', this.scene);
-    mouthMaterial.baseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+    mouthMaterial.baseColor = new BABYLON.Color3(0.08, 0.08, 0.08);
     mouthMaterial.metallicFactor = 1.0;
-    mouthMaterial.roughnessFactor = 0.3;
+    mouthMaterial.roughnessFactor = 0.2;
+    mouthMaterial.clearCoat.isEnabled = true;
+    mouthMaterial.clearCoat.intensity = 0.3;
     mouth.material = mouthMaterial;
+    
+    // === MATERIALS FOR NEW PARTS ===
+    
+    // Limb material - premium metallic
+    const limbMaterial = new BABYLON.PBRMaterial('limbMat', this.scene);
+    limbMaterial.baseColor = new BABYLON.Color3(0.8, 0.8, 0.85);
+    limbMaterial.metallicFactor = 0.9;
+    limbMaterial.roughnessFactor = 0.25;
+    limbMaterial.emissiveColor = new BABYLON.Color3(0.08, 0.08, 0.1);
+    armLeft.material = limbMaterial;
+    armRight.material = limbMaterial;
+    handLeft.material = limbMaterial;
+    handRight.material = limbMaterial;
+
+    // Antenna materials
+    const antennaMaterial = new BABYLON.PBRMaterial('antennaMat', this.scene);
+    antennaMaterial.baseColor = new BABYLON.Color3(0.3, 0.3, 0.35);
+    antennaMaterial.metallicFactor = 1.0;
+    antennaMaterial.roughnessFactor = 0.1;
+    antenna.material = antennaMaterial;
+
+    const antennaTipMaterial = new BABYLON.PBRMaterial('antennaTipMat', this.scene);
+    antennaTipMaterial.baseColor = new BABYLON.Color3(1.0, 0.3, 0.1);
+    antennaTipMaterial.emissiveColor = new BABYLON.Color3(1.5, 0.8, 0.3);
+    antennaTipMaterial.roughnessFactor = 0.0;
+    antennaTip.material = antennaTipMaterial;
 
     // Group all parts together
     const buzzerGroup = new BABYLON.Mesh('buzzerGroup', this.scene);
@@ -637,6 +725,12 @@ export class Menu3DScene implements Scene {
     eyeLeft.parent = buzzerGroup;
     eyeRight.parent = buzzerGroup;
     mouth.parent = buzzerGroup;
+    armLeft.parent = buzzerGroup;
+    armRight.parent = buzzerGroup;
+    handLeft.parent = buzzerGroup;
+    handRight.parent = buzzerGroup;
+    antenna.parent = buzzerGroup;
+    antennaTip.parent = buzzerGroup;
 
     this.buzzer = buzzerGroup;
 
@@ -670,7 +764,27 @@ export class Menu3DScene implements Scene {
     eyeGlowAnimation.setKeys(glowKeys);
     this.scene.beginAnimation(eyeMaterial, 0, 240, true);
 
-    console.log('✅ AAA Buzzer character created with PBR materials');
+    // === ENHANCED ANIMATIONS ===
+    
+    // Antenna tip blinking animation
+    const antennaBlinkAnimation = new BABYLON.Animation(
+      'antennaBlink',
+      'emissiveColor',
+      60,
+      BABYLON.Animation.ANIMATIONTYPE_COLOR3,
+      BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+    );
+    const blinkKeys = [
+      { frame: 0, value: new BABYLON.Color3(1.5, 0.8, 0.3) },
+      { frame: 10, value: new BABYLON.Color3(0.5, 0.2, 0.1) },
+      { frame: 20, value: new BABYLON.Color3(1.5, 0.8, 0.3) },
+      { frame: 240, value: new BABYLON.Color3(1.5, 0.8, 0.3) }
+    ];
+    antennaBlinkAnimation.setKeys(blinkKeys);
+    antennaTipMaterial.animations = [antennaBlinkAnimation];
+    this.scene.beginAnimation(antennaTipMaterial, 0, 240, true);
+
+    console.log('✅ HIGH-DETAIL AAA Buzzer character created with advanced PBR materials and enhanced animations');
 
     // Make Buzzer speak welcome message
     this.buzzerSpeak('Welkom bij TapFrenzy! Klaar om te spelen?');
