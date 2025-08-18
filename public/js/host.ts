@@ -8,8 +8,19 @@ const net = new Net();
 const sceneRoot = document.getElementById('scene') as HTMLElement;
 const scenes = new SceneManager(sceneRoot);
 
+// Make scene manager globally available for transitions
+(window as any).gameSceneManager = scenes;
+(window as any).gameNet = net;
+
 // Start with the 3D main menu
 scenes.set(new Menu3DScene());
 
 // Forward messages from server to active scene
-net.onMessage(msg => scenes.dispatch(msg));
+net.onMessage(msg => {
+  scenes.dispatch(msg);
+  
+  // Handle global messages
+  if (msg.t === 'room' && msg.code) {
+    console.log(`🎮 Room created: ${msg.code}`);
+  }
+});

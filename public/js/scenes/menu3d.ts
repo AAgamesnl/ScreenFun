@@ -53,35 +53,39 @@ export class Menu3DScene implements Scene {
       console.log('✅ Scene created successfully');
 
       // Create camera with cinematic movement
-      this.camera = new BABYLON.ArcRotateCamera(
-        'mainCamera', 
-        -Math.PI / 2, 
-        Math.PI / 3, 
-        10,
-        BABYLON.Vector3.Zero(), 
-        this.scene
-      );
+      this.camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5, -10), this.scene);
+      this.camera.setTarget(BABYLON.Vector3.Zero());
       
       console.log('✅ Camera created successfully');
       
-      // Enable camera controls if canvas is available
-      if (this.canvas && typeof this.camera.attachControls === 'function') {
-        this.camera.attachControls(this.canvas, false);
-        console.log('✅ Camera controls attached');
-      } else {
-        console.warn('⚠️  Camera.attachControls not available or canvas missing');
-      }
+      // Camera animation for sweeping movements
+      this.animateCamera();
       
-      // Simple lighting
-      const light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), this.scene);
-      light.intensity = 0.7;
+      // Enhanced lighting setup for dramatic effect
+      const hemiLight = new BABYLON.HemisphericLight('hemiLight', new BABYLON.Vector3(0, 1, 0), this.scene);
+      hemiLight.intensity = 0.4;
       
-      // Create a simple sphere to test rendering
-      const sphere = BABYLON.MeshBuilder.CreateSphere('sphere1', {diameter: 2}, this.scene);
-      sphere.position.y = 1;
+      const dirLight = new BABYLON.DirectionalLight('dirLight', new BABYLON.Vector3(-1, -1, -1), this.scene);
+      dirLight.intensity = 0.8;
+      dirLight.diffuse = new BABYLON.Color3(1, 0.8, 0.6);
       
-      // Create ground
-      const ground = BABYLON.MeshBuilder.CreateGround('ground1', {width: 6, height: 6, subdivisions: 2}, this.scene);
+      // Create TapFrenzy logo (3D text)
+      await this.createLogo();
+      
+      // Create menu items
+      await this.createMenuItems();
+      
+      // Add particles for visual flair
+      this.createParticleSystem();
+      
+      // Add post-processing effects
+      this.setupPostProcessing();
+      
+      // Create Buzzer character placeholder
+      await this.createBuzzerCharacter();
+      
+      // Start background music
+      this.startBackgroundMusic();
       
       console.log('✅ Basic geometry created');
 
@@ -120,28 +124,42 @@ export class Menu3DScene implements Scene {
 
     const BABYLON = window.BABYLON;
     
-    // Create smooth camera sweep animation
-    const animationAlpha = BABYLON.Animation.CreateAndStartAnimation(
-      'cameraAlpha',
-      this.camera,
-      'alpha',
+    // Create smooth camera movement animation
+    const animationX = new BABYLON.Animation(
+      'cameraAnimationX',
+      'position.x',
       60,
-      600, // 10 seconds
-      this.camera.alpha,
-      this.camera.alpha + Math.PI * 2,
-      BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-    );
-
-    const animationBeta = BABYLON.Animation.CreateAndStartAnimation(
-      'cameraBeta',
-      this.camera,
-      'beta',
-      60,
-      300, // 5 seconds  
-      this.camera.beta,
-      this.camera.beta + 0.2,
+      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
       BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
     );
+
+    const keysX = [
+      { frame: 0, value: 0 },
+      { frame: 300, value: 5 },
+      { frame: 600, value: -5 },
+      { frame: 900, value: 0 }
+    ];
+
+    animationX.setKeys(keysX);
+
+    const animationY = new BABYLON.Animation(
+      'cameraAnimationY',
+      'position.y',
+      60,
+      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+      BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
+    );
+
+    const keysY = [
+      { frame: 0, value: 5 },
+      { frame: 450, value: 8 },
+      { frame: 900, value: 5 }
+    ];
+
+    animationY.setKeys(keysY);
+
+    this.camera.animations = [animationX, animationY];
+    this.scene.beginAnimation(this.camera, 0, 900, true);
   }
 
   private async createLogo(): Promise<void> {
@@ -149,28 +167,93 @@ export class Menu3DScene implements Scene {
 
     const BABYLON = window.BABYLON;
 
-    // Create 3D text for "TAP FRENZY"
-    const logoText = BABYLON.MeshBuilder.CreateGround('logoGround', {width: 8, height: 2}, this.scene);
-    logoText.position.y = 3;
-    logoText.position.z = -2;
+    // Create multiple 3D boxes to form "TAP FRENZY" text
+    const logoText = [
+      // T
+      { pos: [-6, 3, 0], scale: [0.3, 2, 0.3] },
+      { pos: [-6, 4, 0], scale: [1, 0.3, 0.3] },
+      // A  
+      { pos: [-4.5, 2.5, 0], scale: [0.3, 1.5, 0.3] },
+      { pos: [-4.5, 4, 0], scale: [0.3, 1, 0.3] },
+      { pos: [-4, 3.5, 0], scale: [0.8, 0.3, 0.3] },
+      { pos: [-3.5, 2.5, 0], scale: [0.3, 1.5, 0.3] },
+      // P
+      { pos: [-2.5, 3, 0], scale: [0.3, 2, 0.3] },
+      { pos: [-2, 4, 0], scale: [0.8, 0.3, 0.3] },
+      { pos: [-1.7, 3.5, 0], scale: [0.3, 0.5, 0.3] },
+      { pos: [-2, 3.2, 0], scale: [0.5, 0.3, 0.3] },
+    ];
 
-    // Create glowing material for logo
     const logoMaterial = new BABYLON.StandardMaterial('logoMat', this.scene);
     logoMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.8, 1.0);
     logoMaterial.diffuseColor = new BABYLON.Color3(0.1, 0.4, 1.0);
-    logoText.material = logoMaterial;
+    logoMaterial.specularColor = new BABYLON.Color3(1, 1, 1);
 
-    // Add pulsing glow animation
-    const glowAnimation = BABYLON.Animation.CreateAndStartAnimation(
-      'logoGlow',
-      logoMaterial,
-      'emissiveColor',
-      60,
-      120,
-      logoMaterial.emissiveColor,
-      new BABYLON.Color3(0.5, 1.0, 1.5),
-      BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
-    );
+    logoText.forEach((letter, index) => {
+      const box = BABYLON.MeshBuilder.CreateBox(`logo${index}`, {
+        width: letter.scale[0],
+        height: letter.scale[1],
+        depth: letter.scale[2]
+      }, this.scene);
+      
+      box.position = new BABYLON.Vector3(letter.pos[0], letter.pos[1], letter.pos[2]);
+      box.material = logoMaterial;
+
+      // Add floating animation with different phases for each letter
+      const floatAnimation = new BABYLON.Animation(
+        `logoFloat${index}`,
+        'position.y',
+        60,
+        BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+        BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+      );
+
+      const keys = [
+        { frame: 0, value: letter.pos[1] },
+        { frame: 60 + index * 5, value: letter.pos[1] + 0.2 },
+        { frame: 120 + index * 5, value: letter.pos[1] }
+      ];
+
+      floatAnimation.setKeys(keys);
+      box.animations = [floatAnimation];
+      this.scene!.beginAnimation(box, 0, 120 + index * 5, true);
+    });
+
+    // Create "FRENZY" text below
+    const frenzyBoxes = [
+      // F
+      { pos: [1, 1.5, 0], scale: [0.3, 2, 0.3] },
+      { pos: [1.5, 2.3, 0], scale: [0.8, 0.3, 0.3] },
+      { pos: [1.5, 1.8, 0], scale: [0.6, 0.3, 0.3] },
+      // R
+      { pos: [2.5, 1.5, 0], scale: [0.3, 2, 0.3] },
+      { pos: [3, 2.3, 0], scale: [0.8, 0.3, 0.3] },
+      { pos: [3.2, 2, 0], scale: [0.3, 0.6, 0.3] },
+      { pos: [3, 1.8, 0], scale: [0.5, 0.3, 0.3] },
+      { pos: [3.2, 1.2, 0], scale: [0.6, 0.3, 0.3] },
+      // E
+      { pos: [4, 1.5, 0], scale: [0.3, 2, 0.3] },
+      { pos: [4.5, 2.3, 0], scale: [0.8, 0.3, 0.3] },
+      { pos: [4.5, 1.8, 0], scale: [0.6, 0.3, 0.3] },
+      { pos: [4.5, 0.7, 0], scale: [0.8, 0.3, 0.3] }
+    ];
+
+    const frenzyMaterial = new BABYLON.StandardMaterial('frenzyMat', this.scene);
+    frenzyMaterial.emissiveColor = new BABYLON.Color3(1.0, 0.5, 0.1);
+    frenzyMaterial.diffuseColor = new BABYLON.Color3(1.0, 0.3, 0.0);
+
+    frenzyBoxes.forEach((letter, index) => {
+      const box = BABYLON.MeshBuilder.CreateBox(`frenzy${index}`, {
+        width: letter.scale[0],
+        height: letter.scale[1], 
+        depth: letter.scale[2]
+      }, this.scene);
+      
+      box.position = new BABYLON.Vector3(letter.pos[0], letter.pos[1], letter.pos[2]);
+      box.material = frenzyMaterial;
+    });
+
+    console.log('✅ TapFrenzy logo created');
   }
 
   private async createMenuItems(): Promise<void> {
@@ -178,59 +261,134 @@ export class Menu3DScene implements Scene {
 
     const BABYLON = window.BABYLON;
     const menuItems = [
-      { name: 'Play', position: new BABYLON.Vector3(-3, 1, 0) },
-      { name: 'Party Packs', position: new BABYLON.Vector3(-1, 1, 0) },
-      { name: 'Options', position: new BABYLON.Vector3(1, 1, 0) },
-      { name: 'How to Play', position: new BABYLON.Vector3(3, 1, 0) },
-      { name: 'Quit', position: new BABYLON.Vector3(0, -1, 0) }
+      { name: 'Play', position: new BABYLON.Vector3(-4, -1, 0), color: [0.1, 0.8, 0.3] },
+      { name: 'Party Packs', position: new BABYLON.Vector3(-1, -1, 0), color: [0.8, 0.3, 0.8] },
+      { name: 'Options', position: new BABYLON.Vector3(2, -1, 0), color: [0.3, 0.5, 0.8] },
+      { name: 'How to Play', position: new BABYLON.Vector3(-2.5, -2.5, 0), color: [0.8, 0.6, 0.1] },
+      { name: 'Quit', position: new BABYLON.Vector3(0.5, -2.5, 0), color: [0.8, 0.2, 0.2] }
     ];
 
     menuItems.forEach((item, index) => {
-      const menuBox = BABYLON.MeshBuilder.CreateBox(item.name, {width: 1.5, height: 0.5, depth: 0.1}, this.scene);
+      // Create main menu button
+      const menuBox = BABYLON.MeshBuilder.CreateBox(item.name, {width: 2, height: 0.6, depth: 0.2}, this.scene);
       menuBox.position = item.position;
 
       // Create glowing material for menu items
       const material = new BABYLON.StandardMaterial(item.name + 'Mat', this.scene);
-      material.emissiveColor = new BABYLON.Color3(0.1, 0.6, 0.8);
-      material.diffuseColor = new BABYLON.Color3(0.05, 0.3, 0.6);
+      material.emissiveColor = new BABYLON.Color3(item.color[0], item.color[1], item.color[2]);
+      material.diffuseColor = new BABYLON.Color3(item.color[0] * 0.5, item.color[1] * 0.5, item.color[2] * 0.5);
+      material.specularColor = new BABYLON.Color3(1, 1, 1);
       menuBox.material = material;
 
-      // Add hover effect
+      // Create text label (simple plane with text texture)
+      const textPlane = BABYLON.MeshBuilder.CreatePlane(item.name + 'Text', {width: 1.8, height: 0.4}, this.scene);
+      textPlane.position = item.position.clone();
+      textPlane.position.z += 0.11; // Slightly in front
+      
+      // Create dynamic texture for text
+      const textTexture = new BABYLON.DynamicTexture(item.name + 'TextTexture', {width: 512, height: 128}, this.scene);
+      textTexture.hasAlpha = true;
+      textTexture.drawText(item.name, null, null, '36px Arial', '#FFFFFF', 'transparent', true, true);
+      
+      const textMaterial = new BABYLON.StandardMaterial(item.name + 'TextMat', this.scene);
+      textMaterial.diffuseTexture = textTexture;
+      textMaterial.emissiveTexture = textTexture;
+      textMaterial.backFaceCulling = false;
+      textPlane.material = textMaterial;
+
+      // Add hover effect using action manager
       menuBox.actionManager = new BABYLON.ActionManager(this.scene);
+      
+      // Mouse over effect
       menuBox.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
         BABYLON.ActionManager.OnPointerOverTrigger,
         () => {
-          material.emissiveColor = new BABYLON.Color3(0.3, 0.9, 1.0);
+          material.emissiveColor = new BABYLON.Color3(item.color[0] * 1.5, item.color[1] * 1.5, item.color[2] * 1.5);
+          // Scale up on hover
+          const scaleAnimation = BABYLON.Animation.CreateAndStartAnimation(
+            'scaleUp',
+            menuBox,
+            'scaling',
+            60,
+            10,
+            menuBox.scaling,
+            new BABYLON.Vector3(1.1, 1.1, 1.1),
+            BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+          );
         }
       ));
       
+      // Mouse out effect
       menuBox.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
         BABYLON.ActionManager.OnPointerOutTrigger,
         () => {
-          material.emissiveColor = new BABYLON.Color3(0.1, 0.6, 0.8);
+          material.emissiveColor = new BABYLON.Color3(item.color[0], item.color[1], item.color[2]);
+          // Scale back down
+          const scaleAnimation = BABYLON.Animation.CreateAndStartAnimation(
+            'scaleDown',
+            menuBox,
+            'scaling',
+            60,
+            10,
+            menuBox.scaling,
+            new BABYLON.Vector3(1.0, 1.0, 1.0),
+            BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+          );
         }
       ));
 
-      // Add click handler
+      // Click handler
       menuBox.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
         BABYLON.ActionManager.OnPickTrigger,
         () => {
           this.handleMenuClick(item.name);
+          // Click animation
+          const clickAnimation = BABYLON.Animation.CreateAndStartAnimation(
+            'click',
+            menuBox,
+            'scaling',
+            60,
+            5,
+            menuBox.scaling,
+            new BABYLON.Vector3(0.9, 0.9, 0.9),
+            BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+          );
+          setTimeout(() => {
+            BABYLON.Animation.CreateAndStartAnimation(
+              'clickRecover',
+              menuBox,
+              'scaling',
+              60,
+              10,
+              menuBox.scaling,
+              new BABYLON.Vector3(1.0, 1.0, 1.0),
+              BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            );
+          }, 100);
         }
       ));
 
-      // Add floating animation
-      const floatAnimation = BABYLON.Animation.CreateAndStartAnimation(
+      // Add floating animation with different timing for each item
+      const floatAnimation = new BABYLON.Animation(
         item.name + 'Float',
-        menuBox,
         'position.y',
         60,
-        120 + index * 20, // Different timing for each item
-        item.position.y,
-        item.position.y + 0.2,
-        BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
+        BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+        BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
       );
+
+      const keys = [
+        { frame: 0, value: item.position.y },
+        { frame: 60 + index * 10, value: item.position.y + 0.1 },
+        { frame: 120 + index * 10, value: item.position.y }
+      ];
+
+      floatAnimation.setKeys(keys);
+      menuBox.animations = [floatAnimation];
+      this.scene!.beginAnimation(menuBox, 0, 120 + index * 10, true);
     });
+
+    console.log('✅ Menu items created with interactions');
   }
 
   private createParticleSystem(): void {
@@ -269,15 +427,40 @@ export class Menu3DScene implements Scene {
 
     const BABYLON = window.BABYLON;
 
-    // Add bloom effect
-    const defaultPipeline = new BABYLON.DefaultRenderingPipeline('defaultPipeline', true, this.scene, [this.camera]);
-    defaultPipeline.bloomEnabled = true;
-    defaultPipeline.bloomThreshold = 0.8;
-    defaultPipeline.bloomWeight = 0.3;
-    defaultPipeline.bloomKernel = 64;
+    try {
+      // Add bloom effect for enhanced visuals
+      const defaultPipeline = new BABYLON.DefaultRenderingPipeline(
+        'defaultPipeline',
+        true, // HDR enabled
+        this.scene,
+        [this.camera]
+      );
+      
+      // Configure bloom
+      defaultPipeline.bloomEnabled = true;
+      defaultPipeline.bloomThreshold = 0.8;
+      defaultPipeline.bloomWeight = 0.3;
+      defaultPipeline.bloomKernel = 64;
 
-    // Add FXAA anti-aliasing
-    defaultPipeline.fxaaEnabled = true;
+      // Add FXAA anti-aliasing
+      defaultPipeline.fxaaEnabled = true;
+
+      // Add tone mapping
+      defaultPipeline.imageProcessingEnabled = true;
+      if (defaultPipeline.imageProcessing) {
+        defaultPipeline.imageProcessing.toneMappingEnabled = true;
+        defaultPipeline.imageProcessing.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
+        defaultPipeline.imageProcessing.exposure = 0.6;
+        defaultPipeline.imageProcessing.contrast = 1.6;
+        defaultPipeline.imageProcessing.colorCurvesEnabled = true;
+      }
+
+      console.log('✅ Post-processing effects enabled (bloom, FXAA, tone mapping)');
+      
+    } catch (error) {
+      console.warn('⚠️  Post-processing setup failed:', error);
+      // Fallback to basic rendering
+    }
   }
 
   private async createBuzzerCharacter(): Promise<void> {
@@ -384,21 +567,55 @@ export class Menu3DScene implements Scene {
     console.log(`Menu clicked: ${itemName}`);
     this.buzzerSpeak(`Je hebt ${itemName} gekozen!`);
 
-    // TODO: Implement actual menu navigation
+    // Implement actual menu navigation
     switch (itemName) {
       case 'Play':
-        // Transition to lobby scene
+        // Transition to 3D lobby scene
+        this.transitionToLobby();
         break;
       case 'Options':
-        // Show options menu
+        this.buzzerSpeak('Opties menu komt binnenkort!');
         break;
       case 'How to Play':
-        // Show tutorial
+        this.buzzerSpeak('Tutorial komt binnenkort!');
+        break;
+      case 'Party Packs':
+        this.buzzerSpeak('Party Packs komen binnenkort!');
         break;
       case 'Quit':
-        // Close application
+        this.buzzerSpeak('Bedankt voor het spelen van TapFrenzy!');
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && window.close) {
+            window.close();
+          }
+        }, 2000);
         break;
     }
+  }
+
+  private transitionToLobby(): void {
+    console.log('🎮 Transitioning to 3D Lobby...');
+    this.showSubtitle('🎮 Lobby wordt geladen...');
+    
+    // Create room first
+    const net = (window as any).gameNet;
+    if (net) {
+      net.send({ t: 'host:create' });
+    }
+    
+    // Import and switch to lobby scene
+    import('./lobby3d').then(({ Lobby3DScene }) => {
+      // Get scene manager from host.ts context
+      const sceneRoot = document.getElementById('scene') as HTMLElement;
+      if (sceneRoot && (window as any).gameSceneManager) {
+        (window as any).gameSceneManager.set(new Lobby3DScene());
+      } else {
+        console.error('Scene manager not available for transition');
+      }
+    }).catch(error => {
+      console.error('Failed to load lobby scene:', error);
+      this.buzzerSpeak('Er ging iets mis bij het laden van de lobby. Probeer opnieuw.');
+    });
   }
 
   private handleResize(): void {
