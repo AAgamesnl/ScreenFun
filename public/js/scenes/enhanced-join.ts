@@ -4,12 +4,10 @@ import type { S2C } from '../net';
 
 export class EnhancedJoinScene implements Scene {
   private el?: HTMLElement;
-  private onJoin?: (roomCode: string, playerName: string) => void;
+  private onJoin: ((roomCode: string, playerName: string) => void) | undefined;
 
   constructor(onJoin?: (roomCode: string, playerName: string) => void) {
-    if (onJoin) {
-      this.onJoin = onJoin;
-    }
+    this.onJoin = onJoin;
   }
 
   mount(root: HTMLElement): void {
