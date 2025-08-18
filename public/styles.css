@@ -535,3 +535,424 @@ body {
   color: var(--text);
   margin-bottom: 1rem;
 }
+
+/* ===== 2D MENU SCENE - AAA BUBBLE UI (4K Ready) ===== */
+.menu2d-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, 
+    #0b0e14 0%, 
+    #1a1a2e 35%, 
+    #16213e 70%, 
+    #0b0e14 100%);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: var(--tv-safe);
+}
+
+/* Background Effects */
+.background-effects {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.3;
+  animation: float 8s ease-in-out infinite;
+}
+
+.glow-orb.orb1 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.glow-orb.orb2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, var(--accent-2) 0%, transparent 70%);
+  bottom: 20%;
+  right: 15%;
+  animation-delay: -3s;
+}
+
+.glow-orb.orb3 {
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, var(--success) 0%, transparent 70%);
+  top: 60%;
+  left: 60%;
+  animation-delay: -6s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.05); }
+  50% { transform: translate(-20px, 30px) scale(0.95); }
+  75% { transform: translate(20px, 20px) scale(1.02); }
+}
+
+/* Logo Section */
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+  margin-bottom: 4rem;
+  z-index: 2;
+  position: relative;
+}
+
+.game-logo {
+  text-align: center;
+}
+
+.logo-text {
+  font-size: clamp(4rem, 8vw, 8rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 40px rgba(110, 231, 255, 0.3);
+  letter-spacing: -0.02em;
+}
+
+.logo-subtitle {
+  font-size: clamp(1.2rem, 2.5vw, 2rem);
+  color: var(--muted);
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+/* Buzzer 2D Portrait */
+.buzzer-portrait {
+  position: relative;
+  z-index: 2;
+}
+
+.buzzer-avatar {
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--success) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 0 40px rgba(110, 231, 255, 0.4),
+    inset 0 0 40px rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.buzzer-face {
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.buzzer-face.float {
+  animation: buzzerFloat 3s ease-in-out infinite;
+}
+
+@keyframes buzzerFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.buzzer-eye {
+  width: 20px;
+  height: 20px;
+  background: #000;
+  border-radius: 50%;
+  position: absolute;
+  top: 45px;
+  transition: transform 0.15s ease;
+}
+
+.buzzer-eye.left { left: 45px; }
+.buzzer-eye.right { right: 45px; }
+
+.buzzer-eye.blink {
+  transform: scaleY(0.1);
+}
+
+.buzzer-mouth {
+  width: 30px;
+  height: 15px;
+  background: #000;
+  border-radius: 0 0 30px 30px;
+  position: absolute;
+  bottom: 45px;
+  transition: transform 0.2s ease;
+}
+
+.buzzer-mouth.speak {
+  transform: scaleY(1.3) scaleX(0.9);
+}
+
+/* Menu Buttons - Bubble Style */
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  z-index: 2;
+  position: relative;
+  align-items: center;
+}
+
+.bubble-btn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1.5rem;
+  padding: 1.5rem 3rem;
+  min-width: 280px;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-family: var(--font-title);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Glassmorphism effect */
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.bubble-btn.primary {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  color: #031018;
+  box-shadow: 
+    0 12px 40px rgba(110, 231, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.bubble-btn.secondary {
+  color: var(--text);
+}
+
+.bubble-btn:hover, .bubble-btn.hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.bubble-btn.primary:hover, .bubble-btn.primary.hover {
+  box-shadow: 
+    0 16px 48px rgba(110, 231, 255, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  filter: brightness(1.1);
+}
+
+.bubble-btn:active {
+  transform: translateY(-2px) scale(1.0);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-icon {
+  font-size: 1.8rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.btn-text {
+  font-size: 1.3rem;
+  letter-spacing: 0.02em;
+}
+
+/* QR Code HUD - Always Visible Top-Right */
+.qr-hud {
+  position: fixed;
+  top: var(--tv-safe);
+  right: var(--tv-safe);
+  z-index: 10;
+  min-width: 280px;
+}
+
+.qr-container {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.qr-image {
+  width: 200px;
+  height: 200px;
+  background: white;
+  border-radius: var(--radius-sm);
+  display: block;
+  margin: 0 auto 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.room-code-display {
+  margin-bottom: 1rem;
+}
+
+.room-label {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.room-code {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--accent);
+  background: rgba(110, 231, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent);
+  letter-spacing: 0.2em;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.copy-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.fallback-message {
+  color: var(--danger);
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.manual-url {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-family: monospace;
+  word-break: break-all;
+}
+
+/* Responsive Design for 2D Menu */
+@media (max-width: 1200px) {
+  .logo-section {
+    flex-direction: column;
+    gap: 2rem;
+    text-align: center;
+  }
+  
+  .menu-buttons {
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .bubble-btn {
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .qr-hud {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin-top: 2rem;
+    min-width: auto;
+  }
+  
+  .qr-container {
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  
+  .qr-image {
+    width: 150px;
+    height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-text {
+    font-size: 3rem;
+  }
+  
+  .logo-subtitle {
+    font-size: 1rem;
+  }
+  
+  .buzzer-avatar {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .buzzer-face {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .bubble-btn {
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+  }
+}
+
+/* High-DPI / 4K Support */
+@media (min-resolution: 2dppx) {
+  .logo-text {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  .qr-image {
+    image-rendering: crisp-edges;
+  }
+  
+  .bubble-btn {
+    -webkit-font-smoothing: antialiased;
+  }
+}
