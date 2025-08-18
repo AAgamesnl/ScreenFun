@@ -95,17 +95,18 @@ export class PowerUpSystem {
       };
 
       const handleTouchStart = (e: TouchEvent) => {
+        if (!e.touches.length) return;
         isSwipeActive = true;
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
+        startX = e.touches[0]!.clientX;
+        startY = e.touches[0]!.clientY;
       };
 
       const handleTouchMove = (e: TouchEvent) => {
         e.preventDefault();
-        if (!isSwipeActive) return;
+        if (!isSwipeActive || !e.touches.length) return;
         
-        const currentX = e.touches[0].clientX;
-        const currentY = e.touches[0].clientY;
+        const currentX = e.touches[0]!.clientX;
+        const currentY = e.touches[0]!.clientY;
         
         const deltaX = currentX - startX;
         const deltaY = currentY - startY;

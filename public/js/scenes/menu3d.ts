@@ -209,9 +209,9 @@ export class Menu3DScene implements Scene {
       );
 
       const keys = [
-        { frame: 0, value: letter.pos[1] },
-        { frame: 60 + index * 5, value: letter.pos[1] + 0.2 },
-        { frame: 120 + index * 5, value: letter.pos[1] }
+        { frame: 0, value: letter.pos[1]! },
+        { frame: 60 + index * 5, value: letter.pos[1]! + 0.2 },
+        { frame: 120 + index * 5, value: letter.pos[1]! }
       ];
 
       floatAnimation.setKeys(keys);
@@ -275,8 +275,8 @@ export class Menu3DScene implements Scene {
 
       // Create glowing material for menu items
       const material = new BABYLON.StandardMaterial(item.name + 'Mat', this.scene);
-      material.emissiveColor = new BABYLON.Color3(item.color[0], item.color[1], item.color[2]);
-      material.diffuseColor = new BABYLON.Color3(item.color[0] * 0.5, item.color[1] * 0.5, item.color[2] * 0.5);
+      material.emissiveColor = new BABYLON.Color3(item.color[0]!, item.color[1]!, item.color[2]!);
+      material.diffuseColor = new BABYLON.Color3(item.color[0]! * 0.5, item.color[1]! * 0.5, item.color[2]! * 0.5);
       material.specularColor = new BABYLON.Color3(1, 1, 1);
       menuBox.material = material;
 
@@ -303,7 +303,7 @@ export class Menu3DScene implements Scene {
       menuBox.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
         BABYLON.ActionManager.OnPointerOverTrigger,
         () => {
-          material.emissiveColor = new BABYLON.Color3(item.color[0] * 1.5, item.color[1] * 1.5, item.color[2] * 1.5);
+          material.emissiveColor = new BABYLON.Color3(item.color[0]! * 1.5, item.color[1]! * 1.5, item.color[2]! * 1.5);
           // Scale up on hover
           const scaleAnimation = BABYLON.Animation.CreateAndStartAnimation(
             'scaleUp',
