@@ -1,4 +1,4 @@
-// Server ScreenFun
+// Server TapFrenzy
 import express, { Request, Response, NextFunction } from "express";
 import http from "http";
 import { Server, Socket } from "socket.io";
@@ -50,6 +50,19 @@ app.get("/favicon.ico", (_req: Request, res: Response) => {
 // Serve static files with basic caching headers
 app.use(
   express.static(path.join(__root, "public"), {
+    maxAge: "1h",
+    etag: false,
+    setHeaders: (res: Response, filePath: string) => {
+      if (filePath.endsWith(".js")) {
+        res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+      }
+    },
+  })
+);
+
+// Also serve compiled JS files from dist/public (for TypeScript compiled files)
+app.use(
+  express.static(path.join(__root, "dist/public"), {
     maxAge: "1h",
     etag: false,
     setHeaders: (res: Response, filePath: string) => {
