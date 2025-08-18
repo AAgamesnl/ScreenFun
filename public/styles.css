@@ -184,30 +184,332 @@ body {
   margin-top: 1rem;
 }
 
-/* Player Lobby Scene Styles */
-.player-lobby-scene {
-  padding: 2rem;
+/* TapFrenzy Enhanced Mobile Styles */
+
+/* Enhanced Join Scene */
+.enhanced-join-scene {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  display: flex;
+  flex-direction: column;
+}
+
+.join-container {
+  flex: 1;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
   text-align: center;
+  margin-bottom: 2rem;
+  animation: fadeInDown 0.6s ease-out;
 }
 
-.player-lobby-content h1 {
+.app-logo {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.logo-text {
   font-size: 2.5rem;
-  color: var(--success);
-  margin-bottom: 2rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  letter-spacing: -1px;
 }
 
-#room-info {
-  background: var(--card);
-  padding: 1.5rem;
-  border-radius: var(--radius);
-  margin-bottom: 2rem;
+.logo-text.frenzy {
+  color: #FFD700;
+  animation: glow 2s ease-in-out infinite alternate;
 }
 
-#room-code-display {
+@keyframes glow {
+  from { text-shadow: 0 4px 8px rgba(0,0,0,0.3), 0 0 20px rgba(255,215,0,0.3); }
+  to { text-shadow: 0 4px 8px rgba(0,0,0,0.3), 0 0 20px rgba(255,215,0,0.8), 0 0 30px rgba(255,215,0,0.4); }
+}
+
+.app-tagline {
+  color: rgba(255,255,255,0.9);
+  font-size: 0.9rem;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+.join-form-container {
+  background: rgba(255,255,255,0.95);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  backdrop-filter: blur(10px);
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.form-title {
+  text-align: center;
+  color: #333;
   font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--accent);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+}
+
+.input-group label {
+  display: block;
+  color: #555;
+  font-weight: 600;
   margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+  box-sizing: border-box;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  transform: translateY(-1px);
+}
+
+.input-hint {
+  font-size: 0.8rem;
+  color: #777;
+  margin-top: 0.3rem;
+}
+
+.avatar-selection {
+  margin-bottom: 1.5rem;
+}
+
+.avatar-selection label {
+  display: block;
+  color: #555;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.avatar-option {
+  aspect-ratio: 1;
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
+  background: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.avatar-option:hover {
+  transform: scale(1.05);
+  border-color: #667eea;
+}
+
+.avatar-option.selected {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  transform: scale(1.1);
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+}
+
+.join-button {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.join-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.join-button:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.join-button.ready {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.join-button.loading {
+  background: #667eea;
+  cursor: not-allowed;
+}
+
+.btn-text {
+  transition: opacity 0.3s ease;
+}
+
+.btn-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.join-button.loading .btn-text {
+  opacity: 0;
+}
+
+.join-button.loading .btn-loading {
+  opacity: 1;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  background: #f44336;
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.error-message.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.features-section {
+  background: rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+.features-section h3 {
+  color: white;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.features-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255,255,255,0.9);
+  font-size: 0.9rem;
+}
+
+.feature-icon {
+  font-size: 1.2rem;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .join-container {
+    padding: 15px;
+  }
+  
+  .join-form-container {
+    padding: 1.5rem 1rem;
+  }
+  
+  .logo-text {
+    font-size: 2rem;
+  }
+  
+  .features-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Safe area support for notched devices */
+@supports (padding: max(0px)) {
+  .enhanced-join-scene {
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
 }
 
 #player-count {
