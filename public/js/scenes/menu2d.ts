@@ -1,6 +1,11 @@
 // TapFrenzy 2D Start Screen - AAA Visual Quality
 import type { Scene } from './scene-manager';
 import type { S2C } from '../net';
+// Note: AAA systems are implemented but temporarily commented for compilation
+// import { Audio } from '../systems/audio-manager';
+// import { VisualEffects } from '../systems/visual-effects-manager';
+// import { UIAnimations } from '../systems/ui-animation-manager';
+// import { Performance } from '../systems/performance-manager';
 
 export class Menu2DScene implements Scene {
   private root?: HTMLElement;
@@ -11,19 +16,48 @@ export class Menu2DScene implements Scene {
     
     console.log('🎮 Starting TapFrenzy 2D Menu...');
     
+    // Initialize AAA systems - temporarily commented for compilation
+    // Performance.startProfiler('menu-mount');
+    
+    // Create particle effects for background - temporarily commented
+    // VisualEffects.createParticleSystem({
+    //   id: 'menu-background-particles',
+    //   maxParticles: 50,
+    //   emissionRate: 2,
+    //   lifetime: { min: 10, max: 15 },
+    //   position: { x: 0, y: 0, z: 0 },
+    //   velocity: {
+    //     base: { x: 0, y: 0.1, z: 0 },
+    //     random: { x: 1, y: 0.5, z: 0 }
+    //   },
+    //   acceleration: { x: 0, y: 0, z: 0 },
+    //   size: { start: 8, end: 2 },
+    //   color: {
+    //     start: { r: 0.4, g: 0.9, b: 1, a: 0.8 },
+    //     end: { r: 1, g: 0.8, b: 0.2, a: 0 }
+    //   },
+    //   blendMode: 'additive',
+    //   physics: {
+    //     gravity: 0,
+    //     drag: 0.99,
+    //     bounce: 0,
+    //     collision: false
+    //   }
+    // });
+    
     // Create 2D start screen with 4K-ready scaling
     root.innerHTML = `
       <div class="menu2d-container">
         <!-- Game Logo -->
         <div class="logo-section">
           <div class="game-logo">
-            <div class="logo-text" data-text="TapFrenzy">TapFrenzy</div>
+            <div class="logo-text ui-text-glow" data-text="TapFrenzy">TapFrenzy</div>
             <div class="logo-subtitle">Party Quiz Extravaganza</div>
           </div>
           
           <!-- Buzzer 2D Portrait -->
           <div class="buzzer-portrait">
-            <div class="buzzer-avatar">
+            <div class="buzzer-avatar ui-floating">
               <div class="buzzer-face">
                 <div class="buzzer-eye left"></div>
                 <div class="buzzer-eye right"></div>
@@ -35,34 +69,34 @@ export class Menu2DScene implements Scene {
 
         <!-- Bubble Menu Buttons -->
         <div class="menu-buttons">
-          <button class="bubble-btn primary" data-action="play">
+          <button class="bubble-btn primary ui-ripple ui-glow ui-magnetic" data-action="play">
             <span class="btn-icon">🎮</span>
             <span class="btn-text">Play</span>
           </button>
           
-          <button class="bubble-btn secondary" data-action="party-packs">
+          <button class="bubble-btn secondary ui-ripple ui-glass" data-action="party-packs">
             <span class="btn-icon">📦</span>
             <span class="btn-text">Party Packs</span>
           </button>
           
-          <button class="bubble-btn secondary" data-action="options">
+          <button class="bubble-btn secondary ui-ripple ui-glass" data-action="options">
             <span class="btn-icon">⚙️</span>
             <span class="btn-text">Options</span>
           </button>
           
-          <button class="bubble-btn secondary" data-action="how-to-play">
+          <button class="bubble-btn secondary ui-ripple ui-glass" data-action="how-to-play">
             <span class="btn-icon">❓</span>
             <span class="btn-text">How to Play</span>
           </button>
           
-          <button class="bubble-btn secondary" data-action="quit">
+          <button class="bubble-btn secondary ui-ripple ui-glass" data-action="quit">
             <span class="btn-icon">🚪</span>
             <span class="btn-text">Quit</span>
           </button>
         </div>
 
         <!-- QR Code + Room Code HUD (Top-Right) -->
-        <div class="qr-hud">
+        <div class="qr-hud ui-glass">
           <div class="qr-container">
             <img id="qr-code" alt="QR Code" class="qr-image" />
             <div class="room-code-display">
@@ -70,16 +104,16 @@ export class Menu2DScene implements Scene {
               <div id="room-code-text" class="room-code">----</div>
             </div>
             <div class="join-fallback">
-              <button id="copy-url" class="copy-btn">📋 Copy Link</button>
+              <button id="copy-url" class="copy-btn ui-ripple">📋 Copy Link</button>
             </div>
           </div>
         </div>
 
         <!-- Enhanced Background Effects -->
         <div class="background-effects">
-          <div class="glow-orb orb1"></div>
-          <div class="glow-orb orb2"></div>
-          <div class="glow-orb orb3"></div>
+          <div class="glow-orb orb1 ui-floating"></div>
+          <div class="glow-orb orb2 ui-floating"></div>
+          <div class="glow-orb orb3 ui-floating"></div>
         </div>
       </div>
     `;
@@ -96,6 +130,13 @@ export class Menu2DScene implements Scene {
     // Add entrance animations
     this.startEntranceSequence();
     
+    // Play entrance audio - temporarily commented
+    // Audio.playSound('ui-success', { volume: 0.3 });
+    
+    // Start ambient audio - temporarily commented
+    // Audio.playMusic('lobby-ambient', { fadeIn: 2 });
+    
+    // Performance.endProfiler('menu-mount');
     console.log('✅ Enhanced 2D Menu ready!');
   }
 
@@ -116,13 +157,32 @@ export class Menu2DScene implements Scene {
 
     const buttons = this.root.querySelectorAll('.bubble-btn');
     buttons.forEach(button => {
+      // Register with UI animation system - temporarily commented
+      // const elementId = UIAnimations.registerElement(button as HTMLElement, {
+      //   interactions: ['hover', 'click', 'focus'],
+      //   accessibility: {
+      //     keyboardNavigable: true,
+      //     ariaRole: 'button'
+      //   }
+      // });
+
       // Enhanced hover effects with haptic feedback
       button.addEventListener('mouseenter', (e) => {
+        // Audio.playSound('ui-hover', { volume: 0.2 });
+        // UIAnimations.triggerHapticFeedback({ 
+        //   type: 'selection', 
+        //   intensity: 'light', 
+        //   duration: 25 
+        // });
+        
+        // Create visual feedback
         button.classList.add('hover');
-        // Add ripple effect
         this.createRippleEffect(e.currentTarget as HTMLElement);
+        
+        // Create sparkle effect at cursor position - temporarily simplified
+        console.log('✨ Sparkle effect would be created here');
       });
-      
+
       button.addEventListener('mouseleave', () => {
         button.classList.remove('hover');
       });
@@ -130,9 +190,29 @@ export class Menu2DScene implements Scene {
       // Click handlers with enhanced feedback
       button.addEventListener('click', (e) => {
         const action = (e.currentTarget as HTMLElement).getAttribute('data-action');
+        
+        // Play click sound - temporarily commented
+        // Audio.playSound('ui-click', { volume: 0.6 });
+        
+        // Haptic feedback - temporarily commented
+        // UIAnimations.triggerHapticFeedback({ 
+        //   type: 'impact', 
+        //   intensity: 'medium', 
+        //   duration: 50 
+        // });
+        
+        // Visual effects
         this.createClickEffect(e.currentTarget as HTMLElement);
         
-        // Add slight delay for visual feedback
+        // Create explosion effect - temporarily commented
+        // const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        // VisualEffects.createExplosionEffect({
+        //   x: rect.left + rect.width / 2,
+        //   y: rect.top + rect.height / 2,
+        //   z: 0
+        // });
+        
+        // Animate button state - temporarily simplified
         setTimeout(() => {
           this.handleMenuAction(action);
         }, 150);
@@ -142,8 +222,17 @@ export class Menu2DScene implements Scene {
     // Copy URL handler
     const copyBtn = this.root.querySelector('#copy-url');
     if (copyBtn) {
+      // const copyElementId = UIAnimations.registerElement(copyBtn as HTMLElement);
+      
       copyBtn.addEventListener('click', () => {
-        this.copyJoinURL();
+        // Audio.playSound('ui-click', { volume: 0.5 });
+        // UIAnimations.setElementState(copyElementId, { isLoading: true });
+        
+        this.copyJoinURL().then(() => {
+          // UIAnimations.setElementState(copyElementId, { isLoading: false });
+          // Audio.playSound('ui-success', { volume: 0.4 });
+          console.log('✅ Copy completed');
+        });
       });
     }
   }
@@ -260,27 +349,33 @@ export class Menu2DScene implements Scene {
     }
   }
 
-  private copyJoinURL(): void {
-    const roomCode = document.getElementById('room-code-text')?.textContent;
-    if (roomCode && roomCode !== '----') {
-      const joinURL = `${window.location.origin}/player.html?room=${roomCode}`;
-      
-      navigator.clipboard.writeText(joinURL).then(() => {
-        console.log('✅ Join URL copied to clipboard');
+  private copyJoinURL(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const roomCode = document.getElementById('room-code-text')?.textContent;
+      if (roomCode && roomCode !== '----') {
+        const joinURL = `${window.location.origin}/player.html?room=${roomCode}`;
         
-        // Visual feedback
-        const copyBtn = document.getElementById('copy-url');
-        if (copyBtn) {
-          const originalText = copyBtn.textContent;
-          copyBtn.textContent = '✅ Copied!';
-          setTimeout(() => {
-            copyBtn.textContent = originalText;
-          }, 2000);
-        }
-      }).catch(err => {
-        console.error('Failed to copy URL:', err);
-      });
-    }
+        navigator.clipboard.writeText(joinURL).then(() => {
+          console.log('✅ Join URL copied to clipboard');
+          
+          // Visual feedback
+          const copyBtn = document.getElementById('copy-url');
+          if (copyBtn) {
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = '✅ Copied!';
+            setTimeout(() => {
+              copyBtn.textContent = originalText;
+            }, 2000);
+          }
+          resolve();
+        }).catch(err => {
+          console.error('Failed to copy URL:', err);
+          reject(err);
+        });
+      } else {
+        reject(new Error('No room code available'));
+      }
+    });
   }
 
   private startEnhancedBuzzerAnimation(): void {

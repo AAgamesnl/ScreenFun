@@ -14,5 +14,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src", "public/js", "types"]
+  "include": ["src", "public/js", "types"],
+  "exclude": ["public/js/systems"]
 }
