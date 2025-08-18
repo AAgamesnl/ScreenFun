@@ -78,6 +78,38 @@ app.get("/health", (_req: Request, res: Response) => {
   res.status(200).send("ok");
 });
 
+// QR Code generation endpoint
+app.get("/qr", async (req: Request, res: Response) => {
+  const text = req.query.text as string;
+  
+  if (!text) {
+    return res.status(400).json({ error: "Missing 'text' parameter" });
+  }
+  
+  try {
+    // Generate QR code as PNG buffer
+    const qrBuffer = await QRCode.toBuffer(text, {
+      type: 'png',
+      width: 256,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    });
+    
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=300'); // Cache for 5 minutes
+    res.send(qrBuffer);
+  } catch (error) {
+    console.error('QR code generation failed:', error);
+    res.status(500).json({ 
+      error: "Failed to generate QR code",
+      fallback: text 
+    });
+  }
+});
+
 app.get("/api/ips", (_req: Request, res: Response) => {
   const nets = os.networkInterfaces();
   const ips: string[] = [];
