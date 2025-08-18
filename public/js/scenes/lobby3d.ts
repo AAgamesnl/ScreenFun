@@ -59,13 +59,21 @@ export class Lobby3DScene implements Scene {
       this.camera = new BABYLON.FreeCamera('lobbyCamera', new BABYLON.Vector3(0, 5, -8), this.scene);
       this.camera.setTarget(BABYLON.Vector3.Zero());
       
-      // Lighting
-      const hemiLight = new BABYLON.HemisphericLight('hemiLight', new BABYLON.Vector3(0, 1, 0), this.scene);
-      hemiLight.intensity = 0.6;
+      // AAA Lighting setup with HDRI environment
+      await this.setupLobbyHDRIEnvironment();
       
-      const dirLight = new BABYLON.DirectionalLight('dirLight', new BABYLON.Vector3(-1, -1, -1), this.scene);
-      dirLight.intensity = 1.0;
-      dirLight.diffuse = new BABYLON.Color3(0.8, 0.9, 1.0);
+      // Enhanced key+fill+rim lighting setup
+      const keyLight = new BABYLON.DirectionalLight('keyLight', new BABYLON.Vector3(-0.3, -1, -0.6), this.scene);
+      keyLight.intensity = 1.5;
+      keyLight.diffuse = new BABYLON.Color3(1.0, 0.9, 0.8);
+      
+      const fillLight = new BABYLON.HemisphericLight('fillLight', new BABYLON.Vector3(0, 1, 0), this.scene);
+      fillLight.intensity = 0.4;
+      fillLight.diffuse = new BABYLON.Color3(0.6, 0.7, 1.0);
+      
+      const rimLight = new BABYLON.DirectionalLight('rimLight', new BABYLON.Vector3(0.8, 0.2, -1), this.scene);
+      rimLight.intensity = 0.8;
+      rimLight.diffuse = new BABYLON.Color3(0.9, 1.0, 1.2);
 
       // Create lobby environment
       await this.createLobbyEnvironment();
@@ -108,35 +116,39 @@ export class Lobby3DScene implements Scene {
 
     const BABYLON = window.BABYLON;
 
-    // Create futuristic platform/stage
+    // Create AAA quality futuristic platform/stage with PBR
     const platform = BABYLON.MeshBuilder.CreateCylinder('platform', {
-      height: 0.2,
-      diameterTop: 12,
-      diameterBottom: 12,
-      tessellation: 8
+      height: 0.3,
+      diameterTop: 14,
+      diameterBottom: 14,
+      tessellation: 16
     }, this.scene);
-    platform.position.y = -0.1;
+    platform.position.y = -0.15;
 
-    const platformMaterial = new BABYLON.StandardMaterial('platformMat', this.scene);
-    platformMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.2, 0.4);
-    platformMaterial.diffuseColor = new BABYLON.Color3(0.05, 0.1, 0.3);
-    platformMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+    const platformMaterial = new BABYLON.PBRMaterial('platformMat', this.scene);
+    platformMaterial.baseColor = new BABYLON.Color3(0.1, 0.15, 0.3);
+    platformMaterial.metallicFactor = 0.8;
+    platformMaterial.roughnessFactor = 0.2;
+    platformMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.1, 0.2);
     platform.material = platformMaterial;
 
-    // Create glowing edge rings
+    // Create glowing edge rings with enhanced materials
     for (let i = 0; i < 3; i++) {
       const ring = BABYLON.MeshBuilder.CreateTorus(`ring${i}`, {
-        diameter: 10 + i * 2,
-        thickness: 0.1,
+        diameter: 11 + i * 2.5,
+        thickness: 0.15,
         tessellation: 32
       }, this.scene);
-      ring.position.y = 0.2 + i * 0.1;
+      ring.position.y = 0.3 + i * 0.1;
       
-      const ringMaterial = new BABYLON.StandardMaterial(`ringMat${i}`, this.scene);
-      ringMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.4, 0.8);
+      const ringMaterial = new BABYLON.PBRMaterial(`ringMat${i}`, this.scene);
+      ringMaterial.baseColor = new BABYLON.Color3(0.2, 0.6, 1.0);
+      ringMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.3, 0.6);
+      ringMaterial.metallicFactor = 0.9;
+      ringMaterial.roughnessFactor = 0.1;
       ring.material = ringMaterial;
 
-      // Animate ring rotation
+      // Animate ring rotation with different speeds
       const rotationAnimation = new BABYLON.Animation(
         `ringRotation${i}`,
         'rotation.y',
@@ -147,15 +159,51 @@ export class Lobby3DScene implements Scene {
 
       const keys = [
         { frame: 0, value: 0 },
-        { frame: 300 + i * 50, value: Math.PI * 2 }
+        { frame: 400 + i * 100, value: Math.PI * 2 * (i % 2 === 0 ? 1 : -1) }
       ];
 
       rotationAnimation.setKeys(keys);
       ring.animations = [rotationAnimation];
-      this.scene.beginAnimation(ring, 0, 300 + i * 50, true);
+      this.scene.beginAnimation(ring, 0, 400 + i * 100, true);
     }
 
-    console.log('✅ Lobby environment created');
+    // Add subtle particles (dust/sparkles) in lobby
+    this.createLobbyParticles();
+
+    console.log('✅ AAA Lobby environment created with PBR materials');
+  }
+
+  private createLobbyParticles(): void {
+    if (!this.scene) return;
+
+    const BABYLON = window.BABYLON;
+
+    // Create subtle sparkle particles for ambiance
+    const particleSystem = new BABYLON.ParticleSystem('lobbyParticles', 800, this.scene);
+    particleSystem.particleTexture = new BABYLON.Texture('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', this.scene);
+
+    particleSystem.emitter = BABYLON.Vector3.Zero();
+    particleSystem.minEmitBox = new BABYLON.Vector3(-8, 0, -8);
+    particleSystem.maxEmitBox = new BABYLON.Vector3(8, 3, 8);
+
+    // Subtle blue/white sparkles
+    particleSystem.color1 = new BABYLON.Color4(0.8, 0.9, 1.0, 0.6);
+    particleSystem.color2 = new BABYLON.Color4(0.9, 0.95, 1.0, 0.8);
+    particleSystem.colorDead = new BABYLON.Color4(0.8, 0.9, 1.0, 0.0);
+
+    particleSystem.minSize = 0.05;
+    particleSystem.maxSize = 0.2;
+    particleSystem.minLifeTime = 2.0;
+    particleSystem.maxLifeTime = 4.0;
+    particleSystem.emitRate = 50;
+
+    particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+    particleSystem.gravity = new BABYLON.Vector3(0, -0.5, 0);
+    particleSystem.direction1 = new BABYLON.Vector3(-0.2, 0.5, -0.2);
+    particleSystem.direction2 = new BABYLON.Vector3(0.2, 1.0, 0.2);
+
+    particleSystem.start();
+    console.log('✅ Lobby particles created');
   }
 
 
@@ -280,36 +328,85 @@ export class Lobby3DScene implements Scene {
         y: 1.5
       };
 
-      // Create simple avatar (sphere for now)
-      const avatar = BABYLON.MeshBuilder.CreateSphere(`avatar${index}`, {diameter: 0.8}, this.scene);
+      // Create AAA quality avatar with bubble-totems
+      const avatar = BABYLON.MeshBuilder.CreateSphere(`avatar${index}`, {
+        diameter: 1.0,
+        segments: 32
+      }, this.scene);
       avatar.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
 
-      // Color based on ready state
-      const avatarMaterial = new BABYLON.StandardMaterial(`avatarMat${index}`, this.scene);
+      // Create PBR material for avatar with bubble effect
+      const avatarMaterial = new BABYLON.PBRMaterial(`avatarMat${index}`, this.scene);
+      
       if (player.ready) {
-        avatarMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.8, 0.2);
-        avatarMaterial.diffuseColor = new BABYLON.Color3(0.1, 0.6, 0.1);
+        // Ready state: bright green with glow
+        avatarMaterial.baseColor = new BABYLON.Color3(0.1, 0.9, 0.2);
+        avatarMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.3, 0.1);
+        avatarMaterial.metallicFactor = 0.1;
+        avatarMaterial.roughnessFactor = 0.2;
       } else {
-        avatarMaterial.emissiveColor = new BABYLON.Color3(0.8, 0.4, 0.1);
-        avatarMaterial.diffuseColor = new BABYLON.Color3(0.6, 0.3, 0.05);
+        // Waiting state: warm orange
+        avatarMaterial.baseColor = new BABYLON.Color3(0.9, 0.5, 0.1);
+        avatarMaterial.emissiveColor = new BABYLON.Color3(0.3, 0.15, 0.05);
+        avatarMaterial.metallicFactor = 0.3;
+        avatarMaterial.roughnessFactor = 0.4;
       }
+      
+      // Glassmorphism effect
+      avatarMaterial.alpha = 0.8;
+      avatarMaterial.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
       avatar.material = avatarMaterial;
 
-      // Add name plate
-      const nameplate = BABYLON.MeshBuilder.CreatePlane(`nameplate${index}`, {width: 1.5, height: 0.3}, this.scene);
-      nameplate.position = new BABYLON.Vector3(pos.x, pos.y + 1, pos.z);
+      // Create bubble-totem pedestal
+      const pedestal = BABYLON.MeshBuilder.CreateCylinder(`pedestal${index}`, {
+        height: 0.3,
+        diameterTop: 1.2,
+        diameterBottom: 1.4,
+        tessellation: 16
+      }, this.scene);
+      pedestal.position = new BABYLON.Vector3(pos.x, pos.y - 0.7, pos.z);
       
-      const nameTexture = new BABYLON.DynamicTexture(`nameTexture${index}`, {width: 256, height: 64}, this.scene);
+      const pedestalMaterial = new BABYLON.PBRMaterial(`pedestalMat${index}`, this.scene);
+      pedestalMaterial.baseColor = new BABYLON.Color3(0.2, 0.3, 0.4);
+      pedestalMaterial.metallicFactor = 0.8;
+      pedestalMaterial.roughnessFactor = 0.2;
+      pedestalMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.1, 0.15);
+      pedestal.material = pedestalMaterial;
+
+      // Ready badge - floating bubble above avatar
+      if (player.ready) {
+        const badge = BABYLON.MeshBuilder.CreateBox(`readyBadge${index}`, {
+          width: 0.6,
+          height: 0.2,
+          depth: 0.1
+        }, this.scene);
+        badge.position = new BABYLON.Vector3(pos.x, pos.y + 1.2, pos.z);
+        
+        const badgeMaterial = new BABYLON.PBRMaterial(`badgeMat${index}`, this.scene);
+        badgeMaterial.baseColor = new BABYLON.Color3(0.1, 1.0, 0.3);
+        badgeMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.8, 0.4);
+        badgeMaterial.alpha = 0.9;
+        badge.material = badgeMaterial;
+        
+        this.playerAvatars.push(badge);
+      }
+
+      // Enhanced name plate with glassmorphism
+      const nameplate = BABYLON.MeshBuilder.CreatePlane(`nameplate${index}`, {width: 2.0, height: 0.4}, this.scene);
+      nameplate.position = new BABYLON.Vector3(pos.x, pos.y + 0.8, pos.z);
+      
+      const nameTexture = new BABYLON.DynamicTexture(`nameTexture${index}`, {width: 512, height: 128}, this.scene);
       nameTexture.hasAlpha = true;
-      nameTexture.drawText(player.name, null, null, '20px Arial', '#FFFFFF', 'transparent', true, true);
+      nameTexture.drawText(player.name, null, null, 'bold 32px Arial', '#FFFFFF', 'rgba(0,0,0,0.6)', true, true);
       
       const nameMaterial = new BABYLON.StandardMaterial(`nameMat${index}`, this.scene);
       nameMaterial.diffuseTexture = nameTexture;
       nameMaterial.emissiveTexture = nameTexture;
+      nameMaterial.emissiveColor = new BABYLON.Color3(0.8, 0.8, 0.8);
       nameMaterial.backFaceCulling = false;
       nameplate.material = nameMaterial;
 
-      // Add bounce animation for ready players
+      // Enhanced bounce animation for ready players
       if (player.ready) {
         const bounceAnimation = new BABYLON.Animation(
           `bounce${index}`,
@@ -321,16 +418,35 @@ export class Lobby3DScene implements Scene {
 
         const keys = [
           { frame: 0, value: pos.y },
-          { frame: 30, value: pos.y + 0.3 },
+          { frame: 30, value: pos.y + 0.4 },
           { frame: 60, value: pos.y }
         ];
 
         bounceAnimation.setKeys(keys);
         avatar.animations = [bounceAnimation];
         this.scene.beginAnimation(avatar, 0, 60, true);
+        
+        // Also animate the pedestal
+        const pedestalBounce = new BABYLON.Animation(
+          `pedestalBounce${index}`,
+          'scaling.y',
+          60,
+          BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+          BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+        );
+        
+        const pedestalKeys = [
+          { frame: 0, value: 1.0 },
+          { frame: 30, value: 1.1 },
+          { frame: 60, value: 1.0 }
+        ];
+        
+        pedestalBounce.setKeys(pedestalKeys);
+        pedestal.animations = [pedestalBounce];
+        this.scene.beginAnimation(pedestal, 0, 60, true);
       }
 
-      this.playerAvatars.push(avatar, nameplate);
+      this.playerAvatars.push(avatar, nameplate, pedestal);
     });
   }
 
@@ -378,6 +494,37 @@ export class Lobby3DScene implements Scene {
 
     if (this.scene) {
       this.scene.dispose();
+    }
+  }
+
+  private async setupLobbyHDRIEnvironment(): Promise<void> {
+    if (!this.scene) return;
+
+    const BABYLON = window.BABYLON;
+
+    try {
+      // Professional lobby environment with subtle lighting
+      this.scene.environmentIntensity = 0.6;
+      
+      // Create a subtle gradient skybox for lobby
+      const skybox = BABYLON.MeshBuilder.CreateSphere('lobbySkyBox', { diameter: 80 }, this.scene);
+      const skyboxMaterial = new BABYLON.StandardMaterial('lobbySkyBox', this.scene);
+      skyboxMaterial.backFaceCulling = false;
+      skyboxMaterial.disableLighting = true;
+      skyboxMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.1, 0.25); // Deep blue
+      skybox.material = skyboxMaterial;
+      skybox.infiniteDistance = true;
+
+      // Add subtle environment texture for reflections
+      const envTexture = new BABYLON.CubeTexture.CreateFromImages([
+        'data:,', 'data:,', 'data:,', 'data:,', 'data:,', 'data:,'
+      ], this.scene);
+      
+      this.scene.environmentTexture = envTexture;
+
+      console.log('✅ Lobby HDRI environment setup completed');
+    } catch (error) {
+      console.warn('⚠️  Lobby HDRI environment setup failed:', error);
     }
   }
 
