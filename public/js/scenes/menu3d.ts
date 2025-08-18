@@ -95,6 +95,9 @@ export class Menu3DScene implements Scene {
       // Create menu items
       await this.createMenuItems();
       
+      // Create environmental architecture
+      await this.createEnvironmentalDetails();
+      
       // Add particles for visual flair
       this.createParticleSystem();
       
@@ -481,35 +484,134 @@ export class Menu3DScene implements Scene {
     console.log('✅ Menu items created with interactions');
   }
 
+  private async createEnvironmentalDetails(): Promise<void> {
+    if (!this.scene) return;
+
+    const BABYLON = window.BABYLON;
+
+    // === HIGH-QUALITY ENVIRONMENTAL ARCHITECTURE ===
+    
+    // Decorative pillars around the menu area
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const pillar = BABYLON.MeshBuilder.CreateCylinder(`pillar${i}`, {
+        height: 6.0,
+        diameterTop: 0.3,
+        diameterBottom: 0.4,
+        tessellation: 24
+      }, this.scene);
+      pillar.position = new BABYLON.Vector3(
+        Math.cos(angle) * 8,
+        3.0,
+        Math.sin(angle) * 8
+      );
+
+      // Pillar capital (decorative top)
+      const capital = BABYLON.MeshBuilder.CreateCylinder(`capital${i}`, {
+        height: 0.4,
+        diameterTop: 0.6,
+        diameterBottom: 0.4,
+        tessellation: 16
+      }, this.scene);
+      capital.position = new BABYLON.Vector3(
+        Math.cos(angle) * 8,
+        6.2,
+        Math.sin(angle) * 8
+      );
+
+      // Premium materials for architecture
+      const archMaterial = new BABYLON.PBRMaterial(`archMat${i}`, this.scene);
+      archMaterial.baseColor = new BABYLON.Color3(0.8, 0.8, 0.9);
+      archMaterial.metallicFactor = 0.2;
+      archMaterial.roughnessFactor = 0.3;
+      archMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.05, 0.08);
+      archMaterial.clearCoat.isEnabled = true;
+      archMaterial.clearCoat.intensity = 0.3;
+      pillar.material = archMaterial;
+      capital.material = archMaterial;
+    }
+
+    // Central platform for the scene
+    const centralPlatform = BABYLON.MeshBuilder.CreateCylinder('centralPlatform', {
+      height: 0.2,
+      diameterTop: 12,
+      diameterBottom: 12,
+      tessellation: 64 // High poly
+    }, this.scene);
+    centralPlatform.position.y = -0.1;
+
+    const platformMaterial = new BABYLON.PBRMaterial('centralPlatformMat', this.scene);
+    platformMaterial.baseColor = new BABYLON.Color3(0.1, 0.1, 0.2);
+    platformMaterial.metallicFactor = 0.8;
+    platformMaterial.roughnessFactor = 0.2;
+    platformMaterial.emissiveColor = new BABYLON.Color3(0.02, 0.02, 0.06);
+    platformMaterial.clearCoat.isEnabled = true;
+    platformMaterial.clearCoat.intensity = 0.5;
+    centralPlatform.material = platformMaterial;
+
+    console.log('✅ Environmental architecture created with premium materials');
+  }
+
   private createParticleSystem(): void {
     if (!this.scene) return;
 
     const BABYLON = window.BABYLON;
 
-    // Create sparkling particles
-    const particleSystem = new BABYLON.ParticleSystem('particles', 2000, this.scene);
-    particleSystem.particleTexture = new BABYLON.Texture('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', this.scene);
+    // === ENHANCED PARTICLE SYSTEM FOR MENU ===
+    
+    // Main sparkle system - premium colors
+    const sparkleSystem = new BABYLON.ParticleSystem('menuSparkles', 3000, this.scene);
+    sparkleSystem.particleTexture = new BABYLON.Texture('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', this.scene);
 
-    particleSystem.emitter = BABYLON.Vector3.Zero();
-    particleSystem.minEmitBox = new BABYLON.Vector3(-5, 0, -5);
-    particleSystem.maxEmitBox = new BABYLON.Vector3(5, 0, 5);
+    sparkleSystem.emitter = BABYLON.Vector3.Zero();
+    sparkleSystem.minEmitBox = new BABYLON.Vector3(-8, 0, -8);
+    sparkleSystem.maxEmitBox = new BABYLON.Vector3(8, 4, 8);
 
-    particleSystem.color1 = new BABYLON.Color4(0.2, 0.8, 1.0, 1.0);
-    particleSystem.color2 = new BABYLON.Color4(0.8, 0.2, 1.0, 1.0);
-    particleSystem.colorDead = new BABYLON.Color4(0, 0, 0.2, 0.0);
+    // Premium sparkle colors - cyan and magenta energy
+    sparkleSystem.color1 = new BABYLON.Color4(0.2, 0.9, 1.0, 0.9);
+    sparkleSystem.color2 = new BABYLON.Color4(1.0, 0.3, 0.8, 0.9);
+    sparkleSystem.colorDead = new BABYLON.Color4(0.8, 0.8, 1.0, 0.0);
 
-    particleSystem.minSize = 0.1;
-    particleSystem.maxSize = 0.5;
-    particleSystem.minLifeTime = 1;
-    particleSystem.maxLifeTime = 3;
-    particleSystem.emitRate = 100;
+    sparkleSystem.minSize = 0.08;
+    sparkleSystem.maxSize = 0.3;
+    sparkleSystem.minLifeTime = 2.0;
+    sparkleSystem.maxLifeTime = 4.0;
+    sparkleSystem.emitRate = 150;
 
-    particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
-    particleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
-    particleSystem.direction1 = new BABYLON.Vector3(-1, 8, -1);
-    particleSystem.direction2 = new BABYLON.Vector3(1, 8, 1);
+    sparkleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+    sparkleSystem.gravity = new BABYLON.Vector3(0, -3.0, 0); // Lighter gravity
+    sparkleSystem.direction1 = new BABYLON.Vector3(-2, 6, -2);
+    sparkleSystem.direction2 = new BABYLON.Vector3(2, 10, 2);
 
-    particleSystem.start();
+    sparkleSystem.start();
+    
+    // Energy orb system for menu background
+    const orbSystem = new BABYLON.ParticleSystem('menuOrbs', 150, this.scene);
+    orbSystem.particleTexture = new BABYLON.Texture('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', this.scene);
+
+    orbSystem.emitter = BABYLON.Vector3.Zero();
+    orbSystem.minEmitBox = new BABYLON.Vector3(-12, 1, -12);
+    orbSystem.maxEmitBox = new BABYLON.Vector3(12, 5, 12);
+
+    // Magical energy colors
+    orbSystem.color1 = new BABYLON.Color4(0.3, 0.7, 1.0, 0.6);
+    orbSystem.color2 = new BABYLON.Color4(1.0, 0.6, 0.3, 0.7);
+    orbSystem.colorDead = new BABYLON.Color4(0.5, 0.5, 1.0, 0.0);
+
+    orbSystem.minSize = 0.2;
+    orbSystem.maxSize = 0.6;
+    orbSystem.minLifeTime = 6.0;
+    orbSystem.maxLifeTime = 10.0;
+    orbSystem.emitRate = 20;
+
+    orbSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+    orbSystem.gravity = new BABYLON.Vector3(0, -0.5, 0);
+    orbSystem.direction1 = new BABYLON.Vector3(-0.5, 2, -0.5);
+    orbSystem.direction2 = new BABYLON.Vector3(0.5, 4, 0.5);
+
+    orbSystem.start();
+
+    console.log('✅ Enhanced particle system created for menu scene');
   }
 
   private setupPostProcessing(): void {
