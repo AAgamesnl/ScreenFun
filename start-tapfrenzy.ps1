@@ -7,7 +7,7 @@ param(
 $ProjectPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $ProjectPath
 
-Write-Host "=== ScreenFun launcher ===" -ForegroundColor Cyan
+Write-Host "=== TapFrenzy launcher ===" -ForegroundColor Cyan
 Write-Host "Project: $ProjectPath"
 Write-Host "Node:    $NodePath"
 Write-Host "Port:    $Port"

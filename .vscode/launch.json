@@ -5,7 +5,7 @@
       "name": "Start ScreenFun",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/start-screenfun.cmd",
+      "program": "${workspaceFolder}/start-tapfrenzy.cmd",
       "console": "integratedTerminal",
       "runtimeExecutable": "cmd.exe",
       "runtimeArgs": ["/C"],

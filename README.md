@@ -1,6 +1,6 @@
-# ScreenFun
+# TapFrenzy
 
-A real-time multiplayer quiz game with interactive features and power-ups.
+A real-time multiplayer AAA party quiz game with interactive 3D features and power-ups.
 
 ## Features
 
@@ -23,8 +23,8 @@ A real-time multiplayer quiz game with interactive features and power-ups.
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/AAgamesnl/ScreenFun.git
-cd ScreenFun
+git clone https://github.com/AAgamesnl/TapFrenzy.git
+cd TapFrenzy
 ```
 
 2. Install dependencies:
@@ -42,7 +42,7 @@ npm start
 Or run directly with PowerShell:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\start-screenfun.ps1
+powershell -ExecutionPolicy Bypass -File .\start-tapfrenzy.ps1
 ```
 
 The server will start on `http://localhost:3000` by default.

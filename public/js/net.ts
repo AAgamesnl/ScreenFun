@@ -1,4 +1,4 @@
-// Networking helpers and typed protocol for ScreenFun
+// Networking helpers and typed protocol for TapFrenzy
 
 export type PlayerInfo = {
   id: string;

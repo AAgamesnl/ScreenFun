@@ -18,7 +18,7 @@ export class JoinScene implements Scene {
     this.el.className = 'join-scene';
     this.el.innerHTML = `
       <div class="join-content">
-        <h1>ScreenFun</h1>
+        <h1>TapFrenzy</h1>
         <p class="instruction">Voer de kamercode in om deel te nemen</p>
 
         <form id="join-form" class="join-form">
