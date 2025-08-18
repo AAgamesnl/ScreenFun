@@ -21,17 +21,27 @@ const PORT = process.env.PORT || 3000;
 
 const __root = path.join(__dirname, "../..");
 
-// Middleware to handle ES6 module imports without .js extension
+// Middleware to resolve extension-less module imports under /js/ to built files in /build
 app.use((req: Request, res: Response, next: NextFunction) => {
-  // If the request is for a JS file in the js/ directory without extension
-  if (req.path.startsWith("/js/") && !path.extname(req.path)) {
-    const jsPath = req.path + ".js";
-    const fullPath = path.join(__root, "public", jsPath);
-
-    // Check if the .js file exists
-    if (fs.existsSync(fullPath)) {
-      req.url = jsPath;
-      return res.sendFile(fullPath);
+  if (req.path.startsWith('/js/') && !path.extname(req.path)) {
+    // Try direct .js in original public/js (for already transpiled plain JS)
+    const originalJs = path.join(__root, 'public', req.path + '.js');
+    if (fs.existsSync(originalJs)) {
+      req.url = req.path + '.js';
+      return res.sendFile(originalJs);
+    }
+    // Try built version in /public/build mirroring structure (strip /js prefix)
+    const relative = req.path.replace(/^\/js\//, '');
+    const builtJs = path.join(__root, 'public', 'build', relative + '.js');
+    if (fs.existsSync(builtJs)) {
+      return res.sendFile(builtJs);
+    }
+  }
+  // Support extension-less imports from built files (/build/* -> add .js)
+  if (req.path.startsWith('/build/') && !path.extname(req.path)) {
+    const builtPath = path.join(__root, 'public', req.path + '.js');
+    if (fs.existsSync(builtPath)) {
+      return res.sendFile(builtPath);
     }
   }
   next();
@@ -48,30 +58,27 @@ app.get("/favicon.ico", (_req: Request, res: Response) => {
 });
 
 // Serve static files with basic caching headers
-app.use(
-  express.static(path.join(__root, "public"), {
-    maxAge: "1h",
-    etag: false,
-    setHeaders: (res: Response, filePath: string) => {
-      if (filePath.endsWith(".js")) {
-        res.setHeader("Content-Type", "application/javascript; charset=utf-8");
-      }
-    },
-  })
-);
+app.use(express.static(path.join(__root, 'public'), {
+  maxAge: '1h',
+  etag: false,
+  setHeaders: (res: Response, filePath: string) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    }
+  }
+}));
 
 // Also serve compiled JS files from dist/public (for TypeScript compiled files)
-app.use(
-  express.static(path.join(__root, "dist/public"), {
-    maxAge: "1h",
-    etag: false,
-    setHeaders: (res: Response, filePath: string) => {
-      if (filePath.endsWith(".js")) {
-        res.setHeader("Content-Type", "application/javascript; charset=utf-8");
-      }
-    },
-  })
-);
+// Serve built frontend bundle directory (public/build) if present
+app.use(express.static(path.join(__root, 'public', 'build'), {
+  maxAge: '5m',
+  etag: false,
+  setHeaders: (res: Response, filePath: string) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    }
+  }
+}));
 
 // Simple health check endpoint
 app.get("/health", (_req: Request, res: Response) => {

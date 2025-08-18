@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ES2020",
+    "target": "ES2020",
+    "rootDir": "public/js",
+    "outDir": "public/build",
+    "declaration": false,
+    "emitDeclarationOnly": false,
+    "moduleResolution": "node",
+    "allowJs": false,
+    "isolatedModules": true,
+    "sourceMap": true
+  },
+  "include": ["public/js/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
