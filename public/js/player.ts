@@ -1,6 +1,6 @@
 import { Net } from './net';
 import { SceneManager } from './scenes/scene-manager';
-import { JoinScene } from './scenes/join';
+import { EnhancedJoinScene } from './scenes/enhanced-join';
 import { PlayerLobbyScene } from './scenes/player-lobby';
 import { randomAvatar } from './ui/avatars';
 
@@ -24,11 +24,14 @@ function joinRoom(code: string, name: string): void {
   currentRoomCode = code;
   currentPlayerName = name;
   
-  net.send({ 
-    t: 'player:join', 
-    code: code.toUpperCase(), 
-    name, 
-    avatar: randomAvatar() 
+  console.log(`🎮 Attempting to join room ${code} as ${name}`);
+  
+  // Send join request
+  net.send({
+    t: 'player:join',
+    code: code.toUpperCase(),
+    name,
+    avatar: localStorage.getItem('tapfrenzy-avatar') || randomAvatar()
   });
 }
 
@@ -57,14 +60,15 @@ net.onMessage(msg => {
   }
 });
 
-// Initialize the appropriate scene
+// Initialize with enhanced join scene
+const joinScene = new EnhancedJoinScene(joinRoom);
+scenes.set(joinScene);
+
+// Auto-join if URL parameters are provided
 if (urlCode && urlName) {
-  // Auto-join if URL parameters are provided
-  joinRoom(urlCode, urlName);
-  // Show a loading state or go directly to lobby
-  const lobbyScene = new PlayerLobbyScene(setReady);
-  scenes.set(lobbyScene);
-} else {
-  // Show join form
-  scenes.set(new JoinScene(joinRoom));
+  setTimeout(() => {
+    joinRoom(urlCode, urlName);
+  }, 1000); // Small delay to let the scene render
 }
+
+console.log('📱 TapFrenzy Player initialized with enhanced UI');

@@ -1,4 +1,4 @@
-// Networking helpers and typed protocol for ScreenFun
+// Networking helpers and typed protocol for TapFrenzy
 
 export type PlayerInfo = {
   id: string;
@@ -29,7 +29,9 @@ export type S2C =
   | { t: 'finale:start'; steps: number }
   | { t: 'finale:tick'; leaders: Array<{ id: string; step: number }> }
   | { t: 'power'; type: string; from: string }
-  | { t: 'pong'; t0: number; t1: number; hostNow: number };
+  | { t: 'pong'; t0: number; t1: number; hostNow: number }
+  | { t: 'error'; message?: string }
+  | { t: 'joined'; id?: string };
 
 // Wrapper around the Socket.IO client. Exposes typed send and receive helpers.
 export class Net {
