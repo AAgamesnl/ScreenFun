@@ -5,7 +5,7 @@ import { randomAvatar } from '../ui/avatars';
 /** Join scene for players to enter room code and name. */
 export class JoinScene implements Scene {
   private el?: HTMLElement;
-  private onJoin?: (code: string, name: string) => void;
+  private onJoin: ((code: string, name: string) => void) | undefined;
 
   constructor(onJoin?: (code: string, name: string) => void) {
     if (onJoin) {

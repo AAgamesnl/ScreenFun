@@ -19,7 +19,7 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
-const __root = path.join(__dirname, "..");
+const __root = path.join(__dirname, "../..");
 
 // Middleware to handle ES6 module imports without .js extension
 app.use((req: Request, res: Response, next: NextFunction) => {

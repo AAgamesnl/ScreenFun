@@ -27,10 +27,18 @@ export class LobbyScene {
             this.roomCode = msg.code;
             this.players = msg.players;
             this.updateDisplay();
-            this.generateQRCode();
-        }
-        else if (msg.t === "qr") {
-            this.displayQRCode(msg.dataUrl);
+            // Generate QR code when we get room info
+            if (this.roomCode && this.net) {
+                const joinUrl = `${window.location.origin}/player.html?code=${this.roomCode}`;
+                this.net.requestQRCode(joinUrl, (dataUrl) => {
+                    if (dataUrl) {
+                        const qrImg = document.getElementById('qr');
+                        if (qrImg) {
+                            qrImg.src = dataUrl;
+                        }
+                    }
+                });
+            }
         }
     }
     updateDisplay() {

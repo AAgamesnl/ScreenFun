@@ -33,10 +33,7 @@ export type S2C =
 
 // Wrapper around the Socket.IO client. Exposes typed send and receive helpers.
 export class Net {
-  private socket: {
-    emit: (event: string, ...args: unknown[]) => void;
-    on: (event: string, callback: (...args: unknown[]) => void) => void;
-  };
+  private socket: { emit: (event: string, ...args: unknown[]) => void; on: (event: string, callback: (...args: unknown[]) => void) => void };
   private messageCallbacks: Array<(msg: S2C) => void> = [];
 
   constructor() {
@@ -80,24 +77,7 @@ export class Net {
   /** Send a typed message to the server. */
   send(msg: C2S): void {
     if (msg.t === 'host:create') {
-      this.socket.emit('host:createRoom', undefined, (response: { ok: boolean; code?: string; error?: string }) => {
-        if (response.ok && response.code) {
-          // The host:createRoom acknowledgment is handled differently - we wait for lobby:update
-          console.log('Room created with code:', response.code);
-        } else {
-          console.error('Failed to create room:', response.error);
-        }
-      });
-    } else if (msg.t === 'host:qr') {
-      console.log("Sending QR request:", msg);
-      this.socket.emit('host:qr', { joinUrl: msg.joinUrl }, (response: { ok: boolean; dataUrl?: string; error?: string }) => {
-        console.log("QR response received:", response);
-        if (response.ok && response.dataUrl) {
-          this.messageCallbacks.forEach(cb => cb({ t: 'qr', dataUrl: response.dataUrl! }));
-        } else {
-          console.error('QR code generation failed:', response.error);
-        }
-      });
+      this.socket.emit('host:createRoom');
     } else if (msg.t === 'player:join') {
       this.socket.emit('player:join', { code: msg.code, name: msg.name, avatar: msg.avatar });
     } else if (msg.t === 'player:ready') {
@@ -118,5 +98,17 @@ export class Net {
   ping(): void {
     const t0 = Date.now();
     this.send({ t: 'ping', t0 });
+  }
+
+  /** Request QR code generation */
+  requestQRCode(joinUrl: string, callback: (dataUrl: string | null) => void): void {
+    this.socket.emit('host:qr', { joinUrl }, (response: { ok: boolean; dataUrl?: string; error?: string }) => {
+      if (response.ok && response.dataUrl) {
+        callback(response.dataUrl);
+      } else {
+        console.error('QR code generation failed:', response.error);
+        callback(null);
+      }
+    });
   }
 }
