@@ -47,7 +47,7 @@ if ($LASTEXITCODE -ne 0) { Write-Host "TypeScript build faalde." -ForegroundColo
 
 # 3) Start server in een nieuw PowerShell venster
 $env:PORT = "$Port"
-$ServerCmd = "`"$NodePath`" `"$ProjectPath\dist\server.js`""
+$ServerCmd = "`"$NodePath`" `"$ProjectPath\dist\src\server.js`""
 Write-Host "`n[Step] Server starten..."
 Start-Process -FilePath "powershell.exe" -ArgumentList "-NoExit","-Command",$ServerCmd -WorkingDirectory $ProjectPath
 

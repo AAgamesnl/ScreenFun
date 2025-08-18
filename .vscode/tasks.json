@@ -2,6 +2,24 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "build",
+      "type": "shell",
+      "command": "C:\\Users\\ayoub.elyaakoubi\\Documents\\node-v22.18.0-win-x64\\node.exe",
+      "args": [
+        "C:\\Users\\ayoub.elyaakoubi\\Documents\\node-v22.18.0-win-x64\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build"
+      ],
+      "group": "build",
+      "problemMatcher": ["$tsc"],
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
       "label": "Start: Local server (PowerShell)",
       "type": "shell",
       "command": "powershell",

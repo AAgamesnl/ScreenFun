@@ -1,16 +1,20 @@
 {
   "version": "0.2.0",
   "configurations": [
+
     {
       "name": "Start ScreenFun",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/start-screenfun.cmd",
+      "program": "${workspaceFolder}/dist/src/server.js",
       "console": "integratedTerminal",
-      "runtimeExecutable": "cmd.exe",
-      "runtimeArgs": ["/C"],
       "stopOnEntry": false,
-      "internalConsoleOptions": "neverOpen"
+      "internalConsoleOptions": "neverOpen",
+      "runtimeExecutable": "C:\\Users\\ayoub.elyaakoubi\\Documents\\node-v22.18.0-win-x64\\node.exe",
+      "env": {
+        "PORT": "3000"
+      },
+      "preLaunchTask": "build"
     }
   ]
 }
