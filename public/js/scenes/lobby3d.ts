@@ -17,6 +17,9 @@ export class Lobby3DScene implements Scene {
   private players: PlayerInfo[] = [];
   private playerAvatars: any[] = [];
   private qrCodeMesh?: any;
+  private guiTexture?: any;
+  private qrCodeImage?: any;
+  private roomCodeText?: any;
 
   async mount(root: HTMLElement): Promise<void> {
     // Create canvas for 3D rendering
@@ -36,12 +39,18 @@ export class Lobby3DScene implements Scene {
     console.log('🎮 Starting TapFrenzy 3D Lobby...');
 
     try {
-      // Create 3D engine and scene
+      // Create 3D engine and scene with high-DPI support
       this.engine = new BABYLON.Engine(this.canvas, true, { 
         preserveDrawingBuffer: true, 
         stencil: true,
         antialias: true 
       });
+      
+      // 4K-ready: Set hardware scaling for high DPI displays
+      if (window.devicePixelRatio && window.devicePixelRatio > 1) {
+        this.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+        console.log(`✅ Lobby High-DPI support enabled (${window.devicePixelRatio}x)`);
+      }
       
       this.scene = new BABYLON.Scene(this.engine);
       this.scene.clearColor = new BABYLON.Color3(0.05, 0.1, 0.2); // Dark blue background
@@ -61,11 +70,8 @@ export class Lobby3DScene implements Scene {
       // Create lobby environment
       await this.createLobbyEnvironment();
       
-      // Create room code display
-      await this.createRoomCodeDisplay();
-      
-      // Create QR code area
-      await this.createQRCodeArea();
+      // Create QR code and room code overlay (replaces old QR area)
+      await this.createQROverlay();
       
       // Create player avatar area
       await this.createPlayerArea();
@@ -152,67 +158,56 @@ export class Lobby3DScene implements Scene {
     console.log('✅ Lobby environment created');
   }
 
-  private async createRoomCodeDisplay(): Promise<void> {
+
+  private async createQROverlay(): Promise<void> {
     if (!this.scene) return;
 
     const BABYLON = window.BABYLON;
+    const GUI = BABYLON.GUI;
 
-    // Create room code display panel
-    const codePanel = BABYLON.MeshBuilder.CreatePlane('codePanel', {width: 4, height: 1.5}, this.scene);
-    codePanel.position = new BABYLON.Vector3(0, 3, 0);
+    try {
+      // Create fullscreen GUI
+      this.guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("LobbyUI");
 
-    // Create dynamic texture for room code
-    const codeTexture = new BABYLON.DynamicTexture('codeTexture', {width: 512, height: 192}, this.scene);
-    codeTexture.hasAlpha = true;
-    
-    const codeMaterial = new BABYLON.StandardMaterial('codeMat', this.scene);
-    codeMaterial.diffuseTexture = codeTexture;
-    codeMaterial.emissiveTexture = codeTexture;
-    codeMaterial.backFaceCulling = false;
-    codePanel.material = codeMaterial;
+      // Create container for QR and room code (top-right)
+      const container = new GUI.Rectangle("qr-container");
+      container.widthInPixels = 280; // TV-safe for 4K
+      container.heightInPixels = 280;
+      container.color = "transparent";
+      container.thickness = 0;
+      container.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+      container.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
+      container.topInPixels = 20; // TV-safe margin
+      container.rightInPixels = 20;
 
-    // Initial display
-    this.updateRoomCodeDisplay(codeTexture);
+      // QR Code image placeholder
+      this.qrCodeImage = new GUI.Image("qr-image", "");
+      this.qrCodeImage.widthInPixels = 220; 
+      this.qrCodeImage.heightInPixels = 220;
+      this.qrCodeImage.topInPixels = -10;
+      this.qrCodeImage.color = "#FFFFFF";
+      this.qrCodeImage.background = "#000000";
+      container.addControl(this.qrCodeImage);
 
-    console.log('✅ Room code display created');
-  }
+      // Room code text (monospace, high contrast)
+      this.roomCodeText = new GUI.TextBlock("room-code", "Room: ----");
+      this.roomCodeText.color = "#FFFFFF";
+      this.roomCodeText.fontSize = 24;
+      this.roomCodeText.fontFamily = "Consolas, 'Courier New', monospace";
+      this.roomCodeText.fontWeight = "bold";
+      this.roomCodeText.topInPixels = 130;
+      this.roomCodeText.heightInPixels = 30;
+      this.roomCodeText.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+      this.roomCodeText.background = "rgba(0, 0, 0, 0.8)";
+      this.roomCodeText.cornerRadius = 8;
+      container.addControl(this.roomCodeText);
 
-  private async createQRCodeArea(): Promise<void> {
-    if (!this.scene) return;
+      this.guiTexture.addControl(container);
 
-    const BABYLON = window.BABYLON;
-
-    // Create QR code display area
-    const qrPanel = BABYLON.MeshBuilder.CreatePlane('qrPanel', {width: 3, height: 3}, this.scene);
-    qrPanel.position = new BABYLON.Vector3(5, 1, 0);
-
-    const qrMaterial = new BABYLON.StandardMaterial('qrMat', this.scene);
-    qrMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-    qrMaterial.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
-    qrPanel.material = qrMaterial;
-
-    this.qrCodeMesh = qrPanel;
-
-    // Add floating animation
-    const floatAnimation = new BABYLON.Animation(
-      'qrFloat',
-      'position.y',
-      60,
-      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-      BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-    );
-
-    const keys = [
-      { frame: 0, value: 1 },
-      { frame: 120, value: 1.5 },
-      { frame: 240, value: 1 }
-    ];
-
-    floatAnimation.setKeys(keys);
-    qrPanel.animations = [floatAnimation];
-    this.scene.beginAnimation(qrPanel, 0, 240, true);
-
-    console.log('✅ QR code area created');
+      console.log('✅ Lobby QR overlay created');
+    } catch (error) {
+      console.error('Failed to create lobby QR overlay:', error);
+    }
   }
 
   private async createPlayerArea(): Promise<void> {
@@ -262,23 +257,7 @@ export class Lobby3DScene implements Scene {
     console.log('✅ Player area created');
   }
 
-  private updateRoomCodeDisplay(codeTexture: any): void {
-    if (!codeTexture) return;
 
-    const roomText = this.roomCode ? `ROOM CODE: ${this.roomCode}` : 'STARTING...';
-    const playerCount = this.players.length;
-    const statusText = `${playerCount} speler${playerCount !== 1 ? 's' : ''} verbonden`;
-
-    codeTexture.clear();
-    codeTexture.drawText(roomText, null, 80, '48px Arial', '#00FFFF', 'transparent', true, true);
-    codeTexture.drawText(statusText, null, 140, '32px Arial', '#FFFFFF', 'transparent', true, true);
-    
-    if (playerCount >= 2) {
-      const readyCount = this.players.filter(p => p.ready).length;
-      const readyText = `${readyCount}/${playerCount} klaar`;
-      codeTexture.drawText(readyText, null, 170, '28px Arial', readyCount === playerCount ? '#00FF00' : '#FFFF00', 'transparent', true, true);
-    }
-  }
 
   private updatePlayerAvatars(): void {
     if (!this.scene) return;
@@ -402,6 +381,22 @@ export class Lobby3DScene implements Scene {
     }
   }
 
+  private updateRoomCode(code: string): void {
+    if (this.roomCodeText) {
+      this.roomCodeText.text = `Room: ${code}`;
+    }
+
+    // Update QR code image
+    if (code && this.qrCodeImage) {
+      const joinUrl = `${window.location.origin}/player.html?code=${code}`;
+      const qrUrl = `/qr?text=${encodeURIComponent(joinUrl)}`;
+      
+      // Set QR image source
+      this.qrCodeImage.source = qrUrl;
+      console.log('✅ Lobby QR code updated:', qrUrl);
+    }
+  }
+
   onMessage(msg: S2C): void {
     console.log('Lobby3D received message:', msg);
     
@@ -409,10 +404,9 @@ export class Lobby3DScene implements Scene {
       this.roomCode = msg.code;
       this.players = msg.players || [];
       
-      // Update displays
-      const codeTexture = this.scene?.getMaterialByName('codeMat')?.diffuseTexture;
-      if (codeTexture) {
-        this.updateRoomCodeDisplay(codeTexture);
+      // Update QR overlay
+      if (msg.code) {
+        this.updateRoomCode(msg.code);
       }
       
       this.updatePlayerAvatars();

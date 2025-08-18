@@ -18,6 +18,9 @@ export class Menu3DScene implements Scene {
   private animationLoop?: number;
   private audioContext?: AudioContext;
   private backgroundMusic?: AudioBufferSourceNode;
+  private guiTexture?: any;
+  private qrCodeImage?: any;
+  private roomCodeText?: any;
 
   async mount(root: HTMLElement): Promise<void> {
     // Create canvas for 3D rendering
@@ -38,12 +41,18 @@ export class Menu3DScene implements Scene {
     console.log('🎮 Babylon.js version:', BABYLON.Engine.Version);
 
     try {
-      // Create 3D engine and scene
+      // Create 3D engine and scene with high-DPI support
       this.engine = new BABYLON.Engine(this.canvas, true, { 
         preserveDrawingBuffer: true, 
         stencil: true,
         antialias: true 
       });
+      
+      // 4K-ready: Set hardware scaling for high DPI displays
+      if (window.devicePixelRatio && window.devicePixelRatio > 1) {
+        this.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+        console.log(`✅ High-DPI support enabled (${window.devicePixelRatio}x)`);
+      }
       
       console.log('✅ Engine created successfully');
       
@@ -52,14 +61,15 @@ export class Menu3DScene implements Scene {
 
       console.log('✅ Scene created successfully');
 
-      // Create camera with cinematic movement
+      // Create camera with fixed position (no movement)
       this.camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5, -10), this.scene);
       this.camera.setTarget(BABYLON.Vector3.Zero());
       
-      console.log('✅ Camera created successfully');
+      // Lock camera - disable inputs and inertia for no movement
+      this.camera.inputs.clear();
+      this.camera.inertia = 0;
       
-      // Camera animation for sweeping movements
-      this.animateCamera();
+      console.log('✅ Camera created successfully (locked position)');
       
       // Enhanced lighting setup for dramatic effect
       const hemiLight = new BABYLON.HemisphericLight('hemiLight', new BABYLON.Vector3(0, 1, 0), this.scene);
@@ -83,6 +93,9 @@ export class Menu3DScene implements Scene {
       
       // Create Buzzer character placeholder
       await this.createBuzzerCharacter();
+      
+      // Create QR code and room code overlay
+      await this.createQROverlay();
       
       // Start background music
       this.startBackgroundMusic();
@@ -304,67 +317,93 @@ export class Menu3DScene implements Scene {
         BABYLON.ActionManager.OnPointerOverTrigger,
         () => {
           material.emissiveColor = new BABYLON.Color3(item.color[0]! * 1.5, item.color[1]! * 1.5, item.color[2]! * 1.5);
-          // Scale up on hover
-          const scaleAnimation = BABYLON.Animation.CreateAndStartAnimation(
-            'scaleUp',
-            menuBox,
+          
+          // Bubble-UI: Smooth scale-in (1.0 → 1.06) with cubic bezier
+          const scaleAnimation = new BABYLON.Animation(
+            'bubbleScaleUp',
             'scaling',
-            60,
-            10,
-            menuBox.scaling,
-            new BABYLON.Vector3(1.1, 1.1, 1.1),
+            60, // fps
+            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
             BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
           );
+
+          // Cubic bezier easing (easeInOut equivalent)
+          scaleAnimation.setEasingFunction(new BABYLON.CubicEase());
+          const easing = scaleAnimation.getEasingFunction();
+          if (easing && 'setEasingMode' in easing) {
+            easing.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+          }
+
+          const keys = [
+            { frame: 0, value: menuBox.scaling },
+            { frame: 15, value: new BABYLON.Vector3(1.06, 1.06, 1.06) } // 250ms at 60fps
+          ];
+          scaleAnimation.setKeys(keys);
+          
+          this.scene!.beginAnimation(menuBox, 0, 15, false, 1, () => {}, scaleAnimation);
         }
       ));
       
-      // Mouse out effect
+      // Mouse out effect - return to original size
       menuBox.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
         BABYLON.ActionManager.OnPointerOutTrigger,
         () => {
           material.emissiveColor = new BABYLON.Color3(item.color[0], item.color[1], item.color[2]);
-          // Scale back down
-          const scaleAnimation = BABYLON.Animation.CreateAndStartAnimation(
-            'scaleDown',
-            menuBox,
+          
+          // Bubble-UI: Smooth scale back to 1.0 with cubic bezier
+          const scaleAnimation = new BABYLON.Animation(
+            'bubbleScaleDown',
             'scaling',
             60,
-            10,
-            menuBox.scaling,
-            new BABYLON.Vector3(1.0, 1.0, 1.0),
+            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
             BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
           );
+
+          scaleAnimation.setEasingFunction(new BABYLON.CubicEase());
+          const easing = scaleAnimation.getEasingFunction();
+          if (easing && 'setEasingMode' in easing) {
+            easing.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+          }
+
+          const keys = [
+            { frame: 0, value: menuBox.scaling },
+            { frame: 12, value: new BABYLON.Vector3(1.0, 1.0, 1.0) } // 200ms 
+          ];
+          scaleAnimation.setKeys(keys);
+          
+          this.scene!.beginAnimation(menuBox, 0, 12, false, 1, () => {}, scaleAnimation);
         }
       ));
 
-      // Click handler
+      // Click handler with bubble pop animation
       menuBox.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
         BABYLON.ActionManager.OnPickTrigger,
         () => {
           this.handleMenuClick(item.name);
-          // Click animation
-          const clickAnimation = BABYLON.Animation.CreateAndStartAnimation(
-            'click',
-            menuBox,
+          
+          // Click animation: quick scale down then back up (micro-motion)
+          const clickAnimation = new BABYLON.Animation(
+            'bubbleClick',
             'scaling',
             60,
-            5,
-            menuBox.scaling,
-            new BABYLON.Vector3(0.9, 0.9, 0.9),
+            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
             BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
           );
-          setTimeout(() => {
-            BABYLON.Animation.CreateAndStartAnimation(
-              'clickRecover',
-              menuBox,
-              'scaling',
-              60,
-              10,
-              menuBox.scaling,
-              new BABYLON.Vector3(1.0, 1.0, 1.0),
-              BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-            );
-          }, 100);
+
+          clickAnimation.setEasingFunction(new BABYLON.CubicEase());
+          const easing = clickAnimation.getEasingFunction();
+          if (easing && 'setEasingMode' in easing) {
+            easing.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+          }
+
+          const keys = [
+            { frame: 0, value: menuBox.scaling },
+            { frame: 5, value: new BABYLON.Vector3(0.94, 0.94, 0.94) }, // 83ms quick press
+            { frame: 15, value: new BABYLON.Vector3(1.0, 1.0, 1.0) }   // 250ms total
+          ];
+          clickAnimation.setKeys(keys);
+          
+          this.scene!.beginAnimation(menuBox, 0, 15, false, 1, () => {}, clickAnimation);
         }
       ));
 
@@ -428,6 +467,14 @@ export class Menu3DScene implements Scene {
     const BABYLON = window.BABYLON;
 
     try {
+      // Add MSAA (Multi-Sample Anti-Aliasing) if supported
+      const samples = this.engine.getCaps().maxMSAASamples;
+      if (samples >= 4) {
+        this.scene.getEngine().setHardwareScalingLevel(1);
+        this.scene.getEngine().resize();
+        console.log(`✅ MSAA enabled with ${samples} samples`);
+      }
+
       // Add bloom effect for enhanced visuals
       const defaultPipeline = new BABYLON.DefaultRenderingPipeline(
         'defaultPipeline',
@@ -436,26 +483,26 @@ export class Menu3DScene implements Scene {
         [this.camera]
       );
       
-      // Configure bloom
+      // Configure bloom (softer settings)
       defaultPipeline.bloomEnabled = true;
-      defaultPipeline.bloomThreshold = 0.8;
-      defaultPipeline.bloomWeight = 0.3;
-      defaultPipeline.bloomKernel = 64;
+      defaultPipeline.bloomThreshold = 0.9;
+      defaultPipeline.bloomWeight = 0.15;
+      defaultPipeline.bloomKernel = 32;
 
       // Add FXAA anti-aliasing
       defaultPipeline.fxaaEnabled = true;
 
-      // Add tone mapping
+      // Add tone mapping with ACES
       defaultPipeline.imageProcessingEnabled = true;
       if (defaultPipeline.imageProcessing) {
         defaultPipeline.imageProcessing.toneMappingEnabled = true;
         defaultPipeline.imageProcessing.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
-        defaultPipeline.imageProcessing.exposure = 0.6;
-        defaultPipeline.imageProcessing.contrast = 1.6;
+        defaultPipeline.imageProcessing.exposure = 0.8;
+        defaultPipeline.imageProcessing.contrast = 1.4;
         defaultPipeline.imageProcessing.colorCurvesEnabled = true;
       }
 
-      console.log('✅ Post-processing effects enabled (bloom, FXAA, tone mapping)');
+      console.log('✅ AAA post-processing enabled (Bloom, FXAA/MSAA, ACES tone mapping)');
       
     } catch (error) {
       console.warn('⚠️  Post-processing setup failed:', error);
@@ -624,6 +671,73 @@ export class Menu3DScene implements Scene {
     }
   }
 
+  private async createQROverlay(): Promise<void> {
+    if (!this.scene) return;
+
+    const BABYLON = window.BABYLON;
+    const GUI = BABYLON.GUI;
+
+    try {
+      // Create fullscreen GUI
+      this.guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+      // Create container for QR and room code (top-right)
+      const container = new GUI.Rectangle("qr-container");
+      container.widthInPixels = 280; // TV-safe for 4K
+      container.heightInPixels = 280;
+      container.color = "transparent";
+      container.thickness = 0;
+      container.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+      container.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
+      container.topInPixels = 20; // TV-safe margin
+      container.rightInPixels = 20;
+
+      // QR Code image placeholder
+      this.qrCodeImage = new GUI.Image("qr-image", "");
+      this.qrCodeImage.widthInPixels = 220; 
+      this.qrCodeImage.heightInPixels = 220;
+      this.qrCodeImage.topInPixels = -10;
+      this.qrCodeImage.color = "#FFFFFF";
+      this.qrCodeImage.background = "#000000";
+      container.addControl(this.qrCodeImage);
+
+      // Room code text (monospace, high contrast)
+      this.roomCodeText = new GUI.TextBlock("room-code", "Room: ----");
+      this.roomCodeText.color = "#FFFFFF";
+      this.roomCodeText.fontSize = 24;
+      this.roomCodeText.fontFamily = "Consolas, 'Courier New', monospace";
+      this.roomCodeText.fontWeight = "bold";
+      this.roomCodeText.topInPixels = 130;
+      this.roomCodeText.heightInPixels = 30;
+      this.roomCodeText.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+      this.roomCodeText.background = "rgba(0, 0, 0, 0.8)";
+      this.roomCodeText.cornerRadius = 8;
+      container.addControl(this.roomCodeText);
+
+      this.guiTexture.addControl(container);
+
+      console.log('✅ QR overlay created');
+    } catch (error) {
+      console.error('Failed to create QR overlay:', error);
+    }
+  }
+
+  private updateRoomCode(code: string): void {
+    if (this.roomCodeText) {
+      this.roomCodeText.text = `Room: ${code}`;
+    }
+
+    // Update QR code image
+    if (code && this.qrCodeImage) {
+      const joinUrl = `${window.location.origin}/player.html?code=${code}`;
+      const qrUrl = `/qr?text=${encodeURIComponent(joinUrl)}`;
+      
+      // Set QR image source
+      this.qrCodeImage.source = qrUrl;
+      console.log('✅ QR code updated:', qrUrl);
+    }
+  }
+
   unmount(): void {
     window.removeEventListener('resize', this.handleResize.bind(this));
     
@@ -647,5 +761,10 @@ export class Menu3DScene implements Scene {
   onMessage(msg: S2C): void {
     // Handle server messages if needed
     console.log('Menu3D received message:', msg);
+    
+    // Update room code when received
+    if (msg.t === 'room' && msg.code) {
+      this.updateRoomCode(msg.code);
+    }
   }
 }
