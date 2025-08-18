@@ -6,8 +6,9 @@
       "type": "shell",
       "command": "powershell",
       "args": [
-        "-Command",
-        "netstat -ano | Select-String ':3000' | ForEach-Object { $line = $_.Line; $parts = $line -split '\\s+'; $processId = $parts[-1]; taskkill /F /PID $processId 2>$null }; Start-Sleep -Seconds 2"
+        "-ExecutionPolicy", "Bypass",
+        "-Command", 
+        "try { Get-NetTCPConnection -LocalPort 3000 -ErrorAction Stop | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction Stop } } catch { }; Start-Sleep 2"
       ],
       "presentation": {
         "echo": false,
@@ -19,7 +20,7 @@
     {
       "label": "build",
       "type": "shell",
-      "command": "C:\\Users\\ayoub.elyaakoubi\\Documents\\node-v22.18.0-win-x64\\node.exe",
+      "command": "C:\\Users\\Ayoub Elyaakoubi\\Documents\\projecten\\node-v22.18.0-win-x64\\node.exe",
       "args": [
         ".\\node_modules\\typescript\\bin\\tsc"
       ],
