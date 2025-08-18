@@ -75,6 +75,9 @@ export class Lobby3DScene implements Scene {
       rimLight.intensity = 0.8;
       rimLight.diffuse = new BABYLON.Color3(0.9, 1.0, 1.2);
 
+      // === AAA POST-PROCESSING PIPELINE ===
+      await this.setupPostProcessingPipeline();
+
       // Create lobby environment
       await this.createLobbyEnvironment();
       
@@ -755,6 +758,51 @@ export class Lobby3DScene implements Scene {
           this.showSubtitle(`${readyCount}/${this.players.length} spelers klaar...`);
         }
       }
+    }
+  }
+
+  private async setupPostProcessingPipeline(): Promise<void> {
+    if (!this.scene || !this.camera) return;
+
+    const BABYLON = window.BABYLON;
+
+    try {
+      // Create post-processing pipeline for AAA quality
+      const postProcess = new BABYLON.DefaultRenderingPipeline("default", true, this.scene, [this.camera]);
+      
+      // Enable bloom for glowing effects
+      if (postProcess.bloom) {
+        postProcess.bloomEnabled = true;
+        postProcess.bloom.bloomWeight = 0.15; // Subtle bloom
+        postProcess.bloom.bloomKernel = 64;
+      }
+      
+      // Enable tone mapping for realistic lighting
+      if (postProcess.imageProcessing) {
+        postProcess.imageProcessingEnabled = true;
+        postProcess.imageProcessing.toneMappingEnabled = true;
+        postProcess.imageProcessing.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
+        postProcess.imageProcessing.exposure = 1.0;
+        postProcess.imageProcessing.contrast = 1.1;
+        postProcess.imageProcessing.vignetteEnabled = true;
+        postProcess.imageProcessing.vignetteWeight = 0.3;
+      }
+      
+      // Enable anti-aliasing for crisp edges
+      if (postProcess.fxaa) {
+        postProcess.fxaaEnabled = true;
+      }
+      
+      // Enable sharpening for high-DPI displays
+      if (postProcess.sharpen) {
+        postProcess.sharpenEnabled = true;
+        postProcess.sharpen.edgeAmount = 0.2;
+        postProcess.sharpen.colorAmount = 0.1;
+      }
+
+      console.log('✅ AAA post-processing pipeline enabled');
+    } catch (error) {
+      console.error('❌ Post-processing setup failed:', error);
     }
   }
 }
