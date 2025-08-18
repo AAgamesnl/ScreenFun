@@ -17,7 +17,7 @@ export class Menu2DScene implements Scene {
         <!-- Game Logo -->
         <div class="logo-section">
           <div class="game-logo">
-            <div class="logo-text">TapFrenzy</div>
+            <div class="logo-text" data-text="TapFrenzy">TapFrenzy</div>
             <div class="logo-subtitle">Party Quiz Extravaganza</div>
           </div>
           
@@ -75,7 +75,7 @@ export class Menu2DScene implements Scene {
           </div>
         </div>
 
-        <!-- Background Effects -->
+        <!-- Enhanced Background Effects -->
         <div class="background-effects">
           <div class="glow-orb orb1"></div>
           <div class="glow-orb orb2"></div>
@@ -90,10 +90,13 @@ export class Menu2DScene implements Scene {
     // Initialize QR code system
     await this.initializeQRSystem();
     
-    // Start Buzzer idle animation
-    this.startBuzzerAnimation();
+    // Start Enhanced Buzzer animations
+    this.startEnhancedBuzzerAnimation();
     
-    console.log('✅ 2D Menu ready!');
+    // Add entrance animations
+    this.startEntranceSequence();
+    
+    console.log('✅ Enhanced 2D Menu ready!');
   }
 
   unmount(): void {
@@ -113,19 +116,26 @@ export class Menu2DScene implements Scene {
 
     const buttons = this.root.querySelectorAll('.bubble-btn');
     buttons.forEach(button => {
-      // Hover effects
-      button.addEventListener('mouseenter', () => {
+      // Enhanced hover effects with haptic feedback
+      button.addEventListener('mouseenter', (e) => {
         button.classList.add('hover');
+        // Add ripple effect
+        this.createRippleEffect(e.currentTarget as HTMLElement);
       });
       
       button.addEventListener('mouseleave', () => {
         button.classList.remove('hover');
       });
 
-      // Click handlers
+      // Click handlers with enhanced feedback
       button.addEventListener('click', (e) => {
         const action = (e.currentTarget as HTMLElement).getAttribute('data-action');
-        this.handleMenuAction(action);
+        this.createClickEffect(e.currentTarget as HTMLElement);
+        
+        // Add slight delay for visual feedback
+        setTimeout(() => {
+          this.handleMenuAction(action);
+        }, 150);
       });
     });
 
@@ -273,7 +283,7 @@ export class Menu2DScene implements Scene {
     }
   }
 
-  private startBuzzerAnimation(): void {
+  private startEnhancedBuzzerAnimation(): void {
     if (!this.root) return;
 
     const buzzerFace = this.root.querySelector('.buzzer-face');
@@ -283,27 +293,166 @@ export class Menu2DScene implements Scene {
 
     if (!buzzerFace || !leftEye || !rightEye || !mouth) return;
 
-    // Idle blinking animation
-    setInterval(() => {
-      leftEye.classList.add('blink');
-      rightEye.classList.add('blink');
+    // Enhanced idle blinking animation with random patterns
+    const blinkPatterns: [number, number][] = [
+      [3000, 150], // normal blink
+      [4000, 300], // slow blink
+      [2500, 100], // quick blink
+      [5000, 150], // long pause
+    ];
+    
+    let blinkIndex = 0;
+    const scheduleNextBlink = () => {
+      const pattern = blinkPatterns[blinkIndex];
+      if (!pattern) return;
+      const delay = pattern[0];
+      const duration = pattern[1];
+      blinkIndex = (blinkIndex + 1) % blinkPatterns.length;
       
       setTimeout(() => {
-        leftEye.classList.remove('blink');
-        rightEye.classList.remove('blink');
-      }, 150);
-    }, 3000 + Math.random() * 2000);
+        leftEye.classList.add('blink');
+        rightEye.classList.add('blink');
+        
+        setTimeout(() => {
+          leftEye.classList.remove('blink');
+          rightEye.classList.remove('blink');
+          scheduleNextBlink();
+        }, duration);
+      }, delay + Math.random() * 1000);
+    };
+    scheduleNextBlink();
 
-    // Subtle mouth movement
-    setInterval(() => {
-      mouth.classList.add('speak');
+    // Enhanced mouth movement with emotional expressions
+    const speakPatterns: [number, number][] = [
+      [5000, 200], // normal speak
+      [7000, 400], // long speak
+      [3000, 150], // quick speak
+      [8000, 300], // thoughtful speak
+    ];
+    
+    let speakIndex = 0;
+    const scheduleNextSpeak = () => {
+      const pattern = speakPatterns[speakIndex];
+      if (!pattern) return;
+      const delay = pattern[0];
+      const duration = pattern[1];
+      speakIndex = (speakIndex + 1) % speakPatterns.length;
+      
       setTimeout(() => {
-        mouth.classList.remove('speak');
-      }, 200);
-    }, 5000 + Math.random() * 3000);
+        mouth.classList.add('speak');
+        setTimeout(() => {
+          mouth.classList.remove('speak');
+          scheduleNextSpeak();
+        }, duration);
+      }, delay + Math.random() * 2000);
+    };
+    scheduleNextSpeak();
 
     // Gentle floating animation for the whole face
     buzzerFace.classList.add('float');
+    
+    // Add occasional excited reactions
+    this.addBuzzerReactions();
+  }
+
+  private addBuzzerReactions(): void {
+    if (!this.root) return;
+    
+    const buzzerAvatar = this.root.querySelector('.buzzer-avatar');
+    if (!buzzerAvatar) return;
+
+    setInterval(() => {
+      // Random excited pulse
+      if (Math.random() < 0.3) {
+        buzzerAvatar.classList.add('excited-pulse');
+        setTimeout(() => {
+          buzzerAvatar.classList.remove('excited-pulse');
+        }, 1000);
+      }
+    }, 10000);
+  }
+
+  private createRippleEffect(button: HTMLElement): void {
+    const ripple = document.createElement('div');
+    ripple.style.position = 'absolute';
+    ripple.style.borderRadius = '50%';
+    ripple.style.background = 'rgba(255, 255, 255, 0.3)';
+    ripple.style.transform = 'scale(0)';
+    ripple.style.animation = 'ripple 0.6s linear';
+    ripple.style.left = '50%';
+    ripple.style.top = '50%';
+    ripple.style.width = '20px';
+    ripple.style.height = '20px';
+    ripple.style.marginLeft = '-10px';
+    ripple.style.marginTop = '-10px';
+    ripple.style.pointerEvents = 'none';
+
+    button.appendChild(ripple);
+
+    setTimeout(() => {
+      ripple.remove();
+    }, 600);
+  }
+
+  private createClickEffect(button: HTMLElement): void {
+    // Create sparkle effect
+    for (let i = 0; i < 5; i++) {
+      const sparkle = document.createElement('div');
+      sparkle.style.position = 'absolute';
+      sparkle.style.width = '4px';
+      sparkle.style.height = '4px';
+      sparkle.style.background = '#fff';
+      sparkle.style.borderRadius = '50%';
+      sparkle.style.pointerEvents = 'none';
+      sparkle.style.left = '50%';
+      sparkle.style.top = '50%';
+      
+      const angle = (360 / 5) * i;
+      const distance = 30;
+      sparkle.style.animation = `sparkle-out 0.8s ease-out forwards`;
+      sparkle.style.transform = `rotate(${angle}deg) translateX(${distance}px)`;
+      
+      button.appendChild(sparkle);
+      
+      setTimeout(() => {
+        sparkle.remove();
+      }, 800);
+    }
+  }
+
+  private startEntranceSequence(): void {
+    // Add CSS for additional animations
+    const style = document.createElement('style');
+    style.textContent = `
+      .excited-pulse {
+        animation: excitedPulse 1s ease-in-out !important;
+      }
+      
+      @keyframes excitedPulse {
+        0%, 100% { transform: scale(1); }
+        30% { transform: scale(1.05) rotate(2deg); }
+        60% { transform: scale(1.08) rotate(-1deg); }
+      }
+      
+      @keyframes ripple {
+        to {
+          transform: scale(4);
+          opacity: 0;
+        }
+      }
+      
+      @keyframes sparkle-out {
+        0% {
+          transform: rotate(var(--angle)) translateX(0) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: rotate(var(--angle)) translateX(30px) scale(0);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   private transitionToLobby(): void {
