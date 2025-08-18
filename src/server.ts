@@ -85,7 +85,7 @@ app.get("/health", (_req: Request, res: Response) => {
   res.status(200).send("ok");
 });
 
-// QR Code generation endpoint
+// QR Code generation endpoint with enhanced quality
 app.get("/qr", async (req: Request, res: Response) => {
   const text = req.query.text as string;
   
@@ -94,20 +94,27 @@ app.get("/qr", async (req: Request, res: Response) => {
   }
   
   try {
-    // Generate QR code as PNG buffer
+    // High-DPI QR code generation for 4K displays
     const qrBuffer = await QRCode.toBuffer(text, {
       type: 'png',
-      width: 256,
-      margin: 2,
+      width: 512, // Doubled for high-DPI displays
+      margin: 1,  // Reduced margin for more compact QR code
       color: {
         dark: '#000000',
         light: '#FFFFFF'
+      },
+      errorCorrectionLevel: 'M', // Medium error correction for better readability
+      rendererOpts: {
+        quality: 0.92 // High quality PNG compression
       }
     });
     
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Cache-Control', 'public, max-age=300'); // Cache for 5 minutes
+    res.setHeader('X-Content-Type-Options', 'nosniff'); // Security header
     res.send(qrBuffer);
+    
+    console.log(`✅ High-DPI QR code generated: ${text.substring(0, 50)}...`);
   } catch (error) {
     console.error('QR code generation failed:', error);
     res.status(500).json({ 

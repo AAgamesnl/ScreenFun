@@ -163,13 +163,25 @@ export class Menu2DScene implements Scene {
 
   private async initializeQRSystem(): Promise<void> {
     try {
-      // Request room creation from server
+      // Request room creation from server using proper socket event
       const net = (window as any).gameNet;
-      if (net) {
-        net.send({ t: 'create-room' });
+      if (net && net.socket) {
+        console.log('🎮 Requesting room creation...');
+        net.socket.emit('host:createRoom', {}, (response: any) => {
+          if (response?.ok && response?.code) {
+            console.log(`✅ Room created successfully: ${response.code}`);
+            this.updateRoomCode(response.code);
+          } else {
+            console.error('❌ Room creation failed:', response);
+            this.showQRFallback();
+          }
+        });
+      } else {
+        console.warn('⚠️ Network connection not available');
       }
     } catch (error) {
       console.error('Failed to initialize QR system:', error);
+      this.showQRFallback();
     }
   }
 
@@ -190,15 +202,30 @@ export class Menu2DScene implements Scene {
 
     try {
       const joinURL = `${window.location.origin}/player.html?room=${roomCode}`;
+      
+      // High-DPI QR code generation with improved parameters
       const qrURL = `/qr?text=${encodeURIComponent(joinURL)}`;
       
       const qrImg = this.root.querySelector('#qr-code') as HTMLImageElement;
       if (qrImg) {
-        qrImg.src = qrURL;
-        qrImg.style.display = 'block';
+        // Preload image to ensure it loads properly
+        const img = new Image();
+        img.onload = () => {
+          qrImg.src = img.src;
+          qrImg.style.display = 'block';
+          console.log(`✅ High-DPI QR Code loaded for room: ${roomCode}`);
+        };
+        img.onerror = () => {
+          console.error('❌ QR Code image failed to load');
+          this.showQRFallback();
+        };
+        
+        // Set high-DPI scaling attributes for crisp rendering
+        qrImg.style.imageRendering = 'pixelated'; // For crisp QR codes
+        img.src = qrURL;
       }
       
-      console.log(`✅ QR Code generated for room: ${roomCode}`);
+      console.log(`🎯 QR Code URL generated: ${qrURL}`);
     } catch (error) {
       console.error('Failed to generate QR code:', error);
       this.showQRFallback();

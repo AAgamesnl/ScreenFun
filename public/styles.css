@@ -819,6 +819,11 @@ body {
   display: block;
   margin: 0 auto 1rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  /* High-DPI rendering optimizations */
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  -ms-interpolation-mode: nearest-neighbor;
 }
 
 .room-code-display {
