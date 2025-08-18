@@ -78,6 +78,9 @@ export class Lobby3DScene implements Scene {
       // Create lobby environment
       await this.createLobbyEnvironment();
       
+      // Create professional game host character
+      await this.createGameHost();
+      
       // Create QR code and room code overlay (replaces old QR area)
       await this.createQROverlay();
       
@@ -116,36 +119,40 @@ export class Lobby3DScene implements Scene {
 
     const BABYLON = window.BABYLON;
 
-    // Create AAA quality futuristic platform/stage with PBR
+    // Create HIGH-POLY AAA quality futuristic platform/stage with PBR
     const platform = BABYLON.MeshBuilder.CreateCylinder('platform', {
       height: 0.3,
       diameterTop: 14,
       diameterBottom: 14,
-      tessellation: 16
+      tessellation: 64 // Quadrupled for much smoother curves
     }, this.scene);
     platform.position.y = -0.15;
 
     const platformMaterial = new BABYLON.PBRMaterial('platformMat', this.scene);
-    platformMaterial.baseColor = new BABYLON.Color3(0.1, 0.15, 0.3);
-    platformMaterial.metallicFactor = 0.8;
-    platformMaterial.roughnessFactor = 0.2;
-    platformMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.1, 0.2);
+    platformMaterial.baseColor = new BABYLON.Color3(0.08, 0.12, 0.25);
+    platformMaterial.metallicFactor = 0.9;
+    platformMaterial.roughnessFactor = 0.15;
+    platformMaterial.emissiveColor = new BABYLON.Color3(0.03, 0.06, 0.15);
+    platformMaterial.clearCoat.isEnabled = true;
+    platformMaterial.clearCoat.intensity = 0.6;
     platform.material = platformMaterial;
 
-    // Create glowing edge rings with enhanced materials
+    // Create high-detail glowing edge rings with enhanced materials
     for (let i = 0; i < 3; i++) {
       const ring = BABYLON.MeshBuilder.CreateTorus(`ring${i}`, {
         diameter: 11 + i * 2.5,
         thickness: 0.15,
-        tessellation: 32
+        tessellation: 64 // Doubled for smoother curves
       }, this.scene);
       ring.position.y = 0.3 + i * 0.1;
       
       const ringMaterial = new BABYLON.PBRMaterial(`ringMat${i}`, this.scene);
       ringMaterial.baseColor = new BABYLON.Color3(0.2, 0.6, 1.0);
-      ringMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.3, 0.6);
-      ringMaterial.metallicFactor = 0.9;
-      ringMaterial.roughnessFactor = 0.1;
+      ringMaterial.emissiveColor = new BABYLON.Color3(0.4, 0.8, 1.5);
+      ringMaterial.metallicFactor = 0.95;
+      ringMaterial.roughnessFactor = 0.05;
+      ringMaterial.clearCoat.isEnabled = true;
+      ringMaterial.clearCoat.intensity = 0.7;
       ring.material = ringMaterial;
 
       // Animate ring rotation with different speeds
@@ -204,6 +211,141 @@ export class Lobby3DScene implements Scene {
 
     particleSystem.start();
     console.log('✅ Lobby particles created');
+  }
+
+  private async createGameHost(): Promise<void> {
+    if (!this.scene) return;
+
+    const BABYLON = window.BABYLON;
+
+    // === PROFESSIONAL GAME HOST CHARACTER ===
+    
+    // Host main body - professional presenter build
+    const hostBody = BABYLON.MeshBuilder.CreateCylinder('hostBody', {
+      height: 1.4,
+      diameterTop: 0.6,
+      diameterBottom: 0.7,
+      tessellation: 48 // High poly
+    }, this.scene);
+    hostBody.position = new BABYLON.Vector3(-3, 0.8, -6);
+
+    // Professional head with realistic proportions
+    const hostHead = BABYLON.MeshBuilder.CreateSphere('hostHead', {
+      diameter: 0.5,
+      segments: 48 // High poly for main character
+    }, this.scene);
+    hostHead.position = new BABYLON.Vector3(-3, 1.8, -6);
+    hostHead.scaling = new BABYLON.Vector3(1.0, 1.1, 0.9);
+
+    // Professional arms in presenting pose
+    const armLeft = BABYLON.MeshBuilder.CreateCapsule('hostArmLeft', {
+      radius: 0.09,
+      height: 0.7,
+      tessellation: 24
+    }, this.scene);
+    armLeft.position = new BABYLON.Vector3(-3.4, 1.2, -5.7);
+    armLeft.rotation.z = Math.PI / 4; // Welcoming gesture
+
+    const armRight = BABYLON.MeshBuilder.CreateCapsule('hostArmRight', {
+      radius: 0.09,
+      height: 0.7,
+      tessellation: 24
+    }, this.scene);
+    armRight.position = new BABYLON.Vector3(-2.6, 1.2, -5.7);
+    armRight.rotation.z = -Math.PI / 6; // Presenting gesture
+
+    // Professional hands
+    const handLeft = BABYLON.MeshBuilder.CreateSphere('hostHandLeft', {
+      diameter: 0.14,
+      segments: 16
+    }, this.scene);
+    handLeft.position = new BABYLON.Vector3(-3.7, 0.8, -5.5);
+
+    const handRight = BABYLON.MeshBuilder.CreateSphere('hostHandRight', {
+      diameter: 0.14,
+      segments: 16
+    }, this.scene);
+    handRight.position = new BABYLON.Vector3(-2.3, 1.0, -5.5);
+
+    // Professional legs  
+    const legLeft = BABYLON.MeshBuilder.CreateCapsule('hostLegLeft', {
+      radius: 0.12,
+      height: 0.9,
+      tessellation: 20
+    }, this.scene);
+    legLeft.position = new BABYLON.Vector3(-3.12, -0.3, -6);
+
+    const legRight = BABYLON.MeshBuilder.CreateCapsule('hostLegRight', {
+      radius: 0.12,
+      height: 0.9,
+      tessellation: 20
+    }, this.scene);
+    legRight.position = new BABYLON.Vector3(-2.88, -0.3, -6);
+
+    // === PROFESSIONAL MATERIALS ===
+    
+    // Professional suit material - charcoal
+    const suitMaterial = new BABYLON.PBRMaterial('hostSuitMat', this.scene);
+    suitMaterial.baseColor = new BABYLON.Color3(0.12, 0.12, 0.15);
+    suitMaterial.metallicFactor = 0.1;
+    suitMaterial.roughnessFactor = 0.6;
+    suitMaterial.emissiveColor = new BABYLON.Color3(0.02, 0.02, 0.03);
+    suitMaterial.clearCoat.isEnabled = true;
+    suitMaterial.clearCoat.intensity = 0.2;
+    hostBody.material = suitMaterial;
+    armLeft.material = suitMaterial;
+    armRight.material = suitMaterial;
+    legLeft.material = suitMaterial;
+    legRight.material = suitMaterial;
+
+    // Professional skin material
+    const skinMaterial = new BABYLON.PBRMaterial('hostSkinMat', this.scene);
+    skinMaterial.baseColor = new BABYLON.Color3(0.9, 0.75, 0.65);
+    skinMaterial.metallicFactor = 0.0;
+    skinMaterial.roughnessFactor = 0.5;
+    skinMaterial.subSurface.isScatteringEnabled = true;
+    skinMaterial.subSurface.scatteringColor = new BABYLON.Color3(0.8, 0.4, 0.3);
+    hostHead.material = skinMaterial;
+    handLeft.material = skinMaterial;
+    handRight.material = skinMaterial;
+
+    // === PROFESSIONAL ANIMATIONS ===
+    
+    // Subtle professional breathing
+    const breatheAnimation = new BABYLON.Animation(
+      'hostBreathe',
+      'scaling.y',
+      12, // Slow and subtle
+      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+      BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+    );
+    const breatheKeys = [
+      { frame: 0, value: 1.0 },
+      { frame: 60, value: 1.015 }, // Very subtle
+      { frame: 120, value: 1.0 }
+    ];
+    breatheAnimation.setKeys(breatheKeys);
+    hostBody.animations = [breatheAnimation];
+    this.scene.beginAnimation(hostBody, 0, 120, true);
+
+    // Professional gesture animation
+    const gestureAnimation = new BABYLON.Animation(
+      'hostGesture',
+      'rotation.z',
+      8, // Very slow and professional
+      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+      BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+    );
+    const gestureKeys = [
+      { frame: 0, value: -Math.PI / 6 },
+      { frame: 120, value: -Math.PI / 5 },
+      { frame: 240, value: -Math.PI / 6 }
+    ];
+    gestureAnimation.setKeys(gestureKeys);
+    armRight.animations = [gestureAnimation];
+    this.scene.beginAnimation(armRight, 0, 240, true);
+
+    console.log('✅ Professional Game Host character created with premium materials and animations');
   }
 
 
@@ -328,12 +470,46 @@ export class Lobby3DScene implements Scene {
         y: 1.5
       };
 
-      // Create AAA quality avatar with bubble-totems
+      // Create high-poly AAA quality avatar with detailed geometry
       const avatar = BABYLON.MeshBuilder.CreateSphere(`avatar${index}`, {
         diameter: 1.0,
-        segments: 32
+        segments: 64 // Doubled for much smoother sphere
       }, this.scene);
       avatar.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
+
+      // === ADD HUMANOID BODY PARTS ===
+      
+      // Simple arms for humanoid appearance
+      const armLeft = BABYLON.MeshBuilder.CreateCapsule(`armLeft${index}`, {
+        radius: 0.08,
+        height: 0.6,
+        tessellation: 16
+      }, this.scene);
+      armLeft.position = new BABYLON.Vector3(pos.x - 0.4, pos.y, pos.z);
+      armLeft.rotation.z = Math.PI / 6;
+
+      const armRight = BABYLON.MeshBuilder.CreateCapsule(`armRight${index}`, {
+        radius: 0.08,
+        height: 0.6,
+        tessellation: 16
+      }, this.scene);
+      armRight.position = new BABYLON.Vector3(pos.x + 0.4, pos.y, pos.z);
+      armRight.rotation.z = -Math.PI / 6;
+
+      // Simple legs for humanoid appearance  
+      const legLeft = BABYLON.MeshBuilder.CreateCapsule(`legLeft${index}`, {
+        radius: 0.1,
+        height: 0.8,
+        tessellation: 16
+      }, this.scene);
+      legLeft.position = new BABYLON.Vector3(pos.x - 0.2, pos.y - 0.8, pos.z);
+
+      const legRight = BABYLON.MeshBuilder.CreateCapsule(`legRight${index}`, {
+        radius: 0.1,
+        height: 0.8,
+        tessellation: 16
+      }, this.scene);
+      legRight.position = new BABYLON.Vector3(pos.x + 0.2, pos.y - 0.8, pos.z);
 
       // Create PBR material for avatar with bubble effect
       const avatarMaterial = new BABYLON.PBRMaterial(`avatarMat${index}`, this.scene);
@@ -352,25 +528,35 @@ export class Lobby3DScene implements Scene {
         avatarMaterial.roughnessFactor = 0.4;
       }
       
-      // Glassmorphism effect
+      // Enhanced glassmorphism effect with clearcoat
       avatarMaterial.alpha = 0.8;
       avatarMaterial.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
+      avatarMaterial.clearCoat.isEnabled = true;
+      avatarMaterial.clearCoat.intensity = 0.5;
       avatar.material = avatarMaterial;
+      
+      // Apply similar material to body parts
+      armLeft.material = avatarMaterial;
+      armRight.material = avatarMaterial;
+      legLeft.material = avatarMaterial;
+      legRight.material = avatarMaterial;
 
-      // Create bubble-totem pedestal
+      // Create high-detail bubble-totem pedestal
       const pedestal = BABYLON.MeshBuilder.CreateCylinder(`pedestal${index}`, {
         height: 0.3,
         diameterTop: 1.2,
         diameterBottom: 1.4,
-        tessellation: 16
+        tessellation: 48 // Tripled for smoother curves
       }, this.scene);
       pedestal.position = new BABYLON.Vector3(pos.x, pos.y - 0.7, pos.z);
       
       const pedestalMaterial = new BABYLON.PBRMaterial(`pedestalMat${index}`, this.scene);
-      pedestalMaterial.baseColor = new BABYLON.Color3(0.2, 0.3, 0.4);
-      pedestalMaterial.metallicFactor = 0.8;
-      pedestalMaterial.roughnessFactor = 0.2;
-      pedestalMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.1, 0.15);
+      pedestalMaterial.baseColor = new BABYLON.Color3(0.15, 0.25, 0.4);
+      pedestalMaterial.metallicFactor = 0.9;
+      pedestalMaterial.roughnessFactor = 0.15;
+      pedestalMaterial.emissiveColor = new BABYLON.Color3(0.03, 0.08, 0.16);
+      pedestalMaterial.clearCoat.isEnabled = true;
+      pedestalMaterial.clearCoat.intensity = 0.4;
       pedestal.material = pedestalMaterial;
 
       // Ready badge - floating bubble above avatar
@@ -446,7 +632,7 @@ export class Lobby3DScene implements Scene {
         this.scene.beginAnimation(pedestal, 0, 60, true);
       }
 
-      this.playerAvatars.push(avatar, nameplate, pedestal);
+      this.playerAvatars.push(avatar, nameplate, pedestal, armLeft, armRight, legLeft, legRight);
     });
   }
 
