@@ -120,6 +120,10 @@ export class PerformanceManager {
   private fpsSamples: number[] = [];
   private lastFrameTime = 0;
   private frameCount = 0;
+  
+  // Event throttling to prevent spam
+  private lastEventTimes: Map<string, number> = new Map();
+  private eventThrottleMs = 1000; // Throttle events to once per second
   private startTime = performance.now();
   
   // Memory tracking
@@ -281,7 +285,7 @@ export class PerformanceManager {
       alertThresholds: {
         lowFPS: 45,
         highFrameTime: 25,
-        lowMemory: 50, // MB remaining
+        lowMemory: 10, // MB remaining - reduced from 50 to prevent constant alerts
         highLatency: 100 // ms
       }
     };
@@ -506,15 +510,17 @@ export class PerformanceManager {
       });
     }
 
-    // Check memory threshold
-    const memoryRemaining = this.metrics.memory.total - this.metrics.memory.used;
-    if (memoryRemaining < this.config.alertThresholds.lowMemory) {
-      this.emitEvent({
-        type: 'memory_spike',
-        timestamp: performance.now(),
-        data: { used: this.metrics.memory.used, remaining: memoryRemaining },
-        severity: 'error'
-      });
+    // Check memory threshold (only if memory information is available)
+    if (this.metrics.memory.total > 0) {
+      const memoryRemaining = this.metrics.memory.total - this.metrics.memory.used;
+      if (memoryRemaining < this.config.alertThresholds.lowMemory) {
+        this.emitEvent({
+          type: 'memory_spike',
+          timestamp: performance.now(),
+          data: { used: this.metrics.memory.used, remaining: memoryRemaining },
+          severity: 'error'
+        });
+      }
     }
 
     // Check network latency
@@ -616,6 +622,16 @@ export class PerformanceManager {
   }
 
   private emitEvent(event: PerformanceEvent): void {
+    // Throttle events to prevent spam (except for critical quality changes)
+    const eventKey = `${event.type}_${event.severity}`;
+    const now = performance.now();
+    const lastEventTime = this.lastEventTimes.get(eventKey) || 0;
+    
+    if (event.type !== 'quality_change' && now - lastEventTime < this.eventThrottleMs) {
+      return; // Skip this event to prevent spam
+    }
+    
+    this.lastEventTimes.set(eventKey, now);
     this.eventHistory.push(event);
     
     // Keep only last 100 events
@@ -631,7 +647,7 @@ export class PerformanceManager {
     const globalListeners = this.eventListeners.get('*') || [];
     globalListeners.forEach(callback => callback(event));
     
-    // Log critical events
+    // Log critical events (throttled)
     if (event.severity === 'critical') {
       console.error('Performance Critical Event:', event);
     } else if (event.severity === 'error') {

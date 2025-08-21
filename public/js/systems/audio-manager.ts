@@ -344,7 +344,21 @@ export class AudioManager {
       }
 
     } catch (error) {
-      console.warn(`Failed to load sound effect: ${config.id}`, error);
+      console.warn(`Failed to load sound effect: ${config.id} from ${config.url}`, error);
+      // Create a silent fallback buffer for missing audio files
+      const fallbackBuffer = this.context.createBuffer(1, this.context.sampleRate * 0.1, this.context.sampleRate);
+      const soundEffect: SoundEffect = {
+        id: config.id,
+        buffer: fallbackBuffer,
+        category: config.category || 'ui',
+        volume: 0, // Silent fallback
+        pitch: config.pitch || 1.0,
+        loop: config.loop || false,
+        fade: config.fade || { in: 0, out: 0 },
+        spatial: config.spatial || false,
+        priority: config.priority || 5
+      };
+      this.soundEffects.set(config.id, soundEffect);
     }
   }
 
