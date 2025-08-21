@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "tsc -w",
-    "build": "tsc -p .",
+    "build": "tsc -p . && tsc -p tsconfig.frontend.json",
+    "build:server": "tsc -p .",
+    "build:frontend": "tsc -p tsconfig.frontend.json",
     "start": "node dist/src/server.js",
     "typecheck": "tsc -p . --noEmit",
     "lint": "eslint . --ext .ts,.js",
