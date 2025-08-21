@@ -37,11 +37,35 @@ app.use((req: Request, res: Response, next: NextFunction) => {
       return res.sendFile(builtJs);
     }
   }
-  // Support extension-less imports from built files (/build/* -> add .js)
-  if (req.path.startsWith('/build/') && !path.extname(req.path)) {
-    const builtPath = path.join(__root, 'public', req.path + '.js');
+  // Support built files (/build/* -> serve from dist or public)
+  if (req.path.startsWith('/build/')) {
+    // Try exact path first
+    let builtPath = path.join(__root, 'public', req.path);
     if (fs.existsSync(builtPath)) {
       return res.sendFile(builtPath);
+    }
+    
+    // Try with .js extension for ES module imports
+    if (!path.extname(req.path)) {
+      builtPath = path.join(__root, 'public', req.path + '.js');
+      if (fs.existsSync(builtPath)) {
+        return res.sendFile(builtPath);
+      }
+    }
+    
+    // Try dist/public/js as fallback (TypeScript output)
+    const filename = req.path.replace('/build/', '');
+    let distPath = path.join(__root, 'dist', 'public', 'js', filename);
+    if (fs.existsSync(distPath)) {
+      return res.sendFile(distPath);
+    }
+    
+    // Try dist with .js extension
+    if (!path.extname(req.path)) {
+      distPath = path.join(__root, 'dist', 'public', 'js', filename + '.js');
+      if (fs.existsSync(distPath)) {
+        return res.sendFile(distPath);
+      }
     }
   }
   next();
