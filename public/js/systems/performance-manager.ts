@@ -131,6 +131,7 @@ export class PerformanceManager {
   private gcObserver?: PerformanceObserver;
   private lastGCTime = 0;
   private lastMemoryUsage = 0;
+  private lastMemoryAlertTime = 0; // Throttle memory spike alerts
   
   // GPU tracking
   private gpuTimer?: any; // WebGL timer queries
@@ -285,7 +286,7 @@ export class PerformanceManager {
       alertThresholds: {
         lowFPS: 45,
         highFrameTime: 25,
-        lowMemory: 10, // MB remaining - reduced from 50 to prevent constant alerts
+        lowMemory: 5, // MB remaining - more realistic threshold
         highLatency: 100 // ms
       }
     };
@@ -510,16 +511,37 @@ export class PerformanceManager {
       });
     }
 
-    // Check memory threshold (only if memory information is available)
+    // Check memory threshold with more intelligent logic
     if (this.metrics.memory.total > 0) {
       const memoryRemaining = this.metrics.memory.total - this.metrics.memory.used;
-      if (memoryRemaining < this.config.alertThresholds.lowMemory) {
-        this.emitEvent({
-          type: 'memory_spike',
-          timestamp: performance.now(),
-          data: { used: this.metrics.memory.used, remaining: memoryRemaining },
-          severity: 'error'
-        });
+      const memoryUsagePercent = (this.metrics.memory.used / this.metrics.memory.total) * 100;
+      
+      // Only alert if:
+      // 1. Memory remaining is critically low (< 5MB) AND
+      // 2. Memory usage is over 90% OR
+      // 3. Memory usage increased significantly (>20MB) in short time
+      const recentMemoryIncrease = this.metrics.memory.used - this.lastMemoryUsage;
+      const shouldAlert = (
+        memoryRemaining < this.config.alertThresholds.lowMemory && 
+        (memoryUsagePercent > 90 || recentMemoryIncrease > 20)
+      );
+      
+      if (shouldAlert) {
+        // Throttle alerts to prevent spam (max 1 per 5 seconds)
+        const now = performance.now();
+        if (!this.lastMemoryAlertTime || (now - this.lastMemoryAlertTime) > 5000) {
+          this.emitEvent({
+            type: 'memory_spike',
+            timestamp: now,
+            data: { 
+              used: this.metrics.memory.used, 
+              remaining: memoryRemaining,
+              percent: memoryUsagePercent.toFixed(1)
+            },
+            severity: 'error'
+          });
+          this.lastMemoryAlertTime = now;
+        }
       }
     }
 
