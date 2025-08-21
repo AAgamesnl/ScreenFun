@@ -186,7 +186,9 @@ export class ConfigurationManager {
   }
 
   private constructor() {
-    this.isDevelopment = process.env.NODE_ENV === 'development' || localStorage.getItem('debug-mode') === 'true';
+    // Browser-compatible development detection
+    this.isDevelopment = (typeof window !== 'undefined' && window.location.hostname === 'localhost') || 
+                         (typeof localStorage !== 'undefined' && localStorage.getItem('debug-mode') === 'true');
     this.initializeDefaultConfig();
     this.setupValidation();
     this.setupPlatformOverrides();
@@ -982,7 +984,10 @@ export class ConfigurationManager {
 export const Config = ConfigurationManager.getInstance();
 
 // Auto-show config panel in development
-if (process.env.NODE_ENV === 'development' || localStorage.getItem('debug-config') === 'true') {
+// Use browser-compatible development detection
+const isDebugMode = (typeof window !== 'undefined' && window.location.hostname === 'localhost') || 
+                    (typeof localStorage !== 'undefined' && localStorage.getItem('debug-config') === 'true');
+if (isDebugMode) {
   document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.shiftKey && e.key === 'C') {
       const existingPanel = document.getElementById('config-panel');

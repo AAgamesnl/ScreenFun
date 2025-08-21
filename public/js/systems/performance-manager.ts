@@ -902,7 +902,10 @@ export function measurePerformance(name: string) {
 }
 
 // Auto-initialize performance overlay in development
-if (process.env.NODE_ENV === 'development' || localStorage.getItem('debug-performance') === 'true') {
+// Use typeof check for browser compatibility
+const isDevelopment = (typeof window !== 'undefined' && window.location.hostname === 'localhost') || 
+                      (typeof localStorage !== 'undefined' && localStorage.getItem('debug-performance') === 'true');
+if (isDevelopment) {
   document.addEventListener('DOMContentLoaded', () => {
     const overlay = Performance.createPerformanceOverlay();
     document.body.appendChild(overlay);
