@@ -132,6 +132,7 @@ export class PerformanceManager {
   private lastGCTime = 0;
   private lastMemoryUsage = 0;
   private lastMemoryAlertTime = 0; // Throttle memory spike alerts
+  private lastQualityChangeTime = 0; // Throttle quality changes
   
   // GPU tracking
   private gpuTimer?: any; // WebGL timer queries
@@ -363,13 +364,19 @@ export class PerformanceManager {
   private updateOptimizations(): void {
     if (!this.adaptiveQualityEnabled) return;
     
+    // Throttle quality changes to prevent flickering (max 1 change per 3 seconds)
+    const now = performance.now();
+    if (this.lastQualityChangeTime && (now - this.lastQualityChangeTime) < 3000) {
+      return;
+    }
+    
     const currentFPS = this.metrics.fps.current;
     const targetFPS = this.metrics.fps.target;
     const frameTime = this.metrics.frameTime.current;
     
-    // Only adjust quality if we're significantly below target
-    if (currentFPS < targetFPS * 0.8) {
-      // Performance is poor, consider downgrading quality
+    // Use more conservative thresholds and require sustained performance issues
+    if (currentFPS < targetFPS * 0.75 && frameTime > this.metrics.frameTime.budget * 1.3) {
+      // Performance is consistently poor, consider downgrading quality
       const qualities: (keyof OptimizationConfig['qualityLevels'])[] = ['ultra', 'high', 'medium', 'low'];
       const currentIndex = qualities.indexOf(this.currentQuality);
       
@@ -377,11 +384,12 @@ export class PerformanceManager {
         const newQuality = qualities[currentIndex + 1];
         if (newQuality) {
           this.setQualityLevel(newQuality);
+          this.lastQualityChangeTime = now;
           console.log(`🔽 Performance optimization: Lowered quality to ${newQuality}`);
         }
       }
-    } else if (currentFPS > targetFPS * 1.1 && frameTime < this.metrics.frameTime.budget * 0.7) {
-      // Performance is good, consider upgrading quality
+    } else if (currentFPS > targetFPS * 1.15 && frameTime < this.metrics.frameTime.budget * 0.6) {
+      // Performance is consistently excellent, consider upgrading quality
       const qualities: (keyof OptimizationConfig['qualityLevels'])[] = ['low', 'medium', 'high', 'ultra'];
       const currentIndex = qualities.indexOf(this.currentQuality);
       
@@ -389,6 +397,7 @@ export class PerformanceManager {
         const newQuality = qualities[currentIndex - 1];
         if (newQuality) {
           this.setQualityLevel(newQuality);
+          this.lastQualityChangeTime = now;
           console.log(`🔼 Performance optimization: Increased quality to ${newQuality}`);
         }
       }
