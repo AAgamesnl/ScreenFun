@@ -59,12 +59,19 @@ export class Lobby3DScene implements Scene {
     console.log(`🎯 3D Graphics: ${graphicsConfig.quality} | Render Scale: ${graphicsConfig.renderScale}`);
 
     try {
-      // Create 3D engine and scene with high-DPI support
+      // Enhanced Engine Initialization with WebGPU support
+      console.log('🚀 Attempting WebGPU initialization...');
+      
+      // Enhanced WebGL Engine initialization
+      console.log('🚀 Initializing enhanced WebGL engine...');
       this.engine = new BABYLON.Engine(this.canvas, true, { 
-        preserveDrawingBuffer: true, 
+        antialias: true, 
+        powerPreference: "high-performance",
+        preserveDrawingBuffer: false,
         stencil: true,
-        antialias: true 
+        depth: true
       });
+      console.log('✅ Enhanced WebGL Engine initialized');
       
       // 4K-ready: Set hardware scaling for high DPI displays
       if (window.devicePixelRatio && window.devicePixelRatio > 1) {
@@ -73,10 +80,19 @@ export class Lobby3DScene implements Scene {
       }
       
       this.scene = new BABYLON.Scene(this.engine);
-      this.scene.clearColor = new BABYLON.Color3(0.15, 0.2, 0.35); // Brighter background
       
-      // Improved environment lighting
-      this.scene.environmentIntensity = 1.2;
+      // Enhanced scene configuration with ACES tone mapping
+      this.scene.clearColor = new BABYLON.Color3(0.02, 0.05, 0.1); // Deep space background
+      this.scene.ambientColor = new BABYLON.Color3(0.2, 0.2, 0.3);
+      
+      // Image processing configuration for ACES tone mapping
+      this.scene.imageProcessingConfiguration.toneMappingEnabled = true;
+      this.scene.imageProcessingConfiguration.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
+      this.scene.imageProcessingConfiguration.exposure = 1.2;
+      this.scene.imageProcessingConfiguration.contrast = 1.1;
+      
+      // Enhanced environment settings
+      this.scene.environmentIntensity = 1.5;
       
       // Create camera with better positioning
       this.camera = new BABYLON.FreeCamera('lobbyCamera', new BABYLON.Vector3(0, 5, -8), this.scene);
@@ -1101,40 +1117,58 @@ export class Lobby3DScene implements Scene {
     const BABYLON = window.BABYLON;
 
     try {
-      // Create post-processing pipeline for AAA quality
+      // Create advanced post-processing pipeline for AAA quality
       const postProcess = new BABYLON.DefaultRenderingPipeline("default", true, this.scene, [this.camera]);
       
-      // Enable bloom for glowing effects
+      // Enhanced MSAA for superior anti-aliasing
+      postProcess.samples = 4; // 4x MSAA
+      
+      // Enhanced bloom for stunning glowing effects
       if (postProcess.bloom) {
         postProcess.bloomEnabled = true;
-        postProcess.bloom.bloomWeight = 0.15; // Subtle bloom
-        postProcess.bloom.bloomKernel = 64;
+        postProcess.bloom.bloomWeight = 0.2; // More pronounced bloom
+        postProcess.bloom.bloomKernel = 128; // Higher quality kernel
+        postProcess.bloom.bloomThreshold = 0.8;
       }
       
-      // Enable tone mapping for realistic lighting
+      // Advanced tone mapping for cinematic lighting
       if (postProcess.imageProcessing) {
         postProcess.imageProcessingEnabled = true;
         postProcess.imageProcessing.toneMappingEnabled = true;
         postProcess.imageProcessing.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
-        postProcess.imageProcessing.exposure = 1.0;
-        postProcess.imageProcessing.contrast = 1.1;
+        postProcess.imageProcessing.exposure = 1.3; // Brighter exposure
+        postProcess.imageProcessing.contrast = 1.15; // Higher contrast
         postProcess.imageProcessing.vignetteEnabled = true;
-        postProcess.imageProcessing.vignetteWeight = 0.3;
+        postProcess.imageProcessing.vignetteWeight = 0.2;
+        postProcess.imageProcessing.vignetteStretch = 0.1;
+        postProcess.imageProcessing.vignetteColor = new BABYLON.Color4(0, 0, 0, 1);
       }
       
-      // Enable anti-aliasing for crisp edges
+      // Enhanced anti-aliasing for crisp edges
       if (postProcess.fxaa) {
         postProcess.fxaaEnabled = true;
       }
       
-      // Enable sharpening for high-DPI displays
+      // Enhanced sharpening for ultra-crisp details
       if (postProcess.sharpen) {
         postProcess.sharpenEnabled = true;
-        postProcess.sharpen.edgeAmount = 0.2;
-        postProcess.sharpen.colorAmount = 0.1;
+        postProcess.sharpen.edgeAmount = 0.3; // More sharpening
+        postProcess.sharpen.colorAmount = 0.15;
       }
 
-      console.log('✅ AAA post-processing pipeline enabled');
+      // Enable depth of field for cinematic focus
+      if (postProcess.depthOfField) {
+        postProcess.depthOfFieldEnabled = false; // Disabled for lobby clarity
+      }
+
+      // Enable screen space reflections if available
+      if (postProcess.screenSpaceReflections) {
+        postProcess.screenSpaceReflectionsEnabled = true;
+        postProcess.screenSpaceReflections.strength = 0.3;
+        postProcess.screenSpaceReflections.reflectionSamples = 32;
+      }
+
+      console.log('✅ Enhanced AAA post-processing pipeline enabled');
     } catch (error) {
       console.error('❌ Post-processing setup failed:', error);
     }

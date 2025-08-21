@@ -311,9 +311,9 @@ export class Menu2DScene implements Scene {
   private handleMenuAction(action: string | null): void {
     switch (action) {
       case 'play':
-        // Validate player count before starting
+        // Validate player count before starting  
         if (!this.canStartGame()) {
-          this.showToast('Need at least 2 players', 'warn');
+          this.showToast('Need at least 1 ready player', 'warn');
           return;
         }
         console.log('🎮 Starting new game...');
@@ -341,7 +341,8 @@ export class Menu2DScene implements Scene {
   }
 
   private canStartGame(): boolean {
-    return this.players.length >= 2 && this.players.every(p => p.ready);
+    // Allow single player for testing purposes
+    return this.players.length >= 1 && this.players.every(p => p.ready);
   }
 
   private updatePlayButton(): void {
