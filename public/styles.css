@@ -2025,6 +2025,37 @@ html, body {
   background: radial-gradient(ellipse at top, #000 50%, rgba(255, 100, 100, 0.3) 100%);
 }
 
+.buzzer-mouth.speak-intense {
+  transform: scaleY(2) scaleX(0.6);
+  background: radial-gradient(ellipse at top, #111 30%, rgba(255, 150, 150, 0.4) 100%);
+  animation: intenseSpeaking 0.2s ease-in-out;
+}
+
+@keyframes intenseSpeaking {
+  0%, 100% { transform: scaleY(2) scaleX(0.6); }
+  50% { transform: scaleY(1.8) scaleX(0.7); }
+}
+
+.buzzer-avatar.speaking {
+  animation: speakingPulse 0.6s ease-in-out infinite alternate !important;
+  box-shadow: 
+    0 0 60px rgba(110, 231, 255, 0.6),
+    inset 0 0 40px rgba(255, 255, 255, 0.15),
+    inset 0 0 80px rgba(110, 255, 138, 0.1),
+    0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes speakingPulse {
+  0% { 
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1) saturate(1);
+  }
+  100% { 
+    transform: scale(1.03) rotate(0.5deg);
+    filter: brightness(1.1) saturate(1.2);
+  }
+}
+
 /* Add subtle particle effects around buzzer */
 .buzzer-portrait::after {
   content: '';

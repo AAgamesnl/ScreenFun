@@ -15,6 +15,8 @@ import { Config } from '../systems/configuration-manager';
 export class Menu2DScene implements Scene {
   private root?: HTMLElement;
   private qrUpdateInterval?: number;
+  private ttsSupported: boolean = false;
+  private currentSpeech?: SpeechSynthesisUtterance;
 
   async mount(root: HTMLElement): Promise<void> {
     this.root = root;
@@ -158,8 +160,10 @@ export class Menu2DScene implements Scene {
     // Initialize QR code system
     await this.initializeQRSystem();
     
-    // Start Enhanced Buzzer animations
+    // Start Enhanced Buzzer animations with TTS
+    this.initializeBuzzerTTS();
     this.startEnhancedBuzzerAnimation();
+    this.addContextualBuzzerReactions();
     
     // Add entrance animations
     this.startEntranceSequence();
@@ -612,5 +616,111 @@ export class Menu2DScene implements Scene {
         sceneManager.set(new Lobby3DScene());
       });
     }
+  }
+
+  private initializeBuzzerTTS(): void {
+    // Check for TTS support
+    this.ttsSupported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+    
+    if (this.ttsSupported) {
+      console.log('🔊 Buzzer TTS system initialized');
+      
+      // Buzzer welcome message
+      setTimeout(() => {
+        this.buzzerSpeak("Welcome to TapFrenzy! I'm Buzzer, your quiz host!", 'introduction');
+      }, 2000);
+    } else {
+      console.warn('TTS not supported in this browser');
+    }
+  }
+
+  private buzzerSpeak(text: string, context: 'introduction' | 'idle' | 'play' | 'excited' = 'idle'): void {
+    if (!this.ttsSupported) return;
+
+    // Stop any current speech
+    if (this.currentSpeech) {
+      speechSynthesis.cancel();
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Configure voice characteristics for Buzzer personality
+    utterance.rate = context === 'excited' ? 1.2 : 0.9;
+    utterance.pitch = context === 'introduction' ? 1.2 : 1.1;
+    utterance.volume = 0.7;
+    
+    // Try to use a friendly voice
+    const voices = speechSynthesis.getVoices();
+    const preferredVoice = voices.find(voice => 
+      voice.name.includes('Google') || 
+      voice.name.includes('Microsoft') || 
+      voice.lang.startsWith('en')
+    );
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+
+    // Animate Buzzer while speaking
+    utterance.onstart = () => {
+      this.animateBuzzerSpeaking(true);
+    };
+
+    utterance.onend = () => {
+      this.animateBuzzerSpeaking(false);
+    };
+
+    this.currentSpeech = utterance;
+    speechSynthesis.speak(utterance);
+
+    console.log(`🎤 Buzzer says: "${text}"`);
+  }
+
+  private animateBuzzerSpeaking(speaking: boolean): void {
+    if (!this.root) return;
+
+    const buzzerAvatar = this.root.querySelector('.buzzer-avatar');
+    const mouth = this.root.querySelector('.buzzer-mouth');
+
+    if (speaking) {
+      buzzerAvatar?.classList.add('speaking');
+      mouth?.classList.add('speak');
+      
+      // Add visual feedback during speech
+      const speakingAnimation = setInterval(() => {
+        mouth?.classList.toggle('speak-intense');
+      }, 200);
+
+      // Store animation reference for cleanup
+      (buzzerAvatar as any)._speakingAnimation = speakingAnimation;
+    } else {
+      buzzerAvatar?.classList.remove('speaking');
+      mouth?.classList.remove('speak', 'speak-intense');
+      
+      // Clear animation
+      if ((buzzerAvatar as any)._speakingAnimation) {
+        clearInterval((buzzerAvatar as any)._speakingAnimation);
+        delete (buzzerAvatar as any)._speakingAnimation;
+      }
+    }
+  }
+
+  private addContextualBuzzerReactions(): void {
+    if (!this.root) return;
+
+    // React to Play button hover
+    const playButton = this.root.querySelector('[data-action="play"]');
+    playButton?.addEventListener('mouseenter', () => {
+      setTimeout(() => {
+        this.buzzerSpeak("Ready to start? Let's do this!", 'excited');
+      }, 500);
+    });
+
+    // React to QR copy
+    const copyButton = this.root.querySelector('.qr-copy-btn');
+    copyButton?.addEventListener('click', () => {
+      setTimeout(() => {
+        this.buzzerSpeak("Perfect! Share that with your friends!", 'excited');
+      }, 1000);
+    });
   }
 }
