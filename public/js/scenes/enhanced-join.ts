@@ -76,19 +76,19 @@ export class EnhancedJoinScene implements Scene {
           
           <div class="input-group">
             <label for="room-code">Room Code</label>
-            <input type="text" id="room-code" placeholder="Enter 4-5 letter code" maxlength="5" pattern="[A-Z]*">
+            <input type="text" id="room-code" placeholder="Enter 4-5 letter code" maxlength="5" pattern="[A-Z]*" spellcheck="false" autocomplete="off" autocapitalize="characters">
             <div class="input-hint">Ask your host for the room code (letters only)</div>
           </div>
 
           <div class="input-group pin-group" id="pin-group" style="display: none;">
             <label for="pin-code">PIN (Optional)</label>
-            <input type="text" id="pin-code" placeholder="Enter 4-digit PIN" maxlength="4" pattern="[0-9]*">
+            <input type="text" id="pin-code" placeholder="Enter 4-digit PIN" maxlength="4" pattern="[0-9]*" spellcheck="false" autocomplete="off">
             <div class="input-hint">Enter PIN if required by host</div>
           </div>
 
           <div class="input-group">
             <label for="player-name">Your Name</label>
-            <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
+            <input type="text" id="player-name" placeholder="Enter your name" maxlength="20" spellcheck="false" autocomplete="name">
             <div class="input-hint">This is how others will see you</div>
           </div>
 

@@ -76,25 +76,44 @@
 html, body {
   margin: 0;
   padding: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   min-height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-title);
   overflow: hidden; /* Prevent scrolling */
+  position: fixed; /* Force fullscreen */
+  top: 0;
+  left: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: "kern" 1;
   scroll-behavior: smooth;
+  
+  /* Mobile viewport fixes */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #app, #scene {
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   min-height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
   overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 /* Performance Optimization Classes */
@@ -253,9 +272,6 @@ html, body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-#top {
-  display: none !important; /* Hide the header to prevent white bar */
-}
 
 /* Advanced Grid System */
 .grid {

@@ -81,7 +81,12 @@ export class Lobby3DScene implements Scene {
       // Create camera with better positioning
       this.camera = new BABYLON.FreeCamera('lobbyCamera', new BABYLON.Vector3(0, 5, -8), this.scene);
       this.camera.setTarget(BABYLON.Vector3.Zero());
-      this.camera.attachControls();
+      // Note: attachControls may not be needed for a fixed camera lobby
+      try {
+        this.camera.attachControls(this.canvas);
+      } catch (e) {
+        console.log('Camera controls not attached (fixed camera mode)');
+      }
       
       // AAA Lighting setup with HDRI environment
       await this.setupLobbyHDRIEnvironment();
