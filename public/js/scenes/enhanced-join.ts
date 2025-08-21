@@ -60,9 +60,9 @@ export class EnhancedJoinScene implements Scene {
     }
 
     this.el = document.createElement('div');
-    this.el.className = 'enhanced-join-scene';
+    this.el.className = 'player-shell';
     this.el.innerHTML = `
-      <div class="join-container">
+      <div class="player-card">
         <div class="app-header">
           <div class="app-logo">
             <div class="logo-text">TAP</div>

@@ -17,6 +17,8 @@ export class Menu2DScene implements Scene {
   private qrUpdateInterval?: number;
   private ttsSupported: boolean = false;
   private currentSpeech?: SpeechSynthesisUtterance;
+  private players: any[] = []; // Track connected players
+  private playButton?: HTMLElement;
 
   async mount(root: HTMLElement): Promise<void> {
     this.root = root;
@@ -188,11 +190,20 @@ export class Menu2DScene implements Scene {
   onMessage(msg: S2C): void {
     if (msg.t === 'room' && msg.code) {
       this.updateRoomCode(msg.code);
+      // Update player list and button state
+      this.players = msg.players || [];
+      this.updatePlayButton();
     }
   }
 
   private setupButtonHandlers(): void {
     if (!this.root) return;
+
+    // Store play button reference for validation updates
+    this.playButton = this.root.querySelector('[data-action="play"]') as HTMLElement;
+    
+    // Initialize button state
+    this.updatePlayButton();
 
     const buttons = this.root.querySelectorAll('.bubble-btn');
     buttons.forEach(button => {
@@ -300,7 +311,11 @@ export class Menu2DScene implements Scene {
   private handleMenuAction(action: string | null): void {
     switch (action) {
       case 'play':
-        // Start new game - transition to lobby
+        // Validate player count before starting
+        if (!this.canStartGame()) {
+          this.showToast('Need at least 2 players', 'warn');
+          return;
+        }
         console.log('🎮 Starting new game...');
         this.transitionToLobby();
         break;
@@ -323,6 +338,50 @@ export class Menu2DScene implements Scene {
         }
         break;
     }
+  }
+
+  private canStartGame(): boolean {
+    return this.players.length >= 2 && this.players.every(p => p.ready);
+  }
+
+  private updatePlayButton(): void {
+    if (this.playButton) {
+      const canStart = this.canStartGame();
+      if (canStart) {
+        this.playButton.classList.remove('disabled');
+        (this.playButton as any).disabled = false;
+      } else {
+        this.playButton.classList.add('disabled');
+        (this.playButton as any).disabled = true;
+      }
+    }
+  }
+
+  private showToast(message: string, type: 'info' | 'warn' | 'error' = 'info'): void {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed;
+      top: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: ${type === 'warn' ? 'var(--accent-2)' : type === 'error' ? 'var(--danger)' : 'var(--accent)'};
+      color: ${type === 'warn' ? 'var(--bg)' : 'white'};
+      padding: 1rem 2rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      z-index: 2000;
+      box-shadow: var(--shadow-floating);
+      animation: toastSlideIn 0.3s ease-out;
+    `;
+    
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      toast.style.animation = 'toastSlideOut 0.3s ease-in forwards';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
   }
 
   private showNotImplementedMessage(title: string, message: string): void {

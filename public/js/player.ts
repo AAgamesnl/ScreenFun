@@ -14,6 +14,41 @@ let currentPlayerName = '';
 let currentRoomCode = '';
 let myPlayerId = '';
 
+// Ensure inputs are always functional and prevent zoom
+window.addEventListener('keydown', (e) => {
+  const tag = (e.target as HTMLElement)?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return; // allow typing
+  // other global key handling here…
+}, { passive: true });
+
+// Prevent zooming on mobile
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('dblclick', e => e.preventDefault());  
+document.addEventListener('wheel', e => { 
+  if ((e as WheelEvent).ctrlKey) e.preventDefault(); 
+}, { passive: false });
+
+// Ensure all inputs remain functional
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('input,textarea').forEach(el => {
+    (el as HTMLInputElement).readOnly = false;
+    (el as HTMLInputElement).disabled = false;
+  });
+});
+
+// Also ensure inputs remain functional when content changes
+const observer = new MutationObserver(() => {
+  document.querySelectorAll('input,textarea').forEach(el => {
+    (el as HTMLInputElement).readOnly = false;
+    (el as HTMLInputElement).disabled = false;
+  });
+});
+
+observer.observe(document.body, { 
+  childList: true, 
+  subtree: true 
+});
+
 // Get initial parameters from URL
 const params = new URLSearchParams(location.search);
 const urlCode = params.get('code')?.toUpperCase() || '';
