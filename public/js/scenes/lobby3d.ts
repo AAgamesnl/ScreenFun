@@ -73,27 +73,36 @@ export class Lobby3DScene implements Scene {
       }
       
       this.scene = new BABYLON.Scene(this.engine);
-      this.scene.clearColor = new BABYLON.Color3(0.05, 0.1, 0.2); // Dark blue background
-
-      // Create camera
+      this.scene.clearColor = new BABYLON.Color3(0.15, 0.2, 0.35); // Brighter background
+      
+      // Improved environment lighting
+      this.scene.environmentIntensity = 1.2;
+      
+      // Create camera with better positioning
       this.camera = new BABYLON.FreeCamera('lobbyCamera', new BABYLON.Vector3(0, 5, -8), this.scene);
       this.camera.setTarget(BABYLON.Vector3.Zero());
+      this.camera.attachControls();
       
       // AAA Lighting setup with HDRI environment
       await this.setupLobbyHDRIEnvironment();
       
-      // Enhanced key+fill+rim lighting setup
+      // Significantly brighter and better lighting setup
       const keyLight = new BABYLON.DirectionalLight('keyLight', new BABYLON.Vector3(-0.3, -1, -0.6), this.scene);
-      keyLight.intensity = 1.5;
-      keyLight.diffuse = new BABYLON.Color3(1.0, 0.9, 0.8);
+      keyLight.intensity = 3.0; // Doubled intensity
+      keyLight.diffuse = new BABYLON.Color3(1.0, 0.95, 0.9);
       
       const fillLight = new BABYLON.HemisphericLight('fillLight', new BABYLON.Vector3(0, 1, 0), this.scene);
-      fillLight.intensity = 0.4;
-      fillLight.diffuse = new BABYLON.Color3(0.6, 0.7, 1.0);
+      fillLight.intensity = 1.2; // Tripled intensity
+      fillLight.diffuse = new BABYLON.Color3(0.8, 0.9, 1.0);
       
       const rimLight = new BABYLON.DirectionalLight('rimLight', new BABYLON.Vector3(0.8, 0.2, -1), this.scene);
-      rimLight.intensity = 0.8;
-      rimLight.diffuse = new BABYLON.Color3(0.9, 1.0, 1.2);
+      rimLight.intensity = 2.0; // Increased intensity
+      rimLight.diffuse = new BABYLON.Color3(1.0, 1.0, 1.0);
+      
+      // Additional ambient light for better overall visibility
+      const ambientLight = new BABYLON.HemisphericLight('ambientLight', new BABYLON.Vector3(0, 1, 0), this.scene);
+      ambientLight.intensity = 0.8;
+      ambientLight.diffuse = new BABYLON.Color3(0.9, 0.9, 1.0);
 
       // === AAA POST-PROCESSING PIPELINE ===
       await this.setupPostProcessingPipeline();
@@ -241,134 +250,296 @@ export class Lobby3DScene implements Scene {
 
     const BABYLON = window.BABYLON;
 
-    // === PROFESSIONAL GAME HOST CHARACTER ===
+    // === ULTRA-REALISTIC 3D HUMAN BUZZER CHARACTER ===
     
-    // Host main body - professional presenter build
-    const hostBody = BABYLON.MeshBuilder.CreateCylinder('hostBody', {
-      height: 1.4,
-      diameterTop: 0.6,
-      diameterBottom: 0.7,
-      tessellation: 48 // High poly
-    }, this.scene);
-    hostBody.position = new BABYLON.Vector3(-3, 0.8, -6);
+    // Create group for entire character
+    const buzzerGroup = new BABYLON.TransformNode('buzzerGroup', this.scene);
+    buzzerGroup.position = new BABYLON.Vector3(-3, 0, -6);
 
-    // Professional head with realistic proportions
-    const hostHead = BABYLON.MeshBuilder.CreateSphere('hostHead', {
+    // === REALISTIC BODY STRUCTURE ===
+    
+    // Torso with realistic proportions
+    const torso = BABYLON.MeshBuilder.CreateBox('buzzerTorso', {
+      width: 0.7,
+      height: 1.2,
+      depth: 0.3
+    }, this.scene);
+    torso.position = new BABYLON.Vector3(0, 1.0, 0);
+    torso.parent = buzzerGroup;
+
+    // Realistic head with proper anatomy
+    const head = BABYLON.MeshBuilder.CreateSphere('buzzerHead', {
       diameter: 0.5,
-      segments: 48 // High poly for main character
+      segments: 48
     }, this.scene);
-    hostHead.position = new BABYLON.Vector3(-3, 1.8, -6);
-    hostHead.scaling = new BABYLON.Vector3(1.0, 1.1, 0.9);
+    head.position = new BABYLON.Vector3(0, 1.9, 0);
+    head.scaling = new BABYLON.Vector3(0.9, 1.1, 0.95); // Realistic proportions
+    head.parent = buzzerGroup;
 
-    // Professional arms in presenting pose
-    const armLeft = BABYLON.MeshBuilder.CreateCapsule('hostArmLeft', {
-      radius: 0.09,
-      height: 0.7,
-      tessellation: 24
-    }, this.scene);
-    armLeft.position = new BABYLON.Vector3(-3.4, 1.2, -5.7);
-    armLeft.rotation.z = Math.PI / 4; // Welcoming gesture
-
-    const armRight = BABYLON.MeshBuilder.CreateCapsule('hostArmRight', {
-      radius: 0.09,
-      height: 0.7,
-      tessellation: 24
-    }, this.scene);
-    armRight.position = new BABYLON.Vector3(-2.6, 1.2, -5.7);
-    armRight.rotation.z = -Math.PI / 6; // Presenting gesture
-
-    // Professional hands
-    const handLeft = BABYLON.MeshBuilder.CreateSphere('hostHandLeft', {
-      diameter: 0.14,
+    // Realistic eyes
+    const leftEye = BABYLON.MeshBuilder.CreateSphere('leftEye', {
+      diameter: 0.06,
       segments: 16
     }, this.scene);
-    handLeft.position = new BABYLON.Vector3(-3.7, 0.8, -5.5);
+    leftEye.position = new BABYLON.Vector3(-0.12, 1.95, -0.22);
+    leftEye.parent = buzzerGroup;
 
-    const handRight = BABYLON.MeshBuilder.CreateSphere('hostHandRight', {
-      diameter: 0.14,
+    const rightEye = BABYLON.MeshBuilder.CreateSphere('rightEye', {
+      diameter: 0.06,
       segments: 16
     }, this.scene);
-    handRight.position = new BABYLON.Vector3(-2.3, 1.0, -5.5);
+    rightEye.position = new BABYLON.Vector3(0.12, 1.95, -0.22);
+    rightEye.parent = buzzerGroup;
 
-    // Professional legs  
-    const legLeft = BABYLON.MeshBuilder.CreateCapsule('hostLegLeft', {
-      radius: 0.12,
-      height: 0.9,
-      tessellation: 20
+    // Realistic mouth
+    const mouth = BABYLON.MeshBuilder.CreateBox('mouth', {
+      width: 0.15,
+      height: 0.04,
+      depth: 0.02
     }, this.scene);
-    legLeft.position = new BABYLON.Vector3(-3.12, -0.3, -6);
+    mouth.position = new BABYLON.Vector3(0, 1.82, -0.22);
+    mouth.parent = buzzerGroup;
 
-    const legRight = BABYLON.MeshBuilder.CreateCapsule('hostLegRight', {
-      radius: 0.12,
-      height: 0.9,
-      tessellation: 20
+    // Realistic arms with proper joints
+    const leftUpperArm = BABYLON.MeshBuilder.CreateCapsule('leftUpperArm', {
+      radius: 0.08,
+      height: 0.6,
+      tessellation: 24
     }, this.scene);
-    legRight.position = new BABYLON.Vector3(-2.88, -0.3, -6);
+    leftUpperArm.position = new BABYLON.Vector3(-0.45, 1.4, 0);
+    leftUpperArm.rotation.z = Math.PI / 6; // Natural angle
+    leftUpperArm.parent = buzzerGroup;
 
-    // === PROFESSIONAL MATERIALS ===
+    const leftForearm = BABYLON.MeshBuilder.CreateCapsule('leftForearm', {
+      radius: 0.07,
+      height: 0.5,
+      tessellation: 24
+    }, this.scene);
+    leftForearm.position = new BABYLON.Vector3(-0.65, 0.9, 0.1);
+    leftForearm.rotation.z = Math.PI / 3;
+    leftForearm.parent = buzzerGroup;
+
+    const rightUpperArm = BABYLON.MeshBuilder.CreateCapsule('rightUpperArm', {
+      radius: 0.08,
+      height: 0.6,
+      tessellation: 24
+    }, this.scene);
+    rightUpperArm.position = new BABYLON.Vector3(0.45, 1.4, 0);
+    rightUpperArm.rotation.z = -Math.PI / 8;
+    rightUpperArm.parent = buzzerGroup;
+
+    const rightForearm = BABYLON.MeshBuilder.CreateCapsule('rightForearm', {
+      radius: 0.07,
+      height: 0.5,
+      tessellation: 24
+    }, this.scene);
+    rightForearm.position = new BABYLON.Vector3(0.75, 1.0, -0.1);
+    rightForearm.rotation.z = -Math.PI / 4; // Presenting gesture
+    rightForearm.parent = buzzerGroup;
+
+    // Realistic hands
+    const leftHand = BABYLON.MeshBuilder.CreateSphere('leftHand', {
+      diameter: 0.12,
+      segments: 16
+    }, this.scene);
+    leftHand.position = new BABYLON.Vector3(-0.85, 0.65, 0.15);
+    leftHand.parent = buzzerGroup;
+
+    const rightHand = BABYLON.MeshBuilder.CreateSphere('rightHand', {
+      diameter: 0.12,
+      segments: 16
+    }, this.scene);
+    rightHand.position = new BABYLON.Vector3(0.95, 0.8, -0.15);
+    rightHand.parent = buzzerGroup;
+
+    // Realistic legs with proper proportions
+    const leftThigh = BABYLON.MeshBuilder.CreateCapsule('leftThigh', {
+      radius: 0.12,
+      height: 0.8,
+      tessellation: 24
+    }, this.scene);
+    leftThigh.position = new BABYLON.Vector3(-0.18, 0.0, 0);
+    leftThigh.parent = buzzerGroup;
+
+    const leftShin = BABYLON.MeshBuilder.CreateCapsule('leftShin', {
+      radius: 0.10,
+      height: 0.8,
+      tessellation: 24
+    }, this.scene);
+    leftShin.position = new BABYLON.Vector3(-0.18, -0.8, 0);
+    leftShin.parent = buzzerGroup;
+
+    const rightThigh = BABYLON.MeshBuilder.CreateCapsule('rightThigh', {
+      radius: 0.12,
+      height: 0.8,
+      tessellation: 24
+    }, this.scene);
+    rightThigh.position = new BABYLON.Vector3(0.18, 0.0, 0);
+    rightThigh.parent = buzzerGroup;
+
+    const rightShin = BABYLON.MeshBuilder.CreateCapsule('rightShin', {
+      radius: 0.10,
+      height: 0.8,
+      tessellation: 24
+    }, this.scene);
+    rightShin.position = new BABYLON.Vector3(0.18, -0.8, 0);
+    rightShin.parent = buzzerGroup;
+
+    // Realistic feet
+    const leftFoot = BABYLON.MeshBuilder.CreateBox('leftFoot', {
+      width: 0.12,
+      height: 0.08,
+      depth: 0.25
+    }, this.scene);
+    leftFoot.position = new BABYLON.Vector3(-0.18, -1.25, 0.08);
+    leftFoot.parent = buzzerGroup;
+
+    const rightFoot = BABYLON.MeshBuilder.CreateBox('rightFoot', {
+      width: 0.12,
+      height: 0.08,
+      depth: 0.25
+    }, this.scene);
+    rightFoot.position = new BABYLON.Vector3(0.18, -1.25, 0.08);
+    rightFoot.parent = buzzerGroup;
+
+    // === REALISTIC HUMAN MATERIALS ===
     
-    // Professional suit material - charcoal
-    const suitMaterial = new BABYLON.PBRMaterial('hostSuitMat', this.scene);
-    suitMaterial.baseColor = new BABYLON.Color3(0.12, 0.12, 0.15);
-    suitMaterial.metallicFactor = 0.1;
-    suitMaterial.roughnessFactor = 0.6;
-    suitMaterial.emissiveColor = new BABYLON.Color3(0.02, 0.02, 0.03);
-    suitMaterial.clearCoat.isEnabled = true;
-    suitMaterial.clearCoat.intensity = 0.2;
-    hostBody.material = suitMaterial;
-    armLeft.material = suitMaterial;
-    armRight.material = suitMaterial;
-    legLeft.material = suitMaterial;
-    legRight.material = suitMaterial;
-
-    // Professional skin material
-    const skinMaterial = new BABYLON.PBRMaterial('hostSkinMat', this.scene);
-    skinMaterial.baseColor = new BABYLON.Color3(0.9, 0.75, 0.65);
+    // Professional realistic skin material
+    const skinMaterial = new BABYLON.PBRMaterial('buzzerSkin', this.scene);
+    skinMaterial.baseColor = new BABYLON.Color3(0.95, 0.82, 0.72);
     skinMaterial.metallicFactor = 0.0;
-    skinMaterial.roughnessFactor = 0.5;
+    skinMaterial.roughnessFactor = 0.6;
     skinMaterial.subSurface.isScatteringEnabled = true;
-    skinMaterial.subSurface.scatteringColor = new BABYLON.Color3(0.8, 0.4, 0.3);
-    hostHead.material = skinMaterial;
-    handLeft.material = skinMaterial;
-    handRight.material = skinMaterial;
+    skinMaterial.subSurface.scatteringColor = new BABYLON.Color3(0.9, 0.4, 0.3);
+    skinMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.02, 0.01);
+    head.material = skinMaterial;
+    leftHand.material = skinMaterial;
+    rightHand.material = skinMaterial;
 
-    // === PROFESSIONAL ANIMATIONS ===
+    // Realistic eye material
+    const eyeMaterial = new BABYLON.PBRMaterial('buzzerEyes', this.scene);
+    eyeMaterial.baseColor = new BABYLON.Color3(0.2, 0.6, 1.0); // Bright blue eyes
+    eyeMaterial.metallicFactor = 0.0;
+    eyeMaterial.roughnessFactor = 0.1;
+    eyeMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.2, 0.4);
+    leftEye.material = eyeMaterial;
+    rightEye.material = eyeMaterial;
+
+    // Realistic mouth material
+    const mouthMaterial = new BABYLON.PBRMaterial('buzzerMouth', this.scene);
+    mouthMaterial.baseColor = new BABYLON.Color3(0.8, 0.3, 0.3);
+    mouthMaterial.metallicFactor = 0.0;
+    mouthMaterial.roughnessFactor = 0.2;
+    mouth.material = mouthMaterial;
+
+    // Professional clothing material
+    const clothingMaterial = new BABYLON.PBRMaterial('buzzerClothing', this.scene);
+    clothingMaterial.baseColor = new BABYLON.Color3(0.15, 0.25, 0.45); // Professional blue
+    clothingMaterial.metallicFactor = 0.1;
+    clothingMaterial.roughnessFactor = 0.7;
+    clothingMaterial.emissiveColor = new BABYLON.Color3(0.02, 0.04, 0.08);
+    torso.material = clothingMaterial;
+    leftUpperArm.material = clothingMaterial;
+    leftForearm.material = clothingMaterial;
+    rightUpperArm.material = clothingMaterial;
+    rightForearm.material = clothingMaterial;
+    leftThigh.material = clothingMaterial;
+    rightThigh.material = clothingMaterial;
+
+    // Shoe material
+    const shoeMaterial = new BABYLON.PBRMaterial('buzzerShoes', this.scene);
+    shoeMaterial.baseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+    shoeMaterial.metallicFactor = 0.2;
+    shoeMaterial.roughnessFactor = 0.4;
+    leftFoot.material = shoeMaterial;
+    rightFoot.material = shoeMaterial;
+
+    // Pants material
+    const pantsMaterial = new BABYLON.PBRMaterial('buzzerPants', this.scene);
+    pantsMaterial.baseColor = new BABYLON.Color3(0.2, 0.2, 0.25);
+    pantsMaterial.metallicFactor = 0.0;
+    pantsMaterial.roughnessFactor = 0.8;
+    leftShin.material = pantsMaterial;
+    rightShin.material = pantsMaterial;
+
+    // === REALISTIC HUMAN ANIMATIONS ===
     
-    // Subtle professional breathing
-    const breatheAnimation = new BABYLON.Animation(
-      'hostBreathe',
+    // Natural breathing animation
+    const breathingAnimation = new BABYLON.Animation(
+      'buzzerBreathing',
       'scaling.y',
-      12, // Slow and subtle
+      30,
       BABYLON.Animation.ANIMATIONTYPE_FLOAT,
       BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
     );
-    const breatheKeys = [
+    const breathingKeys = [
       { frame: 0, value: 1.0 },
-      { frame: 60, value: 1.015 }, // Very subtle
-      { frame: 120, value: 1.0 }
+      { frame: 40, value: 1.02 },
+      { frame: 80, value: 1.0 }
     ];
-    breatheAnimation.setKeys(breatheKeys);
-    hostBody.animations = [breatheAnimation];
-    this.scene.beginAnimation(hostBody, 0, 120, true);
+    breathingAnimation.setKeys(breathingKeys);
+    torso.animations = [breathingAnimation];
+    this.scene.beginAnimation(torso, 0, 80, true);
 
-    // Professional gesture animation
+    // Natural head nodding
+    const nodAnimation = new BABYLON.Animation(
+      'buzzerNod',
+      'rotation.x',
+      20,
+      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+      BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+    );
+    const nodKeys = [
+      { frame: 0, value: 0 },
+      { frame: 60, value: 0.05 },
+      { frame: 120, value: -0.05 },
+      { frame: 180, value: 0 }
+    ];
+    nodAnimation.setKeys(nodKeys);
+    head.animations = [nodAnimation];
+    this.scene.beginAnimation(head, 0, 180, true);
+
+    // Natural presenting gesture
     const gestureAnimation = new BABYLON.Animation(
-      'hostGesture',
+      'buzzerGesture',
       'rotation.z',
-      8, // Very slow and professional
+      15,
       BABYLON.Animation.ANIMATIONTYPE_FLOAT,
       BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
     );
     const gestureKeys = [
-      { frame: 0, value: -Math.PI / 6 },
-      { frame: 120, value: -Math.PI / 5 },
-      { frame: 240, value: -Math.PI / 6 }
+      { frame: 0, value: -Math.PI / 4 },
+      { frame: 100, value: -Math.PI / 5 },
+      { frame: 200, value: -Math.PI / 4 }
     ];
     gestureAnimation.setKeys(gestureKeys);
-    armRight.animations = [gestureAnimation];
-    this.scene.beginAnimation(armRight, 0, 240, true);
+    rightForearm.animations = [gestureAnimation];
+    this.scene.beginAnimation(rightForearm, 0, 200, true);
 
-    console.log('✅ Professional Game Host character created with premium materials and animations');
+    // Eye blinking animation
+    const blinkAnimation = new BABYLON.Animation(
+      'buzzerBlink',
+      'scaling.y',
+      60,
+      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+      BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+    );
+    const blinkKeys = [
+      { frame: 0, value: 1.0 },
+      { frame: 5, value: 0.1 },
+      { frame: 10, value: 1.0 },
+      { frame: 300, value: 1.0 },
+      { frame: 305, value: 0.1 },
+      { frame: 310, value: 1.0 },
+      { frame: 360, value: 1.0 }
+    ];
+    blinkAnimation.setKeys(blinkKeys);
+    leftEye.animations = [blinkAnimation];
+    rightEye.animations = [blinkAnimation];
+    this.scene.beginAnimation(leftEye, 0, 360, true);
+    this.scene.beginAnimation(rightEye, 0, 360, true);
+
+    console.log('✅ Ultra-Realistic 3D Human Buzzer Character created with lifelike features');
   }
 
 
@@ -493,85 +664,175 @@ export class Lobby3DScene implements Scene {
         y: 1.5
       };
 
-      // Create high-poly AAA quality avatar with detailed geometry
-      const avatar = BABYLON.MeshBuilder.CreateSphere(`avatar${index}`, {
-        diameter: 1.0,
-        segments: 64 // Doubled for much smoother sphere
-      }, this.scene);
-      avatar.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
+      // Create ultra-realistic AAA quality 3D player avatar
+      const avatarGroup = new BABYLON.TransformNode(`playerGroup${index}`, this.scene);
+      avatarGroup.position = new BABYLON.Vector3(pos.x, pos.y - 0.8, pos.z);
 
-      // === ADD HUMANOID BODY PARTS ===
+      // Realistic human proportions
+      const torso = BABYLON.MeshBuilder.CreateBox(`playerTorso${index}`, {
+        width: 0.5,
+        height: 0.8,
+        depth: 0.25
+      }, this.scene);
+      torso.position = new BABYLON.Vector3(0, 0.6, 0);
+      torso.parent = avatarGroup;
+
+      // Realistic head
+      const head = BABYLON.MeshBuilder.CreateSphere(`playerHead${index}`, {
+        diameter: 0.35,
+        segments: 32
+      }, this.scene);
+      head.position = new BABYLON.Vector3(0, 1.2, 0);
+      head.scaling = new BABYLON.Vector3(0.9, 1.0, 0.9);
+      head.parent = avatarGroup;
+
+      // Eyes for personality
+      const leftEye = BABYLON.MeshBuilder.CreateSphere(`playerLeftEye${index}`, {
+        diameter: 0.04,
+        segments: 12
+      }, this.scene);
+      leftEye.position = new BABYLON.Vector3(-0.08, 1.25, -0.15);
+      leftEye.parent = avatarGroup;
+
+      const rightEye = BABYLON.MeshBuilder.CreateSphere(`playerRightEye${index}`, {
+        diameter: 0.04,
+        segments: 12
+      }, this.scene);
+      rightEye.position = new BABYLON.Vector3(0.08, 1.25, -0.15);
+      rightEye.parent = avatarGroup;
+
+      // Realistic arms
+      const leftUpperArm = BABYLON.MeshBuilder.CreateCapsule(`playerLeftUpperArm${index}`, {
+        radius: 0.06,
+        height: 0.4,
+        tessellation: 16
+      }, this.scene);
+      leftUpperArm.position = new BABYLON.Vector3(-0.32, 0.8, 0);
+      leftUpperArm.rotation.z = Math.PI / 8;
+      leftUpperArm.parent = avatarGroup;
+
+      const leftForearm = BABYLON.MeshBuilder.CreateCapsule(`playerLeftForearm${index}`, {
+        radius: 0.05,
+        height: 0.35,
+        tessellation: 16
+      }, this.scene);
+      leftForearm.position = new BABYLON.Vector3(-0.45, 0.4, 0);
+      leftForearm.rotation.z = Math.PI / 4;
+      leftForearm.parent = avatarGroup;
+
+      const rightUpperArm = BABYLON.MeshBuilder.CreateCapsule(`playerRightUpperArm${index}`, {
+        radius: 0.06,
+        height: 0.4,
+        tessellation: 16
+      }, this.scene);
+      rightUpperArm.position = new BABYLON.Vector3(0.32, 0.8, 0);
+      rightUpperArm.rotation.z = -Math.PI / 8;
+      rightUpperArm.parent = avatarGroup;
+
+      const rightForearm = BABYLON.MeshBuilder.CreateCapsule(`playerRightForearm${index}`, {
+        radius: 0.05,
+        height: 0.35,
+        tessellation: 16
+      }, this.scene);
+      rightForearm.position = new BABYLON.Vector3(0.45, 0.4, 0);
+      rightForearm.rotation.z = -Math.PI / 4;
+      rightForearm.parent = avatarGroup;
+
+      // Realistic legs
+      const leftThigh = BABYLON.MeshBuilder.CreateCapsule(`playerLeftThigh${index}`, {
+        radius: 0.08,
+        height: 0.5,
+        tessellation: 16
+      }, this.scene);
+      leftThigh.position = new BABYLON.Vector3(-0.12, -0.05, 0);
+      leftThigh.parent = avatarGroup;
+
+      const leftShin = BABYLON.MeshBuilder.CreateCapsule(`playerLeftShin${index}`, {
+        radius: 0.07,
+        height: 0.5,
+        tessellation: 16
+      }, this.scene);
+      leftShin.position = new BABYLON.Vector3(-0.12, -0.6, 0);
+      leftShin.parent = avatarGroup;
+
+      const rightThigh = BABYLON.MeshBuilder.CreateCapsule(`playerRightThigh${index}`, {
+        radius: 0.08,
+        height: 0.5,
+        tessellation: 16
+      }, this.scene);
+      rightThigh.position = new BABYLON.Vector3(0.12, -0.05, 0);
+      rightThigh.parent = avatarGroup;
+
+      const rightShin = BABYLON.MeshBuilder.CreateCapsule(`playerRightShin${index}`, {
+        radius: 0.07,
+        height: 0.5,
+        tessellation: 16
+      }, this.scene);
+      rightShin.position = new BABYLON.Vector3(0.12, -0.6, 0);
+      rightShin.parent = avatarGroup;
+
+      // === AAA REALISTIC MATERIALS ===
       
-      // Simple arms for humanoid appearance
-      const armLeft = BABYLON.MeshBuilder.CreateCapsule(`armLeft${index}`, {
-        radius: 0.08,
-        height: 0.6,
-        tessellation: 16
-      }, this.scene);
-      armLeft.position = new BABYLON.Vector3(pos.x - 0.4, pos.y, pos.z);
-      armLeft.rotation.z = Math.PI / 6;
+      // Player skin material
+      const skinMaterial = new BABYLON.PBRMaterial(`playerSkin${index}`, this.scene);
+      skinMaterial.baseColor = new BABYLON.Color3(0.92, 0.78, 0.68);
+      skinMaterial.metallicFactor = 0.0;
+      skinMaterial.roughnessFactor = 0.6;
+      skinMaterial.subSurface.isScatteringEnabled = true;
+      skinMaterial.subSurface.scatteringColor = new BABYLON.Color3(0.8, 0.4, 0.3);
+      head.material = skinMaterial;
 
-      const armRight = BABYLON.MeshBuilder.CreateCapsule(`armRight${index}`, {
-        radius: 0.08,
-        height: 0.6,
-        tessellation: 16
-      }, this.scene);
-      armRight.position = new BABYLON.Vector3(pos.x + 0.4, pos.y, pos.z);
-      armRight.rotation.z = -Math.PI / 6;
+      // Eye material
+      const eyeMaterial = new BABYLON.PBRMaterial(`playerEye${index}`, this.scene);
+      eyeMaterial.baseColor = new BABYLON.Color3(0.3, 0.5, 0.8);
+      eyeMaterial.metallicFactor = 0.0;
+      eyeMaterial.roughnessFactor = 0.1;
+      eyeMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.15, 0.25);
+      leftEye.material = eyeMaterial;
+      rightEye.material = eyeMaterial;
 
-      // Simple legs for humanoid appearance  
-      const legLeft = BABYLON.MeshBuilder.CreateCapsule(`legLeft${index}`, {
-        radius: 0.1,
-        height: 0.8,
-        tessellation: 16
-      }, this.scene);
-      legLeft.position = new BABYLON.Vector3(pos.x - 0.2, pos.y - 0.8, pos.z);
-
-      const legRight = BABYLON.MeshBuilder.CreateCapsule(`legRight${index}`, {
-        radius: 0.1,
-        height: 0.8,
-        tessellation: 16
-      }, this.scene);
-      legRight.position = new BABYLON.Vector3(pos.x + 0.2, pos.y - 0.8, pos.z);
-
-      // Create PBR material for avatar with bubble effect
-      const avatarMaterial = new BABYLON.PBRMaterial(`avatarMat${index}`, this.scene);
+      // Player clothing material based on ready state
+      const clothingMaterial = new BABYLON.PBRMaterial(`playerClothing${index}`, this.scene);
       
       if (player.ready) {
-        // Ready state: bright green with glow
-        avatarMaterial.baseColor = new BABYLON.Color3(0.1, 0.9, 0.2);
-        avatarMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.3, 0.1);
-        avatarMaterial.metallicFactor = 0.1;
-        avatarMaterial.roughnessFactor = 0.2;
+        // Ready state: bright professional green
+        clothingMaterial.baseColor = new BABYLON.Color3(0.2, 0.8, 0.3);
+        clothingMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.3, 0.15);
+        clothingMaterial.metallicFactor = 0.1;
+        clothingMaterial.roughnessFactor = 0.3;
       } else {
-        // Waiting state: warm orange
-        avatarMaterial.baseColor = new BABYLON.Color3(0.9, 0.5, 0.1);
-        avatarMaterial.emissiveColor = new BABYLON.Color3(0.3, 0.15, 0.05);
-        avatarMaterial.metallicFactor = 0.3;
-        avatarMaterial.roughnessFactor = 0.4;
+        // Waiting state: warm professional orange  
+        clothingMaterial.baseColor = new BABYLON.Color3(0.8, 0.5, 0.2);
+        clothingMaterial.emissiveColor = new BABYLON.Color3(0.3, 0.2, 0.1);
+        clothingMaterial.metallicFactor = 0.2;
+        clothingMaterial.roughnessFactor = 0.4;
       }
       
-      // Enhanced glassmorphism effect with clearcoat
-      avatarMaterial.alpha = 0.8;
-      avatarMaterial.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
-      avatarMaterial.clearCoat.isEnabled = true;
-      avatarMaterial.clearCoat.intensity = 0.5;
-      avatar.material = avatarMaterial;
-      
-      // Apply similar material to body parts
-      armLeft.material = avatarMaterial;
-      armRight.material = avatarMaterial;
-      legLeft.material = avatarMaterial;
-      legRight.material = avatarMaterial;
+      // Apply clothing material to body and arms
+      torso.material = clothingMaterial;
+      leftUpperArm.material = clothingMaterial;
+      leftForearm.material = clothingMaterial;
+      rightUpperArm.material = clothingMaterial;
+      rightForearm.material = clothingMaterial;
 
-      // Create high-detail bubble-totem pedestal
+      // Pants material
+      const pantsMaterial = new BABYLON.PBRMaterial(`playerPants${index}`, this.scene);
+      pantsMaterial.baseColor = new BABYLON.Color3(0.25, 0.25, 0.35);
+      pantsMaterial.metallicFactor = 0.0;
+      pantsMaterial.roughnessFactor = 0.7;
+      leftThigh.material = pantsMaterial;
+      leftShin.material = pantsMaterial;
+      rightThigh.material = pantsMaterial;
+      rightShin.material = pantsMaterial;
+
+      // Create professional pedestal for the realistic avatar
       const pedestal = BABYLON.MeshBuilder.CreateCylinder(`pedestal${index}`, {
         height: 0.3,
         diameterTop: 1.2,
         diameterBottom: 1.4,
-        tessellation: 48 // Tripled for smoother curves
+        tessellation: 48
       }, this.scene);
-      pedestal.position = new BABYLON.Vector3(pos.x, pos.y - 0.7, pos.z);
+      pedestal.position = new BABYLON.Vector3(pos.x, pos.y - 1.1, pos.z);
       
       const pedestalMaterial = new BABYLON.PBRMaterial(`pedestalMat${index}`, this.scene);
       pedestalMaterial.baseColor = new BABYLON.Color3(0.15, 0.25, 0.4);
@@ -582,14 +843,14 @@ export class Lobby3DScene implements Scene {
       pedestalMaterial.clearCoat.intensity = 0.4;
       pedestal.material = pedestalMaterial;
 
-      // Ready badge - floating bubble above avatar
+      // Ready badge - floating above realistic avatar
       if (player.ready) {
         const badge = BABYLON.MeshBuilder.CreateBox(`readyBadge${index}`, {
           width: 0.6,
           height: 0.2,
           depth: 0.1
         }, this.scene);
-        badge.position = new BABYLON.Vector3(pos.x, pos.y + 1.2, pos.z);
+        badge.position = new BABYLON.Vector3(pos.x, pos.y + 1.0, pos.z);
         
         const badgeMaterial = new BABYLON.PBRMaterial(`badgeMat${index}`, this.scene);
         badgeMaterial.baseColor = new BABYLON.Color3(0.1, 1.0, 0.3);
@@ -602,7 +863,7 @@ export class Lobby3DScene implements Scene {
 
       // Enhanced name plate with glassmorphism
       const nameplate = BABYLON.MeshBuilder.CreatePlane(`nameplate${index}`, {width: 2.0, height: 0.4}, this.scene);
-      nameplate.position = new BABYLON.Vector3(pos.x, pos.y + 0.8, pos.z);
+      nameplate.position = new BABYLON.Vector3(pos.x, pos.y + 0.6, pos.z);
       
       const nameTexture = new BABYLON.DynamicTexture(`nameTexture${index}`, {width: 512, height: 128}, this.scene);
       nameTexture.hasAlpha = true;
@@ -615,48 +876,54 @@ export class Lobby3DScene implements Scene {
       nameMaterial.backFaceCulling = false;
       nameplate.material = nameMaterial;
 
-      // Enhanced bounce animation for ready players
+      // Realistic human animations for ready players
       if (player.ready) {
+        // Gentle bouncing animation for the whole avatar group
         const bounceAnimation = new BABYLON.Animation(
-          `bounce${index}`,
+          `avatarBounce${index}`,
           'position.y',
-          60,
+          30,
           BABYLON.Animation.ANIMATIONTYPE_FLOAT,
           BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
         );
 
         const keys = [
-          { frame: 0, value: pos.y },
-          { frame: 30, value: pos.y + 0.4 },
-          { frame: 60, value: pos.y }
+          { frame: 0, value: pos.y - 0.8 },
+          { frame: 15, value: pos.y - 0.6 },
+          { frame: 30, value: pos.y - 0.8 }
         ];
 
         bounceAnimation.setKeys(keys);
-        avatar.animations = [bounceAnimation];
-        this.scene.beginAnimation(avatar, 0, 60, true);
+        avatarGroup.animations = [bounceAnimation];
+        this.scene.beginAnimation(avatarGroup, 0, 30, true);
         
-        // Also animate the pedestal
-        const pedestalBounce = new BABYLON.Animation(
-          `pedestalBounce${index}`,
-          'scaling.y',
-          60,
+        // Waving animation for right arm
+        const waveAnimation = new BABYLON.Animation(
+          `wave${index}`,
+          'rotation.z',
+          40,
           BABYLON.Animation.ANIMATIONTYPE_FLOAT,
           BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
         );
         
-        const pedestalKeys = [
-          { frame: 0, value: 1.0 },
-          { frame: 30, value: 1.1 },
-          { frame: 60, value: 1.0 }
+        const waveKeys = [
+          { frame: 0, value: -Math.PI / 4 },
+          { frame: 20, value: -Math.PI / 6 },
+          { frame: 40, value: -Math.PI / 4 }
         ];
         
-        pedestalBounce.setKeys(pedestalKeys);
-        pedestal.animations = [pedestalBounce];
-        this.scene.beginAnimation(pedestal, 0, 60, true);
+        waveAnimation.setKeys(waveKeys);
+        rightForearm.animations = [waveAnimation];
+        this.scene.beginAnimation(rightForearm, 0, 40, true);
       }
 
-      this.playerAvatars.push(avatar, nameplate, pedestal, armLeft, armRight, legLeft, legRight);
+      // Store the avatar group and related meshes for cleanup
+      this.playerAvatars.push(avatarGroup);
+      this.playerAvatars.push(pedestal);
+      this.playerAvatars.push(nameplate);
     });
+
+    console.log('✅ Ultra-Realistic AAA Player Avatars created');
   }
 
   private showSubtitle(text: string): void {
@@ -768,16 +1035,58 @@ export class Lobby3DScene implements Scene {
       this.updatePlayerAvatars();
       
       // Check if all players are ready
-      if (this.players.length >= 2) {
+      if (this.players.length >= 1) {  // Reduced minimum to 1 player for testing
         const allReady = this.players.every(p => p.ready);
         if (allReady) {
           this.showSubtitle('🎉 Alle spelers zijn klaar! Het spel begint zo...');
-          // TODO: Transition to category selection
+          
+          // Start the game after 2 seconds
+          setTimeout(() => {
+            this.startGame();
+          }, 2000);
         } else {
           const readyCount = this.players.filter(p => p.ready).length;
           this.showSubtitle(`${readyCount}/${this.players.length} spelers klaar...`);
         }
+      } else {
+        this.showSubtitle('Wacht op meer spelers... Scan de QR code om deel te nemen! 📱');
       }
+    }
+  }
+
+  private startGame(): void {
+    console.log('🎮 Starting TapFrenzy game!');
+    
+    // Send start game request to server
+    const net = (window as any).gameNet;
+    if (net && this.roomCode) {
+      net.send({
+        t: 'host:startGame',
+        code: this.roomCode
+      });
+      
+      this.showSubtitle('🚀 Spel wordt geladen...');
+      
+      // Transition to category selection scene after brief delay
+      setTimeout(() => {
+        this.transitionToCategory();
+      }, 1500);
+    } else {
+      console.error('❌ Cannot start game: no network or room code');
+    }
+  }
+
+  private transitionToCategory(): void {
+    const sceneManager = (window as any).gameSceneManager;
+    if (sceneManager) {
+      // Import and switch to category selection scene
+      import('./category').then(({ CategoryScene }) => {
+        sceneManager.set(new CategoryScene());
+      }).catch(error => {
+        console.error('❌ Failed to load category scene:', error);
+        // Fallback to a simple scene transition
+        this.showSubtitle('🎮 Game starting...');
+      });
     }
   }
 

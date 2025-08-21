@@ -76,15 +76,25 @@
 html, body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-title);
-  overflow-x: hidden;
+  overflow: hidden; /* Prevent scrolling */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: "kern" 1;
   scroll-behavior: smooth;
+}
+
+#app, #scene {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  overflow: hidden;
 }
 
 /* Performance Optimization Classes */
@@ -302,7 +312,8 @@ html, body {
 
 /* 2D Menu Scene Styles - AAA Visual Quality */
 .menu2d-container {
-  min-height: 100vh;
+  width: 100%;
+  height: 100vh;
   background: 
     radial-gradient(circle at 20% 50%, rgba(110, 231, 255, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(255, 223, 110, 0.15) 0%, transparent 50%),
@@ -312,7 +323,9 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   overflow: hidden;
   animation: menuEntrance 1.2s var(--ease-smooth) both;
 }
@@ -875,11 +888,50 @@ html, body {
 
 /* Enhanced Mobile Styles for Touch Optimization */
 .enhanced-join-scene {
-  min-height: 100vh;
+  width: 100%;
+  height: 100vh;
   background: var(--gradient-primary);
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   display: flex;
   flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+.join-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+/* Fix input visibility and styling */
+.input-group input {
+  color: var(--text) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  padding: 1rem !important;
+  border-radius: var(--radius) !important;
+  font-size: 1.1rem !important;
+  text-align: center !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(110, 231, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.input-group input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
 }
 
 .join-container {
@@ -1520,7 +1572,8 @@ html, body {
 
 /* ===== 2D MENU SCENE - AAA BUBBLE UI (4K Ready) ===== */
 .menu2d-container {
-  min-height: 100vh;
+  width: 100%;
+  height: 100vh;
   background: 
     radial-gradient(ellipse at 20% 20%, rgba(110, 231, 255, 0.1) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 80%, rgba(255, 223, 110, 0.1) 0%, transparent 50%),
@@ -1530,7 +1583,9 @@ html, body {
       #1a1a2e 35%, 
       #16213e 70%, 
       #0b0e14 100%);
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
