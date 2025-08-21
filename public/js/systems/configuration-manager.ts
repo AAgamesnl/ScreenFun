@@ -331,7 +331,10 @@ export class ConfigurationManager {
       mobile: {
         graphics: {
           quality: 'medium',
+          resolution: { width: 1920, height: 1080 },
           renderScale: 0.8,
+          frameRateTarget: 30,
+          vsync: false,
           antiAliasing: 'fxaa',
           postProcessing: {
             bloom: true,
@@ -360,7 +363,10 @@ export class ConfigurationManager {
       desktop: {
         graphics: {
           quality: 'ultra',
+          resolution: { width: 3840, height: 2160 },
           renderScale: 1.0,
+          frameRateTarget: 60,
+          vsync: true,
           antiAliasing: 'msaa4x',
           postProcessing: {
             bloom: true,
@@ -368,30 +374,65 @@ export class ConfigurationManager {
             dof: true,
             motionBlur: false,
             chromaticAberration: true
-          }
+          },
+          shadows: { enabled: true, quality: 'ultra', cascades: 4 },
+          particles: { enabled: true, maxCount: 2000, quality: 'high' },
+          lighting: { realtimeLights: 16, shadowCasters: 8, volumetricFog: true }
         }
       },
       
       console: {
         graphics: {
           quality: 'high',
+          resolution: { width: 1920, height: 1080 },
+          renderScale: 1.0,
           frameRateTarget: 60,
-          vsync: true
+          vsync: true,
+          antiAliasing: 'msaa2x',
+          postProcessing: {
+            bloom: true,
+            ssao: true,
+            dof: false,
+            motionBlur: false,
+            chromaticAberration: false
+          },
+          shadows: { enabled: true, quality: 'high', cascades: 3 },
+          particles: { enabled: true, maxCount: 1500, quality: 'high' },
+          lighting: { realtimeLights: 12, shadowCasters: 6, volumetricFog: false }
         },
         performance: {
           adaptiveQuality: false,
-          performanceTier: 'high'
+          performanceTier: 'high',
+          targetFrameTime: 16.67,
+          memoryLimit: 512,
+          gcOptimization: true,
+          preloadAssets: true,
+          streamingAssets: false,
+          lodSystem: false,
+          cullingDistance: 1000
         }
       },
       
       web: {
         performance: {
+          adaptiveQuality: true,
+          performanceTier: 'auto',
+          targetFrameTime: 16.67,
+          memoryLimit: 128,
+          gcOptimization: true,
+          preloadAssets: false,
           streamingAssets: true,
-          preloadAssets: false
+          lodSystem: true,
+          cullingDistance: 300
         },
         network: {
+          serverRegion: 'auto',
           compression: true,
-          batchUpdates: true
+          batchUpdates: true,
+          reconnectAttempts: 3,
+          timeoutMs: 5000,
+          lowLatencyMode: false,
+          offlineMode: true
         }
       }
     };
@@ -671,7 +712,7 @@ export class ConfigurationManager {
     const wildcardListeners = this.configListeners.get('*') || [];
     wildcardListeners.forEach(callback => {
       try {
-        callback({ path, newValue, oldValue });
+        callback({ path, newValue, oldValue }, oldValue);
       } catch (error) {
         console.error(`Wildcard config listener error:`, error);
       }

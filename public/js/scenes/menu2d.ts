@@ -1,11 +1,16 @@
 // TapFrenzy 2D Start Screen - AAA Visual Quality
 import type { Scene } from './scene-manager';
 import type { S2C } from '../net';
-// Note: AAA systems are implemented but temporarily commented for compilation
-// import { Audio } from '../systems/audio-manager';
-// import { VisualEffects } from '../systems/visual-effects-manager';
-// import { UIAnimations } from '../systems/ui-animation-manager';
-// import { Performance } from '../systems/performance-manager';
+// Phase 1: Audio Integration - ENABLED ✅
+import { Audio } from '../systems/audio-manager';
+// Phase 2: Visual Effects Integration - ENABLED ✅
+import { VisualEffects } from '../systems/visual-effects-manager';
+// Phase 3: UI Animation Integration - ENABLED ✅
+import { UIAnimations } from '../systems/ui-animation-manager';
+// Phase 4: Performance Monitoring Integration - ENABLED ✅
+import { PerformanceManager } from '../systems/performance-manager';
+// Phase 5: Configuration System Integration - ENABLED ✅
+import { Config } from '../systems/configuration-manager';
 
 export class Menu2DScene implements Scene {
   private root?: HTMLElement;
@@ -16,34 +21,63 @@ export class Menu2DScene implements Scene {
     
     console.log('🎮 Starting TapFrenzy 2D Menu...');
     
-    // Initialize AAA systems - temporarily commented for compilation
-    // Performance.startProfiler('menu-mount');
+    // Phase 1: Initialize Audio System - ENABLED
+    try {
+      // Start ambient menu music
+      Audio.playMusic('menu-theme', {
+        fadeIn: 2000
+      });
+      
+      console.log('🔊 AAA Audio System Initialized');
+    } catch (error) {
+      console.warn('Audio system not fully loaded yet:', error);
+    }
     
-    // Create particle effects for background - temporarily commented
-    // VisualEffects.createParticleSystem({
-    //   id: 'menu-background-particles',
-    //   maxParticles: 50,
-    //   emissionRate: 2,
-    //   lifetime: { min: 10, max: 15 },
-    //   position: { x: 0, y: 0, z: 0 },
-    //   velocity: {
-    //     base: { x: 0, y: 0.1, z: 0 },
-    //     random: { x: 1, y: 0.5, z: 0 }
-    //   },
-    //   acceleration: { x: 0, y: 0, z: 0 },
-    //   size: { start: 8, end: 2 },
-    //   color: {
-    //     start: { r: 0.4, g: 0.9, b: 1, a: 0.8 },
-    //     end: { r: 1, g: 0.8, b: 0.2, a: 0 }
-    //   },
-    //   blendMode: 'additive',
-    //   physics: {
-    //     gravity: 0,
-    //     drag: 0.99,
-    //     bounce: 0,
-    //     collision: false
-    //   }
-    // });
+    // Phase 4: Initialize Performance Monitoring - ENABLED ✅
+    const performance = PerformanceManager.getInstance();
+    performance.startProfiler('menu-mount');
+    
+    // Phase 5: Initialize Configuration System - ENABLED ✅
+    // Get platform-optimized graphics settings
+    const graphicsSettings = Config.get('graphics');
+    const audioSettings = Config.get('audio');
+    
+    console.log(`🎯 AAA Configuration:`)
+    console.log(`   Graphics Quality: ${graphicsSettings.quality}`);
+    console.log(`   Render Scale: ${graphicsSettings.renderScale}`);  
+    console.log(`   Audio Quality: ${audioSettings.quality}`);
+    console.log(`   Spatial Audio: ${audioSettings.spatialAudio ? 'ON' : 'OFF'}`);
+    
+    // Phase 2: Create particle effects for background - ENABLED ✅
+    try {
+      VisualEffects.createParticleSystem({
+        id: 'menu-background-particles',
+        maxParticles: 50,
+        emissionRate: 2,
+        lifetime: { min: 10, max: 15 },
+        position: { x: 0, y: 0, z: 0 },
+        velocity: {
+          base: { x: 0, y: 0.1, z: 0 },
+          random: { x: 1, y: 0.5, z: 0 }
+        },
+        acceleration: { x: 0, y: 0, z: 0 },
+        size: { start: 8, end: 2 },
+        color: {
+          start: { r: 0.4, g: 0.9, b: 1, a: 0.8 },
+          end: { r: 1, g: 0.8, b: 0.2, a: 0 }
+        },
+        blendMode: 'additive',
+        physics: {
+          gravity: 0,
+          drag: 0.99,
+          bounce: 0,
+          collision: false
+        }
+      });
+      console.log('✨ AAA Visual Effects System Initialized');
+    } catch (error) {
+      console.warn('Visual effects system not fully loaded yet:', error);
+    }
     
     // Create 2D start screen with 4K-ready scaling
     root.innerHTML = `
@@ -136,7 +170,8 @@ export class Menu2DScene implements Scene {
     // Start ambient audio - temporarily commented
     // Audio.playMusic('lobby-ambient', { fadeIn: 2 });
     
-    // Performance.endProfiler('menu-mount');
+    // Phase 4: End performance profiling - ENABLED ✅
+    performance.endProfiler('menu-mount');
     console.log('✅ Enhanced 2D Menu ready!');
   }
 
@@ -191,26 +226,42 @@ export class Menu2DScene implements Scene {
       button.addEventListener('click', (e) => {
         const action = (e.currentTarget as HTMLElement).getAttribute('data-action');
         
-        // Play click sound - temporarily commented
-        // Audio.playSound('ui-click', { volume: 0.6 });
+        // Phase 1: Play click sound - ENABLED
+        Audio.playSound('ui-click', { 
+          volume: 0.6,
+          pitch: 0.95 + Math.random() * 0.1 // Natural variation
+        });
         
-        // Haptic feedback - temporarily commented
-        // UIAnimations.triggerHapticFeedback({ 
-        //   type: 'impact', 
-        //   intensity: 'medium', 
-        //   duration: 50 
-        // });
+        // Enhanced click feedback
+        if (action === 'play') {
+          Audio.playSound('ui-success', { volume: 0.5, delay: 100 });
+        }
+        
+        // Phase 3: Haptic feedback - ENABLED ✅
+        try {
+          UIAnimations.triggerHapticFeedback({ 
+            type: 'impact', 
+            intensity: 'medium', 
+            duration: 50 
+          });
+        } catch (error) {
+          console.warn('Haptic feedback not available:', error);
+        }
         
         // Visual effects
         this.createClickEffect(e.currentTarget as HTMLElement);
         
-        // Create explosion effect - temporarily commented
-        // const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        // VisualEffects.createExplosionEffect({
-        //   x: rect.left + rect.width / 2,
-        //   y: rect.top + rect.height / 2,
-        //   z: 0
-        // });
+        // Phase 2: Create explosion effect - ENABLED ✅
+        try {
+          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+          VisualEffects.createExplosionEffect({
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+            z: 0
+          });
+        } catch (error) {
+          console.warn('Visual explosion effect not available:', error);
+        }
         
         // Animate button state - temporarily simplified
         setTimeout(() => {
@@ -222,15 +273,20 @@ export class Menu2DScene implements Scene {
     // Copy URL handler
     const copyBtn = this.root.querySelector('#copy-url');
     if (copyBtn) {
-      // const copyElementId = UIAnimations.registerElement(copyBtn as HTMLElement);
+      // Phase 3: Register copy button for UI animations - ENABLED ✅
+      const copyElementId = UIAnimations.registerElement(copyBtn as HTMLElement);
       
       copyBtn.addEventListener('click', () => {
-        // Audio.playSound('ui-click', { volume: 0.5 });
-        // UIAnimations.setElementState(copyElementId, { isLoading: true });
+        // Phase 1: Copy button audio feedback - ENABLED  
+        Audio.playSound('ui-click', { volume: 0.5 });
+        // Phase 3: Set loading state - ENABLED ✅
+        UIAnimations.setElementState(copyElementId, { isLoading: true });
         
         this.copyJoinURL().then(() => {
-          // UIAnimations.setElementState(copyElementId, { isLoading: false });
-          // Audio.playSound('ui-success', { volume: 0.4 });
+          // Phase 3: Remove loading state - ENABLED ✅
+          UIAnimations.setElementState(copyElementId, { isLoading: false });
+          // Phase 1: Success sound - ENABLED
+          Audio.playSound('ui-success', { volume: 0.4 });
           console.log('✅ Copy completed');
         });
       });

@@ -150,7 +150,7 @@ export class PerformanceManager {
   // Optimization state
   private adaptiveQualityEnabled = true;
   private performanceProfile = 'auto';
-  private optimizationTimer?: number;
+  private optimizationTimer?: number | null;
   
   public static getInstance(): PerformanceManager {
     if (!PerformanceManager.instance) {
@@ -355,6 +355,41 @@ export class PerformanceManager {
     requestAnimationFrame(monitor);
   }
 
+  private updateOptimizations(): void {
+    if (!this.adaptiveQualityEnabled) return;
+    
+    const currentFPS = this.metrics.fps.current;
+    const targetFPS = this.metrics.fps.target;
+    const frameTime = this.metrics.frameTime.current;
+    
+    // Only adjust quality if we're significantly below target
+    if (currentFPS < targetFPS * 0.8) {
+      // Performance is poor, consider downgrading quality
+      const qualities: (keyof OptimizationConfig['qualityLevels'])[] = ['ultra', 'high', 'medium', 'low'];
+      const currentIndex = qualities.indexOf(this.currentQuality);
+      
+      if (currentIndex < qualities.length - 1 && currentIndex >= 0) {
+        const newQuality = qualities[currentIndex + 1];
+        if (newQuality) {
+          this.setQualityLevel(newQuality);
+          console.log(`🔽 Performance optimization: Lowered quality to ${newQuality}`);
+        }
+      }
+    } else if (currentFPS > targetFPS * 1.1 && frameTime < this.metrics.frameTime.budget * 0.7) {
+      // Performance is good, consider upgrading quality
+      const qualities: (keyof OptimizationConfig['qualityLevels'])[] = ['low', 'medium', 'high', 'ultra'];
+      const currentIndex = qualities.indexOf(this.currentQuality);
+      
+      if (currentIndex > 0 && currentIndex < qualities.length) {
+        const newQuality = qualities[currentIndex - 1];
+        if (newQuality) {
+          this.setQualityLevel(newQuality);
+          console.log(`🔼 Performance optimization: Increased quality to ${newQuality}`);
+        }
+      }
+    }
+  }
+
   private updateFrameMetrics(deltaTime: number): void {
     // Update FPS
     this.metrics.fps.current = 1000 / deltaTime;
@@ -435,9 +470,10 @@ export class PerformanceManager {
   }
 
   private analyzeNavigationTiming(entry: PerformanceNavigationTiming): void {
-    // Analyze initial load performance
-    const loadTime = entry.loadEventEnd - entry.navigationStart;
-    const domContentLoaded = entry.domContentLoadedEventEnd - entry.navigationStart;
+    // Analyze initial load performance - use fetchStart as fallback for navigationStart
+    const startTime = (entry as any).navigationStart || entry.fetchStart;
+    const loadTime = entry.loadEventEnd - startTime;
+    const domContentLoaded = entry.domContentLoadedEventEnd - startTime;
     
     if (loadTime > 5000) { // 5 seconds
       this.emitEvent({
@@ -651,7 +687,7 @@ export class PerformanceManager {
     
     if (!enabled && this.optimizationTimer) {
       clearInterval(this.optimizationTimer);
-      this.optimizationTimer = undefined;
+      this.optimizationTimer = null;
     } else if (enabled && !this.optimizationTimer) {
       this.setupAdaptiveOptimization();
     }
@@ -695,7 +731,8 @@ export class PerformanceManager {
     
     const entries = performance.getEntriesByName(name, 'measure');
     if (entries.length > 0) {
-      const duration = entries[entries.length - 1].duration;
+      const lastEntry = entries[entries.length - 1];
+      const duration = lastEntry?.duration || 0;
       
       // Update frame breakdown if it's a known category
       if (name in this.metrics.frameTime.breakdown) {
