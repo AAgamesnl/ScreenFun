@@ -355,6 +355,35 @@ export class PerformanceManager {
     requestAnimationFrame(monitor);
   }
 
+  private updateOptimizations(): void {
+    if (!this.adaptiveQualityEnabled) return;
+    
+    const currentFPS = this.metrics.fps.current;
+    const targetFPS = this.metrics.fps.target;
+    const frameTime = this.metrics.frameTime.current;
+    
+    // Only adjust quality if we're significantly below target
+    if (currentFPS < targetFPS * 0.8) {
+      // Performance is poor, consider downgrading quality
+      const qualities: (keyof OptimizationConfig['qualityLevels'])[] = ['ultra', 'high', 'medium', 'low'];
+      const currentIndex = qualities.indexOf(this.currentQuality);
+      
+      if (currentIndex < qualities.length - 1) {
+        this.setQualityLevel(qualities[currentIndex + 1]);
+        console.log(`🔽 Performance optimization: Lowered quality to ${qualities[currentIndex + 1]}`);
+      }
+    } else if (currentFPS > targetFPS * 1.1 && frameTime < this.metrics.frameTime.budget * 0.7) {
+      // Performance is good, consider upgrading quality
+      const qualities: (keyof OptimizationConfig['qualityLevels'])[] = ['low', 'medium', 'high', 'ultra'];
+      const currentIndex = qualities.indexOf(this.currentQuality);
+      
+      if (currentIndex > 0) {
+        this.setQualityLevel(qualities[currentIndex - 1]);
+        console.log(`🔼 Performance optimization: Increased quality to ${qualities[currentIndex - 1]}`);
+      }
+    }
+  }
+
   private updateFrameMetrics(deltaTime: number): void {
     // Update FPS
     this.metrics.fps.current = 1000 / deltaTime;
@@ -435,9 +464,10 @@ export class PerformanceManager {
   }
 
   private analyzeNavigationTiming(entry: PerformanceNavigationTiming): void {
-    // Analyze initial load performance
-    const loadTime = entry.loadEventEnd - entry.navigationStart;
-    const domContentLoaded = entry.domContentLoadedEventEnd - entry.navigationStart;
+    // Analyze initial load performance - use fetchStart as fallback for navigationStart
+    const startTime = (entry as any).navigationStart || entry.fetchStart;
+    const loadTime = entry.loadEventEnd - startTime;
+    const domContentLoaded = entry.domContentLoadedEventEnd - startTime;
     
     if (loadTime > 5000) { // 5 seconds
       this.emitEvent({
