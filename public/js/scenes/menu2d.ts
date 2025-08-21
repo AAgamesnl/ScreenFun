@@ -305,19 +305,145 @@ export class Menu2DScene implements Scene {
         this.transitionToLobby();
         break;
       case 'party-packs':
-        console.log('📦 Party Packs (not implemented yet)');
+        console.log('📦 Party Packs - Opening party packs...');
+        this.showNotImplementedMessage('Party Packs', 'Question packs and themes coming soon!');
         break;
       case 'options':
-        console.log('⚙️ Options (not implemented yet)');
+        console.log('⚙️ Options - Opening settings...');
+        this.showNotImplementedMessage('Options', 'Game settings and preferences coming soon!');
         break;
       case 'how-to-play':
-        console.log('❓ How to Play (not implemented yet)');
+        console.log('❓ How to Play - Opening instructions...');
+        this.showHowToPlay();
         break;
       case 'quit':
         console.log('🚪 Quit');
-        window.close();
+        if (confirm('Are you sure you want to quit TapFrenzy?')) {
+          window.close();
+        }
         break;
     }
+  }
+
+  private showNotImplementedMessage(title: string, message: string): void {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    `;
+    
+    overlay.innerHTML = `
+      <div style="
+        background: var(--gradient-primary);
+        border-radius: var(--radius);
+        padding: 2rem;
+        text-align: center;
+        max-width: 400px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+      ">
+        <h2 style="margin: 0 0 1rem 0; color: white;">${title}</h2>
+        <p style="margin: 0 0 1.5rem 0; color: rgba(255, 255, 255, 0.8);">${message}</p>
+        <button style="
+          background: var(--accent);
+          color: var(--bg);
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: var(--radius-sm);
+          font-weight: 600;
+          cursor: pointer;
+        " onclick="this.parentElement.parentElement.remove()">
+          Got it!
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    // Close on background click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    });
+  }
+
+  private showHowToPlay(): void {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      overflow-y: auto;
+    `;
+    
+    overlay.innerHTML = `
+      <div style="
+        background: var(--gradient-primary);
+        border-radius: var(--radius);
+        padding: 2rem;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+      ">
+        <h2 style="margin: 0 0 1rem 0; color: white; text-align: center;">How to Play TapFrenzy</h2>
+        
+        <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.6;">
+          <h3 style="color: var(--accent);">🎯 Game Setup</h3>
+          <p>1. Host displays a QR code on the big screen</p>
+          <p>2. Players scan the QR code with their phones</p>
+          <p>3. Players enter their names and join the game</p>
+          
+          <h3 style="color: var(--accent);">🚀 Gameplay</h3>
+          <p>1. Answer questions as fast as you can</p>
+          <p>2. First correct answer gets the most points</p>
+          <p>3. Use power-ups for bonus effects</p>
+          <p>4. Watch the live leaderboard</p>
+          
+          <h3 style="color: var(--accent);">🏆 Winning</h3>
+          <p>Player with the highest score wins!</p>
+          <p>Celebrate together and play again!</p>
+        </div>
+        
+        <button style="
+          background: var(--accent);
+          color: var(--bg);
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: var(--radius-sm);
+          font-weight: 600;
+          cursor: pointer;
+          display: block;
+          margin: 2rem auto 0;
+        " onclick="this.parentElement.parentElement.remove()">
+          Let's Play!
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    // Close on background click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    });
   }
 
   private async initializeQRSystem(): Promise<void> {
