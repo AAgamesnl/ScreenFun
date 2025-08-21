@@ -11,7 +11,7 @@ export type PlayerInfo = {
 export type C2S =
   | { t: 'host:create' }
   | { t: 'host:qr'; joinUrl: string }
-  | { t: 'player:join'; code: string; name: string; avatar: string }
+  | { t: 'player:join'; code: string; name: string; avatar: string; pin?: string }
   | { t: 'player:ready'; code: string; ready: boolean }
   | { t: 'category:vote'; pick: number }
   | { t: 'pp:select'; kind: 'Freeze' | 'Gloop' | 'Double'; targetId?: string }
@@ -81,7 +81,7 @@ export class Net {
     if (msg.t === 'host:create') {
       this.socket.emit('host:createRoom');
     } else if (msg.t === 'player:join') {
-      this.socket.emit('player:join', { code: msg.code, name: msg.name, avatar: msg.avatar });
+      this.socket.emit('player:join', { code: msg.code, name: msg.name, avatar: msg.avatar, pin: msg.pin });
     } else if (msg.t === 'player:ready') {
       this.socket.emit('player:ready', { code: msg.code, ready: msg.ready });
     } else if (msg.t === 'ping') {

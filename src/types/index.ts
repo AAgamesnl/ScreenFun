@@ -25,6 +25,7 @@ export type RoomState = "lobby" | "question" | "reveal" | "scoreboard";
 export type Room = {
   code: string;
   hostId: string;
+  pin?: string; // Optional 4-digit PIN
   players: Map<string, Player>;
   createdAt: number;
   state: RoomState;

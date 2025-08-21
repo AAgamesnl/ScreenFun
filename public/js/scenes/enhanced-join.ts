@@ -10,9 +10,9 @@ import { Config } from '../systems/configuration-manager';
 
 export class EnhancedJoinScene implements Scene {
   private el?: HTMLElement;
-  private onJoin: ((roomCode: string, playerName: string) => void) | undefined;
+  private onJoin: ((roomCode: string, playerName: string, pin?: string) => void) | undefined;
 
-  constructor(onJoin?: (roomCode: string, playerName: string) => void) {
+  constructor(onJoin?: (roomCode: string, playerName: string, pin?: string) => void) {
     this.onJoin = onJoin;
   }
 
@@ -76,8 +76,14 @@ export class EnhancedJoinScene implements Scene {
           
           <div class="input-group">
             <label for="room-code">Room Code</label>
-            <input type="text" id="room-code" placeholder="Enter 4-digit code" maxlength="4" pattern="[0-9]*">
-            <div class="input-hint">Ask your host for the room code</div>
+            <input type="text" id="room-code" placeholder="Enter 4-5 letter code" maxlength="5" pattern="[A-Z]*">
+            <div class="input-hint">Ask your host for the room code (letters only)</div>
+          </div>
+
+          <div class="input-group pin-group" id="pin-group" style="display: none;">
+            <label for="pin-code">PIN (Optional)</label>
+            <input type="text" id="pin-code" placeholder="Enter 4-digit PIN" maxlength="4" pattern="[0-9]*">
+            <div class="input-hint">Enter PIN if required by host</div>
           </div>
 
           <div class="input-group">
@@ -165,18 +171,30 @@ export class EnhancedJoinScene implements Scene {
     if (!this.el) return;
 
     const roomCodeInput = this.el.querySelector('#room-code') as HTMLInputElement;
+    const pinCodeInput = this.el.querySelector('#pin-code') as HTMLInputElement;
     const playerNameInput = this.el.querySelector('#player-name') as HTMLInputElement;
     const joinBtn = this.el.querySelector('#join-btn') as HTMLButtonElement;
 
-    // Room code input - only allow numbers and auto-format
+    // Room code input - only allow letters (A-Z, no numbers)
     roomCodeInput.addEventListener('input', (e) => {
       const target = e.target as HTMLInputElement;
-      target.value = target.value.replace(/[^0-9]/g, '').toUpperCase();
+      target.value = target.value.replace(/[^A-Z]/g, '').toUpperCase();
       this.validateForm();
       this.triggerHaptic('light');
       
       // AAA Audio feedback for typing
       Audio.playSound('ui-type', { volume: 0.2, pitch: 0.9 + Math.random() * 0.2 });
+    });
+
+    // PIN code input - only allow numbers when visible
+    pinCodeInput.addEventListener('input', (e) => {
+      const target = e.target as HTMLInputElement;
+      target.value = target.value.replace(/[^0-9]/g, '');
+      this.validateForm();
+      this.triggerHaptic('light');
+      
+      // AAA Audio feedback for typing
+      Audio.playSound('ui-type', { volume: 0.2, pitch: 1.1 + Math.random() * 0.2 });
     });
 
     // Player name input
@@ -249,13 +267,21 @@ export class EnhancedJoinScene implements Scene {
     if (!this.el) return;
 
     const roomCodeInput = this.el.querySelector('#room-code') as HTMLInputElement;
+    const pinCodeInput = this.el.querySelector('#pin-code') as HTMLInputElement;
     const playerNameInput = this.el.querySelector('#player-name') as HTMLInputElement;
     const joinBtn = this.el.querySelector('#join-btn') as HTMLButtonElement;
 
     const roomCode = roomCodeInput.value.trim();
+    const pinCode = pinCodeInput.value.trim();
     const playerName = playerNameInput.value.trim();
 
-    const isValid = roomCode.length === 4 && playerName.length >= 2;
+    // Room code: 4-5 letters, Player name: at least 2 chars
+    // PIN: either empty (not required) or exactly 4 digits
+    const isValidRoomCode = roomCode.length >= 4 && roomCode.length <= 5 && /^[A-Z]+$/.test(roomCode);
+    const isValidPlayerName = playerName.length >= 2;
+    const isValidPin = pinCode === '' || (pinCode.length === 4 && /^[0-9]{4}$/.test(pinCode));
+
+    const isValid = isValidRoomCode && isValidPlayerName && isValidPin;
     joinBtn.disabled = !isValid;
     
     // Update button appearance
@@ -266,11 +292,13 @@ export class EnhancedJoinScene implements Scene {
     if (!this.el) return;
 
     const roomCodeInput = this.el.querySelector('#room-code') as HTMLInputElement;
+    const pinCodeInput = this.el.querySelector('#pin-code') as HTMLInputElement;
     const playerNameInput = this.el.querySelector('#player-name') as HTMLInputElement;
     const joinBtn = this.el.querySelector('#join-btn') as HTMLButtonElement;
     const selectedAvatar = this.el.querySelector('.avatar-option.selected') as HTMLElement;
 
     const roomCode = roomCodeInput.value.trim().toUpperCase();
+    const pinCode = pinCodeInput.value.trim();
     const playerName = playerNameInput.value.trim();
     const avatar = selectedAvatar?.dataset.avatar || '🦸‍♂️';
 
@@ -304,8 +332,8 @@ export class EnhancedJoinScene implements Scene {
     localStorage.setItem('tapfrenzy-avatar', avatar);
     localStorage.setItem('tapfrenzy-name', playerName);
 
-    // Call join callback
-    this.onJoin?.(roomCode, playerName);
+    // Call join callback with optional PIN
+    this.onJoin?.(roomCode, playerName, pinCode || undefined);
   }
 
   private showError(message: string): void {

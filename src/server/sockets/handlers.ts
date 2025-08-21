@@ -114,6 +114,11 @@ function setupPlayerHandlers(socket: TypedSocket, context: GameContext) {
     if (!room) return ack?.({ ok: false, error: "Room niet gevonden" });
     if (room.state !== "lobby") return ack?.({ ok: false, error: "Spel is al gestart" });
 
+    // Check PIN if room requires it
+    if (room.pin && payload.pin !== room.pin) {
+      return ack?.({ ok: false, error: "Incorrect PIN" });
+    }
+
     const player: Player = {
       id: socket.id,
       name: String(payload.name || "Player"),
@@ -184,9 +189,9 @@ function handleDisconnect(socket: TypedSocket, context: GameContext) {
 
 // Utility functions
 function makeCode(rooms: Map<string, Room>): string {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ"; // Only letters, no numbers, excludes I/O
   let code = "";
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 5; i++) { // Changed to 5 letters
     code += alphabet[Math.floor(Math.random() * alphabet.length)];
   }
   if (rooms.has(code)) return makeCode(rooms);

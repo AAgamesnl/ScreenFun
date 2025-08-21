@@ -20,19 +20,25 @@ const urlCode = params.get('code')?.toUpperCase() || '';
 const urlName = params.get('name') || '';
 
 // Handle joining a room
-function joinRoom(code: string, name: string): void {
+function joinRoom(code: string, name: string, pin?: string): void {
   currentRoomCode = code;
   currentPlayerName = name;
   
-  console.log(`🎮 Attempting to join room ${code} as ${name}`);
+  console.log(`🎮 Attempting to join room ${code} as ${name}${pin ? ' with PIN' : ''}`);
   
   // Send join request
-  net.send({
+  const joinData: any = {
     t: 'player:join',
     code: code.toUpperCase(),
     name,
     avatar: localStorage.getItem('tapfrenzy-avatar') || randomAvatar()
-  });
+  };
+  
+  if (pin) {
+    joinData.pin = pin;
+  }
+  
+  net.send(joinData);
 }
 
 // Handle ready state changes
@@ -64,11 +70,6 @@ net.onMessage(msg => {
 const joinScene = new EnhancedJoinScene(joinRoom);
 scenes.set(joinScene);
 
-// Auto-join if URL parameters are provided
-if (urlCode && urlName) {
-  setTimeout(() => {
-    joinRoom(urlCode, urlName);
-  }, 1000); // Small delay to let the scene render
-}
-
-console.log('📱 TapFrenzy Player initialized with enhanced UI');
+// No auto-join! QR code should only pre-fill the form
+// The user must explicitly click "Join Game" button
+console.log('📱 TapFrenzy Player initialized with enhanced UI - QR pre-fills only, no auto-join');
