@@ -601,6 +601,11 @@ export class VisualEffectsManager {
     };
     image.onerror = () => {
       console.warn(`Failed to load texture: ${url}`);
+      // Use default particle texture as fallback
+      const defaultTexture = this.textures.get('default_particle');
+      if (defaultTexture) {
+        this.textures.set(name, defaultTexture);
+      }
     };
     image.src = url;
 
