@@ -965,28 +965,30 @@ input, textarea {
   text-align: center;
 }
 
-/* Fix input visibility and styling */
+/* Fix input visibility and styling - Enhanced contrast for readability */
 .input-group input {
-  color: var(--text) !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  color: #333333 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
   padding: 1rem !important;
   border-radius: var(--radius) !important;
   font-size: 1.1rem !important;
   text-align: center !important;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  font-weight: 600;
 }
 
 .input-group input:focus {
   outline: none;
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 2px rgba(110, 231, 255, 0.3) !important;
-  background: rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 1) !important;
+  color: #222222 !important;
 }
 
 .input-group input::placeholder {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: rgba(0, 0, 0, 0.5) !important;
 }
 
 .join-container {
