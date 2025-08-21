@@ -1,7 +1,13 @@
 param(
   [int]$Port = 3000,
-  [string]$NodePath = "C:\Users\ayoub.elyaakoubi\Documents\node-v22.18.0-win-x64\node.exe"
+  [string]$NodePath
 )
+
+# If NodePath not supplied, default to node inside the project folder
+if (-not $NodePath -or $NodePath.Trim() -eq '') {
+  $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+  $NodePath = Join-Path $ScriptDir 'node-v22.18.0-win-x64\node.exe'
+}
 
 # Resolve project directory to the folder of this script
 $ProjectPath = Split-Path -Parent $MyInvocation.MyCommand.Path
