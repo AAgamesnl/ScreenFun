@@ -131,8 +131,6 @@ export class PerformanceManager {
   private gcObserver?: PerformanceObserver;
   private lastGCTime = 0;
   private lastMemoryUsage = 0;
-  private lastMemoryAlertTime = 0; // Throttle memory spike alerts
-  private lastQualityChangeTime = 0; // Throttle quality changes
   
   // GPU tracking
   private gpuTimer?: any; // WebGL timer queries
@@ -287,7 +285,7 @@ export class PerformanceManager {
       alertThresholds: {
         lowFPS: 45,
         highFrameTime: 25,
-        lowMemory: 5, // MB remaining - more realistic threshold
+        lowMemory: 10, // MB remaining - reduced from 50 to prevent constant alerts
         highLatency: 100 // ms
       }
     };
@@ -364,19 +362,13 @@ export class PerformanceManager {
   private updateOptimizations(): void {
     if (!this.adaptiveQualityEnabled) return;
     
-    // Throttle quality changes to prevent flickering (max 1 change per 3 seconds)
-    const now = performance.now();
-    if (this.lastQualityChangeTime && (now - this.lastQualityChangeTime) < 3000) {
-      return;
-    }
-    
     const currentFPS = this.metrics.fps.current;
     const targetFPS = this.metrics.fps.target;
     const frameTime = this.metrics.frameTime.current;
     
-    // Use more conservative thresholds and require sustained performance issues
-    if (currentFPS < targetFPS * 0.75 && frameTime > this.metrics.frameTime.budget * 1.3) {
-      // Performance is consistently poor, consider downgrading quality
+    // Only adjust quality if we're significantly below target
+    if (currentFPS < targetFPS * 0.8) {
+      // Performance is poor, consider downgrading quality
       const qualities: (keyof OptimizationConfig['qualityLevels'])[] = ['ultra', 'high', 'medium', 'low'];
       const currentIndex = qualities.indexOf(this.currentQuality);
       
@@ -384,12 +376,11 @@ export class PerformanceManager {
         const newQuality = qualities[currentIndex + 1];
         if (newQuality) {
           this.setQualityLevel(newQuality);
-          this.lastQualityChangeTime = now;
           console.log(`🔽 Performance optimization: Lowered quality to ${newQuality}`);
         }
       }
-    } else if (currentFPS > targetFPS * 1.15 && frameTime < this.metrics.frameTime.budget * 0.6) {
-      // Performance is consistently excellent, consider upgrading quality
+    } else if (currentFPS > targetFPS * 1.1 && frameTime < this.metrics.frameTime.budget * 0.7) {
+      // Performance is good, consider upgrading quality
       const qualities: (keyof OptimizationConfig['qualityLevels'])[] = ['low', 'medium', 'high', 'ultra'];
       const currentIndex = qualities.indexOf(this.currentQuality);
       
@@ -397,7 +388,6 @@ export class PerformanceManager {
         const newQuality = qualities[currentIndex - 1];
         if (newQuality) {
           this.setQualityLevel(newQuality);
-          this.lastQualityChangeTime = now;
           console.log(`🔼 Performance optimization: Increased quality to ${newQuality}`);
         }
       }
@@ -520,37 +510,16 @@ export class PerformanceManager {
       });
     }
 
-    // Check memory threshold with more intelligent logic
+    // Check memory threshold (only if memory information is available)
     if (this.metrics.memory.total > 0) {
       const memoryRemaining = this.metrics.memory.total - this.metrics.memory.used;
-      const memoryUsagePercent = (this.metrics.memory.used / this.metrics.memory.total) * 100;
-      
-      // Only alert if:
-      // 1. Memory remaining is critically low (< 5MB) AND
-      // 2. Memory usage is over 90% OR
-      // 3. Memory usage increased significantly (>20MB) in short time
-      const recentMemoryIncrease = this.metrics.memory.used - this.lastMemoryUsage;
-      const shouldAlert = (
-        memoryRemaining < this.config.alertThresholds.lowMemory && 
-        (memoryUsagePercent > 90 || recentMemoryIncrease > 20)
-      );
-      
-      if (shouldAlert) {
-        // Throttle alerts to prevent spam (max 1 per 5 seconds)
-        const now = performance.now();
-        if (!this.lastMemoryAlertTime || (now - this.lastMemoryAlertTime) > 5000) {
-          this.emitEvent({
-            type: 'memory_spike',
-            timestamp: now,
-            data: { 
-              used: this.metrics.memory.used, 
-              remaining: memoryRemaining,
-              percent: memoryUsagePercent.toFixed(1)
-            },
-            severity: 'error'
-          });
-          this.lastMemoryAlertTime = now;
-        }
+      if (memoryRemaining < this.config.alertThresholds.lowMemory) {
+        this.emitEvent({
+          type: 'memory_spike',
+          timestamp: performance.now(),
+          data: { used: this.metrics.memory.used, remaining: memoryRemaining },
+          severity: 'error'
+        });
       }
     }
 
@@ -933,10 +902,7 @@ export function measurePerformance(name: string) {
 }
 
 // Auto-initialize performance overlay in development
-// Use typeof check for browser compatibility
-const isDevelopment = (typeof window !== 'undefined' && window.location.hostname === 'localhost') || 
-                      (typeof localStorage !== 'undefined' && localStorage.getItem('debug-performance') === 'true');
-if (isDevelopment) {
+if (process.env.NODE_ENV === 'development' || localStorage.getItem('debug-performance') === 'true') {
   document.addEventListener('DOMContentLoaded', () => {
     const overlay = Performance.createPerformanceOverlay();
     document.body.appendChild(overlay);
