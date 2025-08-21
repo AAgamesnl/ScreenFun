@@ -1,6 +1,10 @@
-// TapFrenzy 3D Lobby Scene with QR code, avatar selection, and ready system
+// TapFrenzy 3D Lobby Scene with QR code, avatar selection, and ready system - AAA Quality
 import type { Scene } from './scene-manager';
 import type { S2C, PlayerInfo } from '../net';
+// AAA Systems Integration for 3D Lobby
+import { Audio } from '../systems/audio-manager';
+import { PerformanceManager } from '../systems/performance-manager';
+import { Config } from '../systems/configuration-manager';
 
 declare global {
   interface Window {
@@ -37,6 +41,22 @@ export class Lobby3DScene implements Scene {
 
     const BABYLON = window.BABYLON;
     console.log('🎮 Starting TapFrenzy 3D Lobby...');
+
+    // 🚀 AAA Systems Initialization for 3D Lobby
+    const performance = PerformanceManager.getInstance();
+    performance.startProfiler('3d-lobby-mount');
+    
+    // Initialize 3D spatial audio
+    try {
+      Audio.playMusic('lobby-3d-ambient', { fadeIn: 2500 });
+      console.log('🔊 3D Spatial Audio System initialized');
+    } catch (error) {
+      console.warn('3D Audio not ready:', error);
+    }
+    
+    // Apply graphics configuration for 3D rendering
+    const graphicsConfig = Config.get('graphics');
+    console.log(`🎯 3D Graphics: ${graphicsConfig.quality} | Render Scale: ${graphicsConfig.renderScale}`);
 
     try {
       // Create 3D engine and scene with high-DPI support

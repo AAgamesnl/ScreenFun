@@ -946,18 +946,25 @@ class ParticleSystem {
       
       if (lifetime > 0) {
         // Update position based on velocity and physics
-        this.particles[offset] += (this.particles[offset + 3] || 0) * deltaTime; // x += vx * dt
-        this.particles[offset + 1] += (this.particles[offset + 4] || 0) * deltaTime; // y += vy * dt
-        this.particles[offset + 2] += (this.particles[offset + 5] || 0) * deltaTime; // z += vz * dt
+        const x = this.particles[offset] || 0;
+        const y = this.particles[offset + 1] || 0;
+        const z = this.particles[offset + 2] || 0;
+        const vx = this.particles[offset + 3] || 0;
+        const vy = this.particles[offset + 4] || 0;
+        const vz = this.particles[offset + 5] || 0;
+        
+        this.particles[offset] = x + vx * deltaTime; // x += vx * dt
+        this.particles[offset + 1] = y + vy * deltaTime; // y += vy * dt
+        this.particles[offset + 2] = z + vz * deltaTime; // z += vz * dt
         
         // Apply acceleration (gravity, etc.)
-        this.particles[offset + 4] += this.config.acceleration.y * deltaTime; // vy += ay * dt
+        this.particles[offset + 4] = vy + this.config.acceleration.y * deltaTime; // vy += ay * dt
         
         // Apply drag
         const drag = this.config.physics.drag;
-        this.particles[offset + 3] *= drag;
-        this.particles[offset + 4] *= drag;
-        this.particles[offset + 5] *= drag;
+        this.particles[offset + 3] = vx * drag;
+        this.particles[offset + 4] = (this.particles[offset + 4] || 0) * drag;
+        this.particles[offset + 5] = vz * drag;
         
         activeCount++;
       }

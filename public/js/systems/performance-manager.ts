@@ -150,7 +150,7 @@ export class PerformanceManager {
   // Optimization state
   private adaptiveQualityEnabled = true;
   private performanceProfile = 'auto';
-  private optimizationTimer?: number;
+  private optimizationTimer?: number | null;
   
   public static getInstance(): PerformanceManager {
     if (!PerformanceManager.instance) {
@@ -368,18 +368,24 @@ export class PerformanceManager {
       const qualities: (keyof OptimizationConfig['qualityLevels'])[] = ['ultra', 'high', 'medium', 'low'];
       const currentIndex = qualities.indexOf(this.currentQuality);
       
-      if (currentIndex < qualities.length - 1) {
-        this.setQualityLevel(qualities[currentIndex + 1]);
-        console.log(`🔽 Performance optimization: Lowered quality to ${qualities[currentIndex + 1]}`);
+      if (currentIndex < qualities.length - 1 && currentIndex >= 0) {
+        const newQuality = qualities[currentIndex + 1];
+        if (newQuality) {
+          this.setQualityLevel(newQuality);
+          console.log(`🔽 Performance optimization: Lowered quality to ${newQuality}`);
+        }
       }
     } else if (currentFPS > targetFPS * 1.1 && frameTime < this.metrics.frameTime.budget * 0.7) {
       // Performance is good, consider upgrading quality
       const qualities: (keyof OptimizationConfig['qualityLevels'])[] = ['low', 'medium', 'high', 'ultra'];
       const currentIndex = qualities.indexOf(this.currentQuality);
       
-      if (currentIndex > 0) {
-        this.setQualityLevel(qualities[currentIndex - 1]);
-        console.log(`🔼 Performance optimization: Increased quality to ${qualities[currentIndex - 1]}`);
+      if (currentIndex > 0 && currentIndex < qualities.length) {
+        const newQuality = qualities[currentIndex - 1];
+        if (newQuality) {
+          this.setQualityLevel(newQuality);
+          console.log(`🔼 Performance optimization: Increased quality to ${newQuality}`);
+        }
       }
     }
   }
@@ -681,7 +687,7 @@ export class PerformanceManager {
     
     if (!enabled && this.optimizationTimer) {
       clearInterval(this.optimizationTimer);
-      this.optimizationTimer = undefined;
+      this.optimizationTimer = null;
     } else if (enabled && !this.optimizationTimer) {
       this.setupAdaptiveOptimization();
     }
@@ -725,7 +731,8 @@ export class PerformanceManager {
     
     const entries = performance.getEntriesByName(name, 'measure');
     if (entries.length > 0) {
-      const duration = entries[entries.length - 1].duration;
+      const lastEntry = entries[entries.length - 1];
+      const duration = lastEntry?.duration || 0;
       
       // Update frame breakdown if it's a known category
       if (name in this.metrics.frameTime.breakdown) {

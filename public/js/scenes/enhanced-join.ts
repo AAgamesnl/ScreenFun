@@ -1,6 +1,12 @@
-// TapFrenzy Enhanced Mobile Player Join Scene
+// TapFrenzy Enhanced Mobile Player Join Scene - AAA Quality
 import type { Scene } from './scene-manager';
 import type { S2C } from '../net';
+// AAA Systems Integration
+import { Audio } from '../systems/audio-manager';
+import { VisualEffects } from '../systems/visual-effects-manager';
+import { UIAnimations } from '../systems/ui-animation-manager';
+import { PerformanceManager } from '../systems/performance-manager';
+import { Config } from '../systems/configuration-manager';
 
 export class EnhancedJoinScene implements Scene {
   private el?: HTMLElement;
@@ -11,6 +17,48 @@ export class EnhancedJoinScene implements Scene {
   }
 
   mount(root: HTMLElement): void {
+    // 🚀 AAA Systems Initialization for Mobile Join
+    const performance = PerformanceManager.getInstance();
+    performance.startProfiler('join-scene-mount');
+    
+    // Initialize mobile-optimized audio
+    try {
+      Audio.playMusic('join-ambient', { fadeIn: 1500 });
+      console.log('🔊 Mobile AAA Audio initialized');
+    } catch (error) {
+      console.warn('Audio not ready:', error);
+    }
+    
+    // Mobile particle effects
+    try {
+      VisualEffects.createParticleSystem({
+        id: 'join-mobile-particles',
+        maxParticles: 20, // Reduced for mobile
+        emissionRate: 1,
+        lifetime: { min: 8, max: 12 },
+        position: { x: 0, y: 0, z: 0 },
+        velocity: {
+          base: { x: 0, y: 0.05, z: 0 },
+          random: { x: 0.5, y: 0.3, z: 0 }
+        },
+        acceleration: { x: 0, y: 0, z: 0 },
+        size: { start: 4, end: 1 },
+        color: {
+          start: { r: 0.2, g: 0.8, b: 1, a: 0.6 },
+          end: { r: 0.8, g: 0.6, b: 1, a: 0 }
+        },
+        blendMode: 'additive',
+        physics: {
+          gravity: 0,
+          drag: 0.98,
+          bounce: 0,
+          collision: false
+        }
+      });
+    } catch (error) {
+      console.warn('Visual effects not ready:', error);
+    }
+
     this.el = document.createElement('div');
     this.el.className = 'enhanced-join-scene';
     this.el.innerHTML = `
@@ -126,23 +174,37 @@ export class EnhancedJoinScene implements Scene {
       target.value = target.value.replace(/[^0-9]/g, '').toUpperCase();
       this.validateForm();
       this.triggerHaptic('light');
+      
+      // AAA Audio feedback for typing
+      Audio.playSound('ui-type', { volume: 0.2, pitch: 0.9 + Math.random() * 0.2 });
     });
 
     // Player name input
     playerNameInput.addEventListener('input', () => {
       this.validateForm();
       this.triggerHaptic('light');
+      
+      // AAA Audio feedback for typing
+      Audio.playSound('ui-type', { volume: 0.15, pitch: 0.95 + Math.random() * 0.1 });
     });
 
-    // Join button
+    // Join button with enhanced feedback
     joinBtn.addEventListener('click', () => {
+      // AAA Audio feedback
+      Audio.playSound('ui-click', { volume: 0.6 });
       this.handleJoin();
+    });
+    
+    // Enhanced hover effects
+    joinBtn.addEventListener('mouseenter', () => {
+      Audio.playSound('ui-hover', { volume: 0.3 });
     });
 
     // Enter key handling
     [roomCodeInput, playerNameInput].forEach(input => {
       input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !joinBtn.disabled) {
+          Audio.playSound('ui-success', { volume: 0.5 });
           this.handleJoin();
         }
       });
@@ -212,12 +274,31 @@ export class EnhancedJoinScene implements Scene {
     const playerName = playerNameInput.value.trim();
     const avatar = selectedAvatar?.dataset.avatar || '🦸‍♂️';
 
-    // Show loading state
+    // Show loading state with AAA animations
     joinBtn.classList.add('loading');
     joinBtn.disabled = true;
 
-    // Trigger strong haptic feedback
+    // AAA Visual Effects for join action
+    try {
+      const rect = joinBtn.getBoundingClientRect();
+      VisualEffects.createExplosionEffect({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+        z: 0
+      });
+    } catch (error) {
+      console.warn('Visual effects not available:', error);
+    }
+
+    // AAA Haptic feedback and UI animations
     this.triggerHaptic('heavy');
+    
+    try {
+      const buttonId = UIAnimations.registerElement(joinBtn);
+      UIAnimations.setElementState(buttonId, { isLoading: true });
+    } catch (error) {
+      console.warn('UI animations not available:', error);
+    }
 
     // Store avatar selection
     localStorage.setItem('tapfrenzy-avatar', avatar);
