@@ -879,7 +879,7 @@ input:focus, textarea:focus {
   place-items: center;
   width: 100vw;
   height: 100svh;
-  padding: clamp(12px, 2vw, 32px);
+  padding: clamp(8px, 1.5vw, 24px);
   overflow: hidden;
   position: fixed;
   inset: 0;
@@ -990,18 +990,18 @@ input:focus, textarea:focus {
   text-align: center;
 }
 
-/* CRITICAL: Override ANY conflicting input styles */
+/* CRITICAL: Override ANY conflicting input styles - Enhanced for Room Code */
 .input-group input {
   background-color: white !important;
-  color: #333 !important;
-  border: 2px solid #ddd !important;
-  padding: 12px !important;
-  font-size: 16px !important;
-  border-radius: 8px !important;
-  text-align: left !important;
-  font-weight: normal !important;
+  color: #222 !important;
+  border: 2px solid #ccc !important;
+  padding: 14px !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  border-radius: 12px !important;
+  text-align: center !important;
   
-  /* Critical functionality */
+  /* Critical functionality - Enhanced */
   -webkit-user-select: text !important;
   user-select: text !important;
   pointer-events: auto !important;
@@ -1009,19 +1009,43 @@ input:focus, textarea:focus {
   z-index: 1001 !important;
   opacity: 1 !important;
   visibility: visible !important;
+  
+  /* Remove all potential conflicts */
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  -webkit-text-fill-color: #222 !important;
+  text-shadow: none !important;
+  filter: none !important;
+  
+  /* Ensure no interference */
+  autocomplete: off !important;
+  autocapitalize: none !important;
+  autocorrect: off !important;
+  spellcheck: false !important;
 }
 
 .input-group input:focus {
   outline: none !important;
-  border-color: #007bff !important;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25) !important;
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3) !important;
   background-color: white !important;
-  color: #333 !important;
+  color: #222 !important;
+  -webkit-text-fill-color: #222 !important;
+  transform: scale(1.02) !important;
 }
 
 .input-group input::placeholder {
-  color: #666 !important;
-  opacity: 0.7 !important;
+  color: #888 !important;
+  opacity: 0.8 !important;
+  -webkit-text-fill-color: #888 !important;
+}
+
+/* Special handling for room code input */
+#room-code {
+  font-family: 'Courier New', monospace !important;
+  letter-spacing: 0.2em !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
 }
 
 .join-container {
@@ -1059,11 +1083,11 @@ input:focus, textarea:focus {
 }
 
 .logo-text {
-  font-size: 2.5rem;
-  font-weight: 900;
+  font-size: 1.8rem;
+  font-weight: 800;
   color: white;
-  text-shadow: 0 4px 8px rgba(0,0,0,0.3);
-  letter-spacing: -1px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  letter-spacing: -0.5px;
 }
 
 .logo-text.frenzy {
@@ -1330,7 +1354,7 @@ input:focus, textarea:focus {
 
 .app-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   animation: fadeInDown 0.6s ease-out;
 }
 
@@ -1338,7 +1362,9 @@ input:focus, textarea:focus {
   display: flex;
   justify-content: center;
   align-items: baseline;
-  gap: 8px;
+  gap: 4px;
+  margin-bottom: 4px;
+}
   margin-bottom: 8px;
 }
 
@@ -1369,11 +1395,11 @@ input:focus, textarea:focus {
 
 .join-form-container {
   background: rgba(255,255,255,0.95);
-  border-radius: 20px;
-  padding: 2rem 1.5rem;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  padding: 1.5rem 1.2rem;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
   backdrop-filter: blur(10px);
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   animation: fadeInUp 0.6s ease-out 0.2s both;
 }
 

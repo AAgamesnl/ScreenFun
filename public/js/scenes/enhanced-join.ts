@@ -76,7 +76,18 @@ export class EnhancedJoinScene implements Scene {
           
           <div class="input-group">
             <label for="room-code">Room Code</label>
-            <input type="text" id="room-code" placeholder="Enter 4-5 letter code" maxlength="5" pattern="[A-Z]*" spellcheck="false" autocomplete="off" autocapitalize="characters">
+            <input 
+              type="text" 
+              id="room-code" 
+              placeholder="Enter 4-5 letter code" 
+              maxlength="5" 
+              pattern="[A-Z]*" 
+              spellcheck="false" 
+              autocomplete="off" 
+              autocapitalize="characters"
+              autocorrect="off"
+              data-lpignore="true"
+              data-form-type="other">
             <div class="input-hint">Ask your host for the room code (letters only)</div>
           </div>
 
@@ -175,15 +186,37 @@ export class EnhancedJoinScene implements Scene {
     const playerNameInput = this.el.querySelector('#player-name') as HTMLInputElement;
     const joinBtn = this.el.querySelector('#join-btn') as HTMLButtonElement;
 
-    // Room code input - only allow letters (A-Z, no numbers)
+    // Room code input - only allow letters (A-Z, no numbers) - Enhanced reliability
     roomCodeInput.addEventListener('input', (e) => {
       const target = e.target as HTMLInputElement;
-      target.value = target.value.replace(/[^A-Z]/g, '').toUpperCase();
+      let value = target.value.replace(/[^A-Z]/g, '').toUpperCase();
+      
+      // Ensure the value is properly set
+      if (target.value !== value) {
+        target.value = value;
+        // Force visual update
+        target.style.color = '#222';
+        target.style.backgroundColor = 'white';
+      }
+      
       this.validateForm();
       this.triggerHaptic('light');
       
       // AAA Audio feedback for typing
       Audio.playSound('ui-type', { volume: 0.2, pitch: 0.9 + Math.random() * 0.2 });
+    });
+
+    // Additional keydown handler to ensure proper input
+    roomCodeInput.addEventListener('keydown', (e) => {
+      // Allow backspace, delete, arrows, tab
+      if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+        return;
+      }
+      
+      // Only allow A-Z letters
+      if (!/[A-Za-z]/.test(e.key) || roomCodeInput.value.length >= 5) {
+        e.preventDefault();
+      }
     });
 
     // PIN code input - only allow numbers when visible
