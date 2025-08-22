@@ -116,15 +116,40 @@ html, body {
   box-sizing: border-box;
 }
 
-/* Allow text selection and interaction for input elements */
+/* Allow text selection and interaction for input elements - CRITICAL */
 input, textarea {
   -webkit-user-select: text !important;
   -khtml-user-select: text !important;
   -moz-user-select: text !important;
   -ms-user-select: text !important;
   user-select: text !important;
-  -webkit-touch-callout: default;
-  pointer-events: auto;
+  -webkit-touch-callout: default !important;
+  pointer-events: auto !important;
+  
+  /* Critical fixes for input functionality */
+  background-color: white !important;
+  color: #333 !important;
+  border: 2px solid #ddd !important;
+  padding: 12px !important;
+  font-size: 16px !important;
+  border-radius: 8px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  
+  /* Remove any conflicting styles */
+  position: relative !important;
+  z-index: 1000 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Input focus states - enhanced for accessibility */
+input:focus, textarea:focus {
+  outline: none !important;
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25) !important;
+  background-color: white !important;
+  color: #333 !important;
 }
 
 /* Performance Optimization Classes */
@@ -855,7 +880,7 @@ input, textarea {
   width: 100vw;
   height: 100svh;
   padding: clamp(12px, 2vw, 32px);
-  overflow: auto;
+  overflow: hidden;
   position: fixed;
   inset: 0;
 }
@@ -870,7 +895,7 @@ input, textarea {
   max-width: min(560px, 92vw);
   width: 100%;
   max-height: calc(100vh - 40px);
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .join-content h1 {
@@ -965,30 +990,38 @@ input, textarea {
   text-align: center;
 }
 
-/* Fix input visibility and styling - Enhanced contrast for readability */
+/* CRITICAL: Override ANY conflicting input styles */
 .input-group input {
-  color: #333333 !important;
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 2px solid rgba(255, 255, 255, 0.3) !important;
-  padding: 1rem !important;
-  border-radius: var(--radius) !important;
-  font-size: 1.1rem !important;
-  text-align: center !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  font-weight: 600;
+  background-color: white !important;
+  color: #333 !important;
+  border: 2px solid #ddd !important;
+  padding: 12px !important;
+  font-size: 16px !important;
+  border-radius: 8px !important;
+  text-align: left !important;
+  font-weight: normal !important;
+  
+  /* Critical functionality */
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 1001 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .input-group input:focus {
-  outline: none;
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2px rgba(110, 231, 255, 0.3) !important;
-  background: rgba(255, 255, 255, 1) !important;
-  color: #222222 !important;
+  outline: none !important;
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25) !important;
+  background-color: white !important;
+  color: #333 !important;
 }
 
 .input-group input::placeholder {
-  color: rgba(0, 0, 0, 0.5) !important;
+  color: #666 !important;
+  opacity: 0.7 !important;
 }
 
 .join-container {
