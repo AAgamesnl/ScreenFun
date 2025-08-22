@@ -191,12 +191,13 @@ export class EnhancedJoinScene implements Scene {
       const target = e.target as HTMLInputElement;
       let value = target.value.replace(/[^A-Z]/g, '').toUpperCase();
       
-      // Ensure the value is properly set
+      // Ensure the value is properly set with immediate visual feedback
       if (target.value !== value) {
         target.value = value;
-        // Force visual update
+        // Force visual update with multiple methods
         target.style.color = '#222';
         target.style.backgroundColor = 'white';
+        target.style.caretColor = '#222';
       }
       
       this.validateForm();
@@ -206,17 +207,44 @@ export class EnhancedJoinScene implements Scene {
       Audio.playSound('ui-type', { volume: 0.2, pitch: 0.9 + Math.random() * 0.2 });
     });
 
-    // Additional keydown handler to ensure proper input
+    // Additional keydown handler to ensure proper input - Enhanced
     roomCodeInput.addEventListener('keydown', (e) => {
-      // Allow backspace, delete, arrows, tab
-      if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+      // Allow backspace, delete, arrows, tab, escape
+      if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Escape'].includes(e.key)) {
         return;
       }
       
-      // Only allow A-Z letters
+      // Only allow A-Z letters, prevent everything else
       if (!/[A-Za-z]/.test(e.key) || roomCodeInput.value.length >= 5) {
         e.preventDefault();
+        // Visual feedback for blocked input
+        roomCodeInput.style.borderColor = '#ff6b6b';
+        setTimeout(() => {
+          roomCodeInput.style.borderColor = '#ccc';
+        }, 200);
       }
+    });
+
+    // Additional safeguards for cross-browser compatibility
+    roomCodeInput.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const paste = (e.clipboardData || (window as any).clipboardData).getData('text');
+      const cleanValue = paste.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 5);
+      roomCodeInput.value = cleanValue;
+      this.validateForm();
+    });
+
+    // Ensure focus works properly on mobile
+    roomCodeInput.addEventListener('focus', (e) => {
+      const target = e.target as HTMLInputElement;
+      target.style.borderColor = '#667eea';
+      target.style.backgroundColor = 'white';
+      target.style.color = '#222';
+    });
+
+    roomCodeInput.addEventListener('blur', (e) => {
+      const target = e.target as HTMLInputElement;
+      target.style.borderColor = '#ccc';
     });
 
     // PIN code input - only allow numbers when visible
