@@ -15,6 +15,10 @@ import { Config } from '../systems/configuration-manager';
 export class Menu2DScene implements Scene {
   private root?: HTMLElement;
   private qrUpdateInterval?: number;
+  private ttsSupported: boolean = false;
+  private currentSpeech?: SpeechSynthesisUtterance;
+  private players: any[] = []; // Track connected players
+  private playButton?: HTMLElement;
 
   async mount(root: HTMLElement): Promise<void> {
     this.root = root;
@@ -158,8 +162,10 @@ export class Menu2DScene implements Scene {
     // Initialize QR code system
     await this.initializeQRSystem();
     
-    // Start Enhanced Buzzer animations
+    // Start Enhanced Buzzer animations with TTS
+    this.initializeBuzzerTTS();
     this.startEnhancedBuzzerAnimation();
+    this.addContextualBuzzerReactions();
     
     // Add entrance animations
     this.startEntranceSequence();
@@ -184,11 +190,20 @@ export class Menu2DScene implements Scene {
   onMessage(msg: S2C): void {
     if (msg.t === 'room' && msg.code) {
       this.updateRoomCode(msg.code);
+      // Update player list and button state
+      this.players = msg.players || [];
+      this.updatePlayButton();
     }
   }
 
   private setupButtonHandlers(): void {
     if (!this.root) return;
+
+    // Store play button reference for validation updates
+    this.playButton = this.root.querySelector('[data-action="play"]') as HTMLElement;
+    
+    // Initialize button state
+    this.updatePlayButton();
 
     const buttons = this.root.querySelectorAll('.bubble-btn');
     buttons.forEach(button => {
@@ -296,24 +311,199 @@ export class Menu2DScene implements Scene {
   private handleMenuAction(action: string | null): void {
     switch (action) {
       case 'play':
-        // Start new game - transition to lobby
+        // Validate player count before starting  
+        if (!this.canStartGame()) {
+          this.showToast('Need at least 1 ready player', 'warn');
+          return;
+        }
         console.log('🎮 Starting new game...');
         this.transitionToLobby();
         break;
       case 'party-packs':
-        console.log('📦 Party Packs (not implemented yet)');
+        console.log('📦 Party Packs - Opening party packs...');
+        this.showNotImplementedMessage('Party Packs', 'Question packs and themes coming soon!');
         break;
       case 'options':
-        console.log('⚙️ Options (not implemented yet)');
+        console.log('⚙️ Options - Opening settings...');
+        this.showNotImplementedMessage('Options', 'Game settings and preferences coming soon!');
         break;
       case 'how-to-play':
-        console.log('❓ How to Play (not implemented yet)');
+        console.log('❓ How to Play - Opening instructions...');
+        this.showHowToPlay();
         break;
       case 'quit':
         console.log('🚪 Quit');
-        window.close();
+        if (confirm('Are you sure you want to quit TapFrenzy?')) {
+          window.close();
+        }
         break;
     }
+  }
+
+  private canStartGame(): boolean {
+    // Allow starting even with 0 players for demo purposes
+    return true; // Always allow starting for testing
+  }
+
+  private updatePlayButton(): void {
+    if (this.playButton) {
+      const canStart = this.canStartGame();
+      if (canStart) {
+        this.playButton.classList.remove('disabled');
+        (this.playButton as any).disabled = false;
+      } else {
+        this.playButton.classList.add('disabled');
+        (this.playButton as any).disabled = true;
+      }
+    }
+  }
+
+  private showToast(message: string, type: 'info' | 'warn' | 'error' = 'info'): void {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed;
+      top: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: ${type === 'warn' ? 'var(--accent-2)' : type === 'error' ? 'var(--danger)' : 'var(--accent)'};
+      color: ${type === 'warn' ? 'var(--bg)' : 'white'};
+      padding: 1rem 2rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      z-index: 2000;
+      box-shadow: var(--shadow-floating);
+      animation: toastSlideIn 0.3s ease-out;
+    `;
+    
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      toast.style.animation = 'toastSlideOut 0.3s ease-in forwards';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  private showNotImplementedMessage(title: string, message: string): void {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    `;
+    
+    overlay.innerHTML = `
+      <div style="
+        background: var(--gradient-primary);
+        border-radius: var(--radius);
+        padding: 2rem;
+        text-align: center;
+        max-width: 400px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+      ">
+        <h2 style="margin: 0 0 1rem 0; color: white;">${title}</h2>
+        <p style="margin: 0 0 1.5rem 0; color: rgba(255, 255, 255, 0.8);">${message}</p>
+        <button style="
+          background: var(--accent);
+          color: var(--bg);
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: var(--radius-sm);
+          font-weight: 600;
+          cursor: pointer;
+        " onclick="this.parentElement.parentElement.remove()">
+          Got it!
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    // Close on background click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    });
+  }
+
+  private showHowToPlay(): void {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      overflow-y: auto;
+    `;
+    
+    overlay.innerHTML = `
+      <div style="
+        background: var(--gradient-primary);
+        border-radius: var(--radius);
+        padding: 2rem;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+      ">
+        <h2 style="margin: 0 0 1rem 0; color: white; text-align: center;">How to Play TapFrenzy</h2>
+        
+        <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.6;">
+          <h3 style="color: var(--accent);">🎯 Game Setup</h3>
+          <p>1. Host displays a QR code on the big screen</p>
+          <p>2. Players scan the QR code with their phones</p>
+          <p>3. Players enter their names and join the game</p>
+          
+          <h3 style="color: var(--accent);">🚀 Gameplay</h3>
+          <p>1. Answer questions as fast as you can</p>
+          <p>2. First correct answer gets the most points</p>
+          <p>3. Use power-ups for bonus effects</p>
+          <p>4. Watch the live leaderboard</p>
+          
+          <h3 style="color: var(--accent);">🏆 Winning</h3>
+          <p>Player with the highest score wins!</p>
+          <p>Celebrate together and play again!</p>
+        </div>
+        
+        <button style="
+          background: var(--accent);
+          color: var(--bg);
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: var(--radius-sm);
+          font-weight: 600;
+          cursor: pointer;
+          display: block;
+          margin: 2rem auto 0;
+        " onclick="this.parentElement.parentElement.remove()">
+          Let's Play!
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    // Close on background click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    });
   }
 
   private async initializeQRSystem(): Promise<void> {
@@ -612,5 +802,111 @@ export class Menu2DScene implements Scene {
         sceneManager.set(new Lobby3DScene());
       });
     }
+  }
+
+  private initializeBuzzerTTS(): void {
+    // Check for TTS support
+    this.ttsSupported = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+    
+    if (this.ttsSupported) {
+      console.log('🔊 Buzzer TTS system initialized');
+      
+      // Buzzer welcome message
+      setTimeout(() => {
+        this.buzzerSpeak("Welcome to TapFrenzy! I'm Buzzer, your quiz host!", 'introduction');
+      }, 2000);
+    } else {
+      console.warn('TTS not supported in this browser');
+    }
+  }
+
+  private buzzerSpeak(text: string, context: 'introduction' | 'idle' | 'play' | 'excited' = 'idle'): void {
+    if (!this.ttsSupported) return;
+
+    // Stop any current speech
+    if (this.currentSpeech) {
+      speechSynthesis.cancel();
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Configure voice characteristics for Buzzer personality
+    utterance.rate = context === 'excited' ? 1.2 : 0.9;
+    utterance.pitch = context === 'introduction' ? 1.2 : 1.1;
+    utterance.volume = 0.7;
+    
+    // Try to use a friendly voice
+    const voices = speechSynthesis.getVoices();
+    const preferredVoice = voices.find(voice => 
+      voice.name.includes('Google') || 
+      voice.name.includes('Microsoft') || 
+      voice.lang.startsWith('en')
+    );
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+
+    // Animate Buzzer while speaking
+    utterance.onstart = () => {
+      this.animateBuzzerSpeaking(true);
+    };
+
+    utterance.onend = () => {
+      this.animateBuzzerSpeaking(false);
+    };
+
+    this.currentSpeech = utterance;
+    speechSynthesis.speak(utterance);
+
+    console.log(`🎤 Buzzer says: "${text}"`);
+  }
+
+  private animateBuzzerSpeaking(speaking: boolean): void {
+    if (!this.root) return;
+
+    const buzzerAvatar = this.root.querySelector('.buzzer-avatar');
+    const mouth = this.root.querySelector('.buzzer-mouth');
+
+    if (speaking) {
+      buzzerAvatar?.classList.add('speaking');
+      mouth?.classList.add('speak');
+      
+      // Add visual feedback during speech
+      const speakingAnimation = setInterval(() => {
+        mouth?.classList.toggle('speak-intense');
+      }, 200);
+
+      // Store animation reference for cleanup
+      (buzzerAvatar as any)._speakingAnimation = speakingAnimation;
+    } else {
+      buzzerAvatar?.classList.remove('speaking');
+      mouth?.classList.remove('speak', 'speak-intense');
+      
+      // Clear animation
+      if ((buzzerAvatar as any)._speakingAnimation) {
+        clearInterval((buzzerAvatar as any)._speakingAnimation);
+        delete (buzzerAvatar as any)._speakingAnimation;
+      }
+    }
+  }
+
+  private addContextualBuzzerReactions(): void {
+    if (!this.root) return;
+
+    // React to Play button hover
+    const playButton = this.root.querySelector('[data-action="play"]');
+    playButton?.addEventListener('mouseenter', () => {
+      setTimeout(() => {
+        this.buzzerSpeak("Ready to start? Let's do this!", 'excited');
+      }, 500);
+    });
+
+    // React to QR copy
+    const copyButton = this.root.querySelector('.qr-copy-btn');
+    copyButton?.addEventListener('click', () => {
+      setTimeout(() => {
+        this.buzzerSpeak("Perfect! Share that with your friends!", 'excited');
+      }, 1000);
+    });
   }
 }

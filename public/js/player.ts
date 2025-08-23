@@ -14,25 +14,66 @@ let currentPlayerName = '';
 let currentRoomCode = '';
 let myPlayerId = '';
 
+// Ensure inputs are always functional and prevent zoom
+window.addEventListener('keydown', (e) => {
+  const tag = (e.target as HTMLElement)?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return; // allow typing
+  // other global key handling here…
+}, { passive: true });
+
+// Prevent zooming on mobile
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('dblclick', e => e.preventDefault());  
+document.addEventListener('wheel', e => { 
+  if ((e as WheelEvent).ctrlKey) e.preventDefault(); 
+}, { passive: false });
+
+// Ensure all inputs remain functional
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('input,textarea').forEach(el => {
+    (el as HTMLInputElement).readOnly = false;
+    (el as HTMLInputElement).disabled = false;
+  });
+});
+
+// Also ensure inputs remain functional when content changes
+const observer = new MutationObserver(() => {
+  document.querySelectorAll('input,textarea').forEach(el => {
+    (el as HTMLInputElement).readOnly = false;
+    (el as HTMLInputElement).disabled = false;
+  });
+});
+
+observer.observe(document.body, { 
+  childList: true, 
+  subtree: true 
+});
+
 // Get initial parameters from URL
 const params = new URLSearchParams(location.search);
 const urlCode = params.get('code')?.toUpperCase() || '';
 const urlName = params.get('name') || '';
 
 // Handle joining a room
-function joinRoom(code: string, name: string): void {
+function joinRoom(code: string, name: string, pin?: string): void {
   currentRoomCode = code;
   currentPlayerName = name;
   
-  console.log(`🎮 Attempting to join room ${code} as ${name}`);
+  console.log(`🎮 Attempting to join room ${code} as ${name}${pin ? ' with PIN' : ''}`);
   
   // Send join request
-  net.send({
+  const joinData: any = {
     t: 'player:join',
     code: code.toUpperCase(),
     name,
     avatar: localStorage.getItem('tapfrenzy-avatar') || randomAvatar()
-  });
+  };
+  
+  if (pin) {
+    joinData.pin = pin;
+  }
+  
+  net.send(joinData);
 }
 
 // Handle ready state changes
@@ -64,11 +105,6 @@ net.onMessage(msg => {
 const joinScene = new EnhancedJoinScene(joinRoom);
 scenes.set(joinScene);
 
-// Auto-join if URL parameters are provided
-if (urlCode && urlName) {
-  setTimeout(() => {
-    joinRoom(urlCode, urlName);
-  }, 1000); // Small delay to let the scene render
-}
-
-console.log('📱 TapFrenzy Player initialized with enhanced UI');
+// No auto-join! QR code should only pre-fill the form
+// The user must explicitly click "Join Game" button
+console.log('📱 TapFrenzy Player initialized with enhanced UI - QR pre-fills only, no auto-join');

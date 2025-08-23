@@ -10,9 +10,9 @@ import { Config } from '../systems/configuration-manager';
 
 export class EnhancedJoinScene implements Scene {
   private el?: HTMLElement;
-  private onJoin: ((roomCode: string, playerName: string) => void) | undefined;
+  private onJoin: ((roomCode: string, playerName: string, pin?: string) => void) | undefined;
 
-  constructor(onJoin?: (roomCode: string, playerName: string) => void) {
+  constructor(onJoin?: (roomCode: string, playerName: string, pin?: string) => void) {
     this.onJoin = onJoin;
   }
 
@@ -60,9 +60,9 @@ export class EnhancedJoinScene implements Scene {
     }
 
     this.el = document.createElement('div');
-    this.el.className = 'enhanced-join-scene';
+    this.el.className = 'player-shell';
     this.el.innerHTML = `
-      <div class="join-container">
+      <div class="player-card">
         <div class="app-header">
           <div class="app-logo">
             <div class="logo-text">TAP</div>
@@ -76,13 +76,30 @@ export class EnhancedJoinScene implements Scene {
           
           <div class="input-group">
             <label for="room-code">Room Code</label>
-            <input type="text" id="room-code" placeholder="Enter 4-digit code" maxlength="4" pattern="[0-9]*">
-            <div class="input-hint">Ask your host for the room code</div>
+            <input 
+              type="text" 
+              id="room-code" 
+              placeholder="Enter 4-5 letter code" 
+              maxlength="5" 
+              pattern="[A-Z]*" 
+              spellcheck="false" 
+              autocomplete="off" 
+              autocapitalize="characters"
+              autocorrect="off"
+              data-lpignore="true"
+              data-form-type="other">
+            <div class="input-hint">Ask your host for the room code (letters only)</div>
+          </div>
+
+          <div class="input-group pin-group" id="pin-group" style="display: none;">
+            <label for="pin-code">PIN (Optional)</label>
+            <input type="text" id="pin-code" placeholder="Enter 4-digit PIN" maxlength="4" pattern="[0-9]*" spellcheck="false" autocomplete="off">
+            <div class="input-hint">Enter PIN if required by host</div>
           </div>
 
           <div class="input-group">
             <label for="player-name">Your Name</label>
-            <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
+            <input type="text" id="player-name" placeholder="Enter your name" maxlength="20" spellcheck="false" autocomplete="name">
             <div class="input-hint">This is how others will see you</div>
           </div>
 
@@ -165,18 +182,92 @@ export class EnhancedJoinScene implements Scene {
     if (!this.el) return;
 
     const roomCodeInput = this.el.querySelector('#room-code') as HTMLInputElement;
+    const pinCodeInput = this.el.querySelector('#pin-code') as HTMLInputElement;
     const playerNameInput = this.el.querySelector('#player-name') as HTMLInputElement;
     const joinBtn = this.el.querySelector('#join-btn') as HTMLButtonElement;
 
-    // Room code input - only allow numbers and auto-format
+    // Room code input - allow letters and auto-capitalize for better UX
     roomCodeInput.addEventListener('input', (e) => {
       const target = e.target as HTMLInputElement;
-      target.value = target.value.replace(/[^0-9]/g, '').toUpperCase();
+      // Allow both uppercase and lowercase letters, then convert to uppercase
+      let value = target.value.replace(/[^A-Za-z]/g, '').toUpperCase();
+      
+      // Ensure the value is properly set with immediate visual feedback
+      if (target.value !== value) {
+        target.value = value;
+        // Force visual update with multiple methods
+        target.style.color = '#222';
+        target.style.backgroundColor = 'white';
+        target.style.caretColor = '#222';
+      }
+      
       this.validateForm();
       this.triggerHaptic('light');
       
       // AAA Audio feedback for typing
       Audio.playSound('ui-type', { volume: 0.2, pitch: 0.9 + Math.random() * 0.2 });
+    });
+
+    // Additional keydown handler to allow typing and limit length
+    roomCodeInput.addEventListener('keydown', (e) => {
+      // Allow backspace, delete, arrows, tab, escape
+      if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Escape'].includes(e.key)) {
+        return;
+      }
+      
+      // Allow A-Z letters (both upper and lowercase), prevent everything else
+      if (!/[A-Za-z]/.test(e.key)) {
+        e.preventDefault();
+        // Visual feedback for blocked input
+        roomCodeInput.style.borderColor = '#ff6b6b';
+        setTimeout(() => {
+          roomCodeInput.style.borderColor = '#ccc';
+        }, 200);
+        return;
+      }
+      
+      // Prevent typing if already at max length
+      if (roomCodeInput.value.length >= 5) {
+        e.preventDefault();
+        // Visual feedback for max length
+        roomCodeInput.style.borderColor = '#ff6b6b';
+        setTimeout(() => {
+          roomCodeInput.style.borderColor = '#ccc';
+        }, 200);
+      }
+    });
+
+    // Additional safeguards for cross-browser compatibility
+    roomCodeInput.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const paste = (e.clipboardData || (window as any).clipboardData).getData('text');
+      const cleanValue = paste.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 5);
+      roomCodeInput.value = cleanValue;
+      this.validateForm();
+    });
+
+    // Ensure focus works properly on mobile
+    roomCodeInput.addEventListener('focus', (e) => {
+      const target = e.target as HTMLInputElement;
+      target.style.borderColor = '#667eea';
+      target.style.backgroundColor = 'white';
+      target.style.color = '#222';
+    });
+
+    roomCodeInput.addEventListener('blur', (e) => {
+      const target = e.target as HTMLInputElement;
+      target.style.borderColor = '#ccc';
+    });
+
+    // PIN code input - only allow numbers when visible
+    pinCodeInput.addEventListener('input', (e) => {
+      const target = e.target as HTMLInputElement;
+      target.value = target.value.replace(/[^0-9]/g, '');
+      this.validateForm();
+      this.triggerHaptic('light');
+      
+      // AAA Audio feedback for typing
+      Audio.playSound('ui-type', { volume: 0.2, pitch: 1.1 + Math.random() * 0.2 });
     });
 
     // Player name input
@@ -249,13 +340,21 @@ export class EnhancedJoinScene implements Scene {
     if (!this.el) return;
 
     const roomCodeInput = this.el.querySelector('#room-code') as HTMLInputElement;
+    const pinCodeInput = this.el.querySelector('#pin-code') as HTMLInputElement;
     const playerNameInput = this.el.querySelector('#player-name') as HTMLInputElement;
     const joinBtn = this.el.querySelector('#join-btn') as HTMLButtonElement;
 
     const roomCode = roomCodeInput.value.trim();
+    const pinCode = pinCodeInput.value.trim();
     const playerName = playerNameInput.value.trim();
 
-    const isValid = roomCode.length === 4 && playerName.length >= 2;
+    // Room code: 4-5 letters, Player name: at least 2 chars
+    // PIN: either empty (not required) or exactly 4 digits
+    const isValidRoomCode = roomCode.length >= 4 && roomCode.length <= 5 && /^[A-Z]+$/.test(roomCode);
+    const isValidPlayerName = playerName.length >= 2;
+    const isValidPin = pinCode === '' || (pinCode.length === 4 && /^[0-9]{4}$/.test(pinCode));
+
+    const isValid = isValidRoomCode && isValidPlayerName && isValidPin;
     joinBtn.disabled = !isValid;
     
     // Update button appearance
@@ -266,11 +365,13 @@ export class EnhancedJoinScene implements Scene {
     if (!this.el) return;
 
     const roomCodeInput = this.el.querySelector('#room-code') as HTMLInputElement;
+    const pinCodeInput = this.el.querySelector('#pin-code') as HTMLInputElement;
     const playerNameInput = this.el.querySelector('#player-name') as HTMLInputElement;
     const joinBtn = this.el.querySelector('#join-btn') as HTMLButtonElement;
     const selectedAvatar = this.el.querySelector('.avatar-option.selected') as HTMLElement;
 
     const roomCode = roomCodeInput.value.trim().toUpperCase();
+    const pinCode = pinCodeInput.value.trim();
     const playerName = playerNameInput.value.trim();
     const avatar = selectedAvatar?.dataset.avatar || '🦸‍♂️';
 
@@ -304,8 +405,8 @@ export class EnhancedJoinScene implements Scene {
     localStorage.setItem('tapfrenzy-avatar', avatar);
     localStorage.setItem('tapfrenzy-name', playerName);
 
-    // Call join callback
-    this.onJoin?.(roomCode, playerName);
+    // Call join callback with optional PIN
+    this.onJoin?.(roomCode, playerName, pinCode || undefined);
   }
 
   private showError(message: string): void {

@@ -55,7 +55,7 @@ export interface ClientToServerEvents {
   'host:next': (payload: { code: string }) => void;
   
   // Player events
-  'player:join': (payload: { code: string; name: string }) => void;
+  'player:join': (payload: { code: string; name: string; pin?: string }) => void;
   'player:ready': (payload: { code: string; ready: boolean }) => void;
   'player:answer': (payload: { code: string; answerIndex: number }) => void;
   'player:usePower': (payload: { code: string; targetId: string; type: string }) => void;

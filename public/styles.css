@@ -72,19 +72,84 @@
   --gpu-acceleration: translateZ(0);
 }
 
-/* Reset and Base Styles with Performance Optimization */
+/* Reset and Base Styles with Performance Optimization - Enhanced Fullscreen */
 html, body {
   margin: 0;
   padding: 0;
+  height: 100%;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-title);
-  overflow-x: hidden;
+  overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: "kern" 1;
   scroll-behavior: smooth;
+  
+  /* Mobile viewport fixes */
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Allow text selection for input elements */
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+#app, #scene, canvas, .root {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100svh;
+}
+
+@supports (height: 100dvh) {
+  #app, #scene, canvas, .root {
+    height: 100dvh;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Allow text selection and interaction for input elements - CRITICAL */
+input, textarea {
+  -webkit-user-select: text !important;
+  -khtml-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+  pointer-events: auto !important;
+  
+  /* Critical fixes for input functionality */
+  background-color: white !important;
+  color: #333 !important;
+  border: 2px solid #ddd !important;
+  padding: 12px !important;
+  font-size: 16px !important;
+  border-radius: 8px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  
+  /* Remove any conflicting styles */
+  position: relative !important;
+  z-index: 1000 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Input focus states - enhanced for accessibility */
+input:focus, textarea:focus {
+  outline: none !important;
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25) !important;
+  background-color: white !important;
+  color: #333 !important;
 }
 
 /* Performance Optimization Classes */
@@ -243,6 +308,7 @@ html, body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+
 /* Advanced Grid System */
 .grid {
   display: grid;
@@ -302,7 +368,8 @@ html, body {
 
 /* 2D Menu Scene Styles - AAA Visual Quality */
 .menu2d-container {
-  min-height: 100vh;
+  width: 100%;
+  height: 100vh;
   background: 
     radial-gradient(circle at 20% 50%, rgba(110, 231, 255, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(255, 223, 110, 0.15) 0%, transparent 50%),
@@ -312,7 +379,9 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   overflow: hidden;
   animation: menuEntrance 1.2s var(--ease-smooth) both;
 }
@@ -805,6 +874,30 @@ html, body {
     var(--bg);
 }
 
+.player-shell {
+  display: grid;
+  place-items: center;
+  width: 100vw;
+  height: 100svh;
+  padding: clamp(8px, 1.5vw, 24px);
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+}
+
+@supports (height: 100dvh) {
+  .player-shell {
+    height: 100dvh;
+  }
+}
+
+.player-card {
+  max-width: min(560px, 92vw);
+  width: 100%;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+}
+
 .join-content h1 {
   font-size: 3rem;
   margin-bottom: 1rem;
@@ -875,11 +968,137 @@ html, body {
 
 /* Enhanced Mobile Styles for Touch Optimization */
 .enhanced-join-scene {
-  min-height: 100vh;
-  background: var(--gradient-primary);
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   display: flex;
   flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+.join-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+/* CRITICAL: Override ANY conflicting input styles - Enhanced for Room Code */
+.input-group input {
+  background-color: white !important;
+  color: #222 !important;
+  border: 2px solid #ccc !important;
+  padding: 12px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  border-radius: 12px !important;
+  text-align: center !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  
+  /* Critical functionality - Enhanced */
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+  
+  /* Ensure input can receive events */
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 1001 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  
+  /* Remove all potential conflicts */
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  -webkit-text-fill-color: #222 !important;
+  text-shadow: none !important;
+  filter: none !important;
+  
+  /* Ensure no browser interference - ENHANCED */
+  autocomplete: off !important;
+  autocapitalize: none !important;
+  autocorrect: off !important;
+  spellcheck: false !important;
+  
+  /* Additional touch/mobile compatibility */
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  
+  /* Ensure consistent behavior across browsers */
+  outline: none !important;
+  resize: none !important;
+  
+  /* Force cursor to be visible */
+  caret-color: #222 !important;
+}
+
+.input-group input:focus {
+  outline: none !important;
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3) !important;
+  background-color: white !important;
+  color: #222 !important;
+  -webkit-text-fill-color: #222 !important;
+  transform: scale(1.02) !important;
+}
+
+.input-group input::placeholder {
+  color: #888 !important;
+  opacity: 0.8 !important;
+  -webkit-text-fill-color: #888 !important;
+}
+
+/* Special handling for room code input - ENHANCED RELIABILITY */
+#room-code {
+  font-family: 'Courier New', monospace !important;
+  letter-spacing: 0.2em !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  
+  /* CRITICAL: Ensure typing always works */
+  background-color: white !important;
+  color: #222 !important;
+  border: 2px solid #007bff !important;
+  caret-color: #222 !important;
+  
+  /* Override any potential conflicts */
+  -webkit-text-fill-color: #222 !important;
+  text-shadow: none !important;
+  filter: none !important;
+  
+  /* Ensure full interaction capability */
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  pointer-events: auto !important;
+  
+  /* Mobile compatibility */
+  -webkit-tap-highlight-color: rgba(0, 123, 255, 0.3) !important;
+  -webkit-touch-callout: default !important;
+  touch-action: manipulation !important;
+  
+  /* Focus enhancement */
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25) !important;
+}
+
+/* Additional focus state for room code */
+#room-code:focus {
+  border-color: #007bff !important;
+  background-color: white !important;
+  color: #222 !important;
+  caret-color: #222 !important;
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.4) !important;
 }
 
 .join-container {
@@ -917,11 +1136,11 @@ html, body {
 }
 
 .logo-text {
-  font-size: 2.5rem;
-  font-weight: 900;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 800;
   color: white;
-  text-shadow: 0 4px 8px rgba(0,0,0,0.3);
-  letter-spacing: -1px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  letter-spacing: -0.5px;
 }
 
 .logo-text.frenzy {
@@ -949,10 +1168,10 @@ html, body {
 .join-form-container {
   background: rgba(255,255,255,0.95);
   border-radius: var(--radius);
-  padding: 2rem 1.5rem;
+  padding: 1.2rem 1rem;
   box-shadow: var(--shadow-floating);
   backdrop-filter: var(--blur-medium);
-  margin-bottom: 2rem;
+  margin-bottom: 1.2rem;
   animation: fadeInUp var(--duration-slow) var(--ease-smooth) 0.2s both;
 }
 
@@ -1188,7 +1407,7 @@ html, body {
 
 .app-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   animation: fadeInDown 0.6s ease-out;
 }
 
@@ -1196,7 +1415,9 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: baseline;
-  gap: 8px;
+  gap: 4px;
+  margin-bottom: 4px;
+}
   margin-bottom: 8px;
 }
 
@@ -1227,37 +1448,37 @@ html, body {
 
 .join-form-container {
   background: rgba(255,255,255,0.95);
-  border-radius: 20px;
-  padding: 2rem 1.5rem;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  padding: 1.2rem 1rem;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
   backdrop-filter: blur(10px);
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   animation: fadeInUp 0.6s ease-out 0.2s both;
 }
 
 .form-title {
   text-align: center;
   color: #333;
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+  margin-bottom: 1.2rem;
   font-weight: 600;
 }
 
 .input-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .input-group label {
   display: block;
   color: #555;
   font-weight: 600;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
 }
 
 .input-group input {
   width: 100%;
-  padding: 1rem;
+  padding: 0.8rem;
   border: 2px solid #e1e5e9;
   border-radius: 12px;
   font-size: 1rem;
@@ -1274,35 +1495,35 @@ html, body {
 }
 
 .input-hint {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #777;
-  margin-top: 0.3rem;
+  margin-top: 0.25rem;
 }
 
 .avatar-selection {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .avatar-selection label {
   display: block;
   color: #555;
   font-weight: 600;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
 }
 
 .avatar-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
 .avatar-option {
   aspect-ratio: 1;
   border: 2px solid #e1e5e9;
-  border-radius: 12px;
+  border-radius: 10px;
   background: white;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -1414,34 +1635,34 @@ html, body {
 .features-section {
   background: rgba(255,255,255,0.1);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1rem;
   backdrop-filter: blur(10px);
   animation: fadeInUp 0.6s ease-out 0.4s both;
 }
 
 .features-section h3 {
   color: white;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
   text-align: center;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .features-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0.8rem;
 }
 
 .feature {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   color: rgba(255,255,255,0.9);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .feature-icon {
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
 
 /* Animations */
@@ -1520,7 +1741,8 @@ html, body {
 
 /* ===== 2D MENU SCENE - AAA BUBBLE UI (4K Ready) ===== */
 .menu2d-container {
-  min-height: 100vh;
+  width: 100%;
+  height: 100vh;
   background: 
     radial-gradient(ellipse at 20% 20%, rgba(110, 231, 255, 0.1) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 80%, rgba(255, 223, 110, 0.1) 0%, transparent 50%),
@@ -1530,7 +1752,9 @@ html, body {
       #1a1a2e 35%, 
       #16213e 70%, 
       #0b0e14 100%);
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2023,6 +2247,37 @@ html, body {
 .buzzer-mouth.speak {
   transform: scaleY(1.5) scaleX(0.8);
   background: radial-gradient(ellipse at top, #000 50%, rgba(255, 100, 100, 0.3) 100%);
+}
+
+.buzzer-mouth.speak-intense {
+  transform: scaleY(2) scaleX(0.6);
+  background: radial-gradient(ellipse at top, #111 30%, rgba(255, 150, 150, 0.4) 100%);
+  animation: intenseSpeaking 0.2s ease-in-out;
+}
+
+@keyframes intenseSpeaking {
+  0%, 100% { transform: scaleY(2) scaleX(0.6); }
+  50% { transform: scaleY(1.8) scaleX(0.7); }
+}
+
+.buzzer-avatar.speaking {
+  animation: speakingPulse 0.6s ease-in-out infinite alternate !important;
+  box-shadow: 
+    0 0 60px rgba(110, 231, 255, 0.6),
+    inset 0 0 40px rgba(255, 255, 255, 0.15),
+    inset 0 0 80px rgba(110, 255, 138, 0.1),
+    0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes speakingPulse {
+  0% { 
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1) saturate(1);
+  }
+  100% { 
+    transform: scale(1.03) rotate(0.5deg);
+    filter: brightness(1.1) saturate(1.2);
+  }
 }
 
 /* Add subtle particle effects around buzzer */
@@ -2603,4 +2858,39 @@ html, body {
   .bubble-btn {
     -webkit-font-smoothing: antialiased;
   }
+}
+
+/* Toast Animations */
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+}
+
+/* Disabled button state */
+.bubble-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+.bubble-btn.disabled:hover {
+  transform: none;
+  box-shadow: initial;
 }

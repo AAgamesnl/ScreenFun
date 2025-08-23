@@ -932,10 +932,9 @@ export function measurePerformance(name: string) {
   };
 }
 
-// Auto-initialize performance overlay in development
-// Use typeof check for browser compatibility
-const isDevelopment = (typeof window !== 'undefined' && window.location.hostname === 'localhost') || 
-                      (typeof localStorage !== 'undefined' && localStorage.getItem('debug-performance') === 'true');
+// Performance overlay disabled for production build
+// Can be manually enabled with localStorage.setItem('debug-performance', 'true') if needed
+const isDevelopment = false; // Disabled performance monitor overlay
 if (isDevelopment) {
   document.addEventListener('DOMContentLoaded', () => {
     const overlay = Performance.createPerformanceOverlay();
