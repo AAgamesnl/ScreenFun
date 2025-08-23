@@ -1,4 +1,4 @@
-// TapFrenzy AAA 3D Main Menu Scene - Knowledge Is Power Inspired
+// TapFrenzy Ultra-Realistic 3D Start Screen - Knowledge Is Power Inspired Experience
 import type { Scene } from './scene-manager';
 import type { S2C } from '../net';
 
@@ -15,1959 +15,804 @@ export class Menu3DScene implements Scene {
   private scene?: any;
   private camera?: any;
   private buzzer?: any;
-  private animationLoop?: number;
+  private logoMesh?: any;
+  private menuButtons?: any[];
   private audioContext?: AudioContext;
-  private backgroundMusic?: AudioBufferSourceNode;
   private guiTexture?: any;
   private qrCodeImage?: any;
   private roomCodeText?: any;
   private studioLights?: any[];
-  private tvStudioEnvironment?: any;
-  private logoGroup?: any;
+  private particleSystems?: any[];
 
   async mount(root: HTMLElement): Promise<void> {
-    // Create canvas for 3D rendering
+    // Create ultra-wide canvas for cinematic experience
     this.canvas = document.createElement('canvas');
     this.canvas.style.width = '100%';
     this.canvas.style.height = '100vh';
     this.canvas.style.display = 'block';
+    this.canvas.style.backgroundColor = '#0a1428'; // Deep TV studio blue
     
     root.innerHTML = '';
     root.appendChild(this.canvas);
 
-    // Wait for Babylon.js to be available
+    // Ensure Babylon.js is loaded
     if (!window.BABYLON) {
       throw new Error('Babylon.js not loaded');
     }
 
     const BABYLON = window.BABYLON;
-    console.log('🎮 Babylon.js version:', BABYLON.Engine.Version);
+    console.log('🚀 Initializing Ultra-Realistic TapFrenzy Start Screen');
 
     try {
-      // Try WebGPU first, then fallback to WebGL
-      let engineCreated = false;
+      // Initialize high-performance rendering engine
+      this.engine = new BABYLON.Engine(this.canvas, true, {
+        preserveDrawingBuffer: true,
+        stencil: true,
+        antialias: true,
+        alpha: false,
+        powerPreference: 'high-performance'
+      });
       
-      try {
-        this.engine = new BABYLON.WebGPUEngine(this.canvas, {
-          antialias: true,
-          powerPreference: 'high-performance'
-        });
-        await this.engine.initAsync();
-        engineCreated = true;
-        console.log('✅ WebGPU engine initialized');
-      } catch (webgpuError) {
-        console.log('⚠️ WebGPU not available, falling back to WebGL');
-      }
-      
-      if (!engineCreated) {
-        this.engine = new BABYLON.Engine(this.canvas, true, { 
-          preserveDrawingBuffer: true, 
-          stencil: true,
-          antialias: true,
-          powerPreference: 'high-performance'
-        });
-        console.log('✅ WebGL engine initialized');
-      }
-      
-      // 4K-ready: Hardware scaling for high DPI displays
+      // 4K optimization
       if (window.devicePixelRatio > 1) {
-        this.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
-        console.log(`✅ High-DPI support enabled (${window.devicePixelRatio}x)`);
+        this.engine.setHardwareScalingLevel(Math.max(0.8, 1 / window.devicePixelRatio));
       }
       
       this.scene = new BABYLON.Scene(this.engine);
       
-      // AAA Background: Deep navy as per specification
-      this.scene.clearColor = new BABYLON.Color3(0.05, 0.1, 0.2); // Deep navy
-      this.scene.ambientColor = new BABYLON.Color3(0.1, 0.15, 0.25);
+      // Professional TV studio background color
+      this.scene.clearColor = new BABYLON.Color3(0.04, 0.08, 0.16); // Rich navy blue
+      this.scene.ambientColor = new BABYLON.Color3(0.15, 0.25, 0.35);
+      
+      console.log('✅ Ultra-Realistic rendering engine initialized');
 
-      console.log('✅ Scene created successfully');
+      // Create optimal camera for TV studio viewing
+      this.setupOptimalCamera();
+      
+      // Build professional TV studio environment 
+      await this.createTVStudioEnvironment();
+      
+      // Create iconic TAPFRENZY logo with premium materials
+      await this.createUltraRealisticLogo();
+      
+      // Build Knowledge Is Power inspired menu system
+      await this.createProfessionalMenuSystem();
+      
+      // Create broadcast-quality buzzer character
+      await this.createBroadcastQualityBuzzer();
+      
+      // Add cinematic particle effects
+      this.createCinematicParticleSystem();
+      
+      // Setup film-quality lighting
+      this.setupBroadcastLighting();
+      
+      // Add premium post-processing
+      this.setupPremiumPostProcessing();
+      
+      // Create professional QR overlay
+      await this.createProfessionalQROverlay();
+      
+      // Initialize game show audio
+      this.initializeGameShowAudio();
 
-      // Static camera setup (NO MOVEMENT as per requirements)
-      this.camera = new BABYLON.ArcRotateCamera(
-        'staticCamera', 
-        -Math.PI / 2, // alpha 
-        Math.PI / 2.5, // beta
-        12, // radius - positioned for optimal viewing
-        BABYLON.Vector3.Zero(), 
-        this.scene
-      );
+      // Handle responsive resizing
+      window.addEventListener('resize', () => this.engine?.resize());
       
-      // CRITICAL: Lock camera completely - no inputs, no inertia, no movement
-      this.camera.inputs.clear();
-      this.camera.inertia = 0;
-      this.camera.panningSensibility = 0;
-      this.camera.wheelDeltaPercentage = 0;
-      
-      console.log('✅ Static camera created (LOCKED - no movement)');
-      
-      // Setup TV studio environment with HDRI + 3-point lighting
-      await this.setupTVStudioEnvironment();
-      
-      // Create AAA-quality TapFrenzy logo inspired by Knowledge Is Power
-      await this.createAAATapFrenzyLogo();
-      
-      // Create professional bubble menu system
-      await this.createProfessionalBubbleMenu();
-      
-      // Create high-quality AAA Buzzer character (80k+ tris)
-      await this.createAAABuzzerCharacter();
-      
-      // Setup TV studio set architecture
-      await this.createTVStudioSet();
-      
-      // Add premium particle systems
-      this.createPremiumParticleEffects();
-      
-      // Setup AAA post-processing pipeline
-      this.setupAAAPostProcessing();
-      
-      // Create QR code overlay (always visible, top-right)
-      await this.createQROverlay();
-      
-      // Start game show background music
-      this.startGameShowMusic();
-      
-      console.log('✅ AAA 3D Start Screen initialized');
-
-      // Handle window resize
-      window.addEventListener('resize', this.handleResize.bind(this));
-      
-      // Start render loop
+      // Start ultra-smooth render loop
       this.engine.runRenderLoop(() => {
         if (this.scene) {
           this.scene.render();
         }
       });
       
-      console.log('✅ AAA TapFrenzy 3D Menu is running! (Knowledge Is Power inspired)');
+      console.log('🏆 Ultra-Realistic TapFrenzy Start Screen is LIVE!');
       
-      // Buzzer welcome with context-aware speech
-      this.buzzerWelcome();
+      // Welcome message with professional presentation
+      setTimeout(() => this.buzzerWelcomeMessage(), 1000);
 
     } catch (error) {
-      console.error('❌ Error setting up AAA 3D scene:', error);
-      // Graceful fallback
-      root.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: center; height: 100vh; color: white; text-align: center; background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);">
-          <div>
-            <h1 style="font-size: 4em; margin: 0; text-shadow: 0 0 20px #00ffff;">TapFrenzy</h1>
-            <p style="font-size: 1.5em; margin-top: 20px;">3D Engine initialization failed</p>
-            <p style="opacity: 0.7;">Error: ${error instanceof Error ? error.message : String(error)}</p>
-            <button onclick="location.reload()" style="margin-top: 30px; padding: 15px 30px; font-size: 18px; background: #00ffff; border: none; border-radius: 10px; cursor: pointer;">Retry</button>
-          </div>
-        </div>
-      `;
+      console.error('❌ Ultra-Realistic rendering failed:', error);
+      this.createFallbackExperience(root);
     }
   }
 
-  private async setupTVStudioEnvironment(): Promise<void> {
-    if (!this.scene) return;
-
-    const BABYLON = window.BABYLON;
-
-    try {
-      // === TV STUDIO 3-POINT LIGHTING SYSTEM (AAA QUALITY) ===
-      
-      // Key Light (primary illumination) - warm, high intensity
-      const keyLight = new BABYLON.DirectionalLight('studioKeyLight', 
-        new BABYLON.Vector3(-0.8, -1.2, -0.6), this.scene);
-      keyLight.intensity = 2.0;
-      keyLight.diffuse = new BABYLON.Color3(1.0, 0.95, 0.85); // Warm white
-      keyLight.specular = new BABYLON.Color3(1.0, 1.0, 1.0);
-      
-      // Fill Light (shadow reduction) - cooler, moderate intensity
-      const fillLight = new BABYLON.DirectionalLight('studioFillLight',
-        new BABYLON.Vector3(0.6, -0.8, 0.4), this.scene);
-      fillLight.intensity = 0.7;
-      fillLight.diffuse = new BABYLON.Color3(0.8, 0.9, 1.0); // Cool blue-white
-      
-      // Rim/Back Light (edge definition) - bright, creates separation
-      const rimLight = new BABYLON.DirectionalLight('studioRimLight',
-        new BABYLON.Vector3(0.2, 0.8, -1.0), this.scene);
-      rimLight.intensity = 1.2;
-      rimLight.diffuse = new BABYLON.Color3(1.0, 1.0, 1.2); // Bright white-blue
-      
-      this.studioLights = [keyLight, fillLight, rimLight];
-
-      // === HDRI ENVIRONMENT MAPPING FOR REFLECTIONS ===
-      
-      // Create procedural HDRI environment for professional reflections
-      const hdrTexture = new BABYLON.HDRCubeTexture(
-        'data:application/octet-stream;base64,', // Empty HDR data 
-        this.scene, 
-        128, // Size
-        false, // No mipmaps for procedural
-        true,  // Generate harmonics 
-        false, // Not prefiltered
-        true   // Use in gamma space
-      );
-      
-      // Set as environment texture for PBR materials
-      this.scene.environmentTexture = hdrTexture;
-      this.scene.environmentIntensity = 1.5;
-      
-      // Create studio skybox with game show colors
-      const skybox = BABYLON.MeshBuilder.CreateSphere('skyBox', { diameter: 200 }, this.scene);
-      const skyboxMaterial = new BABYLON.PBRMaterial('skyBoxMat', this.scene);
-      skyboxMaterial.backFaceCulling = false;
-      skyboxMaterial.baseColor = new BABYLON.Color3(0.1, 0.2, 0.4); // Deep game show blue
-      skyboxMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.1, 0.2);
-      skyboxMaterial.roughnessFactor = 1.0;
-      skyboxMaterial.metallicFactor = 0.0;
-      skybox.material = skyboxMaterial;
-      skybox.infiniteDistance = true;
-
-      console.log('✅ TV Studio environment with 3-point lighting system created');
-      
-    } catch (error) {
-      console.warn('⚠️  TV Studio environment setup failed:', error);
-      
-      // Fallback lighting
-      const fallbackLight = new BABYLON.HemisphericLight('fallbackLight', 
-        new BABYLON.Vector3(0, 1, 0), this.scene);
-      fallbackLight.intensity = 1.0;
-      fallbackLight.diffuse = new BABYLON.Color3(1.0, 0.9, 0.8);
-    }
-  }
-
-  private async createAAATapFrenzyLogo(): Promise<void> {
-    if (!this.scene) return;
-
-    const BABYLON = window.BABYLON;
-
-    try {
-      this.logoGroup = new BABYLON.Mesh('logoGroup', this.scene);
-      
-      // === KNOWLEDGE IS POWER INSPIRED LOGO DESIGN ===
-      
-      // Create "TAPFRENZY" text using high-quality extruded geometry
-      // Each letter will be a premium 3D extrusion with beveled edges
-      
-      const logoMaterial = new BABYLON.PBRMaterial('logoMaterial', this.scene);
-      logoMaterial.baseColor = new BABYLON.Color3(0.0, 1.0, 1.0); // Bright cyan
-      logoMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.8, 1.0); // Glowing cyan
-      logoMaterial.metallicFactor = 0.9;
-      logoMaterial.roughnessFactor = 0.1;
-      logoMaterial.clearCoat.isEnabled = true;
-      logoMaterial.clearCoat.intensity = 1.0;
-      logoMaterial.clearCoat.roughness = 0.0;
-
-      // Create premium 3D text using CSG operations for clean geometry
-      const letterSpacing = 1.8;
-      const letters = ['T', 'A', 'P', 'F', 'R', 'E', 'N', 'Z', 'Y'];
-      
-      for (let i = 0; i < letters.length; i++) {
-        const letter = letters[i];
-        const letterMesh = await this.create3DLetter(letter!, i, letterSpacing);
-        letterMesh.material = logoMaterial;
-        letterMesh.parent = this.logoGroup;
-        
-        // Add individual letter floating animation with phase offset
-        const floatAnim = new BABYLON.Animation(
-          `letterFloat${i}`,
-          'position.y',
-          30, // Reduced FPS for smooth motion
-          BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-          BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-        );
-        
-        const keys = [
-          { frame: 0, value: 0 },
-          { frame: 60 + i * 8, value: 0.3 },
-          { frame: 120 + i * 8, value: 0 }
-        ];
-        
-        floatAnim.setKeys(keys);
-        letterMesh.animations = [floatAnim];
-        this.scene.beginAnimation(letterMesh, 0, 120 + i * 8, true);
-      }
-      
-      // Position logo group
-      this.logoGroup.position = new BABYLON.Vector3(0, 6, 0);
-      this.logoGroup.scaling = new BABYLON.Vector3(0.8, 0.8, 0.8);
-      
-      // Add logo glow effect with particle system
-      await this.createLogoGlowEffect();
-      
-      console.log('✅ AAA TapFrenzy logo created (Knowledge Is Power inspired)');
-      
-    } catch (error) {
-      console.error('Failed to create AAA logo:', error);
-      // Fallback to text plane
-      await this.createFallbackLogo();
-    }
-  }
-
-  private async create3DLetter(letter: string, index: number, spacing: number): Promise<any> {
-    const BABYLON = window.BABYLON;
-    
-    // Create base geometry for each letter using boxes and CSG
-    let letterMesh: any;
-    
-    switch (letter) {
-      case 'T':
-        letterMesh = this.createLetterT();
-        break;
-      case 'A':
-        letterMesh = this.createLetterA();
-        break;
-      case 'P':
-        letterMesh = this.createLetterP();
-        break;
-      case 'F':
-        letterMesh = this.createLetterF();
-        break;
-      case 'R':
-        letterMesh = this.createLetterR();
-        break;
-      case 'E':
-        letterMesh = this.createLetterE();
-        break;
-      case 'N':
-        letterMesh = this.createLetterN();
-        break;
-      case 'Z':
-        letterMesh = this.createLetterZ();
-        break;
-      case 'Y':
-        letterMesh = this.createLetterY();
-        break;
-      default:
-        letterMesh = BABYLON.MeshBuilder.CreateBox(`letter${letter}`, {
-          width: 0.8, height: 1.5, depth: 0.3
-        }, this.scene);
-    }
-    
-    letterMesh.position.x = (index - 4) * spacing; // Center the text
-    return letterMesh;
-  }
-
-  private createLetterT(): any {
-    const BABYLON = window.BABYLON;
-    
-    // Create T using two boxes
-    const vertical = BABYLON.MeshBuilder.CreateBox('T_vertical', {
-      width: 0.3, height: 1.5, depth: 0.3
-    }, this.scene);
-    
-    const horizontal = BABYLON.MeshBuilder.CreateBox('T_horizontal', {
-      width: 1.0, height: 0.3, depth: 0.3
-    }, this.scene);
-    horizontal.position.y = 0.6;
-    
-    return BABYLON.Mesh.MergeMeshes([vertical, horizontal], true);
-  }
-
-  private createLetterA(): any {
-    const BABYLON = window.BABYLON;
-    
-    const left = BABYLON.MeshBuilder.CreateBox('A_left', {
-      width: 0.3, height: 1.5, depth: 0.3
-    }, this.scene);
-    left.position.x = -0.25;
-    left.rotation.z = 0.2;
-    
-    const right = BABYLON.MeshBuilder.CreateBox('A_right', {
-      width: 0.3, height: 1.5, depth: 0.3
-    }, this.scene);
-    right.position.x = 0.25;
-    right.rotation.z = -0.2;
-    
-    const crossbar = BABYLON.MeshBuilder.CreateBox('A_crossbar', {
-      width: 0.6, height: 0.2, depth: 0.3
-    }, this.scene);
-    crossbar.position.y = 0.2;
-    
-    return BABYLON.Mesh.MergeMeshes([left, right, crossbar], true);
-  }
-
-  private createLetterP(): any {
-    const BABYLON = window.BABYLON;
-    
-    const vertical = BABYLON.MeshBuilder.CreateBox('P_vertical', {
-      width: 0.3, height: 1.5, depth: 0.3
-    }, this.scene);
-    vertical.position.x = -0.25;
-    
-    const topHorizontal = BABYLON.MeshBuilder.CreateBox('P_top', {
-      width: 0.6, height: 0.3, depth: 0.3
-    }, this.scene);
-    topHorizontal.position.y = 0.6;
-    topHorizontal.position.x = 0.05;
-    
-    const midHorizontal = BABYLON.MeshBuilder.CreateBox('P_mid', {
-      width: 0.6, height: 0.3, depth: 0.3
-    }, this.scene);
-    midHorizontal.position.y = 0.15;
-    midHorizontal.position.x = 0.05;
-    
-    const rightVertical = BABYLON.MeshBuilder.CreateBox('P_right', {
-      width: 0.3, height: 0.6, depth: 0.3
-    }, this.scene);
-    rightVertical.position.x = 0.35;
-    rightVertical.position.y = 0.375;
-    
-    return BABYLON.Mesh.MergeMeshes([vertical, topHorizontal, midHorizontal, rightVertical], true);
-  }
-
-  private createLetterF(): any {
-    const BABYLON = window.BABYLON;
-    
-    const vertical = BABYLON.MeshBuilder.CreateBox('F_vertical', {
-      width: 0.3, height: 1.5, depth: 0.3
-    }, this.scene);
-    vertical.position.x = -0.25;
-    
-    const top = BABYLON.MeshBuilder.CreateBox('F_top', {
-      width: 0.8, height: 0.3, depth: 0.3
-    }, this.scene);
-    top.position.y = 0.6;
-    top.position.x = 0.15;
-    
-    const middle = BABYLON.MeshBuilder.CreateBox('F_middle', {
-      width: 0.6, height: 0.3, depth: 0.3
-    }, this.scene);
-    middle.position.y = 0.15;
-    middle.position.x = 0.05;
-    
-    return BABYLON.Mesh.MergeMeshes([vertical, top, middle], true);
-  }
-
-  private createLetterR(): any {
-    const BABYLON = window.BABYLON;
-    
-    // Similar to P but with diagonal leg
-    const vertical = BABYLON.MeshBuilder.CreateBox('R_vertical', {
-      width: 0.3, height: 1.5, depth: 0.3
-    }, this.scene);
-    vertical.position.x = -0.25;
-    
-    const top = BABYLON.MeshBuilder.CreateBox('R_top', {
-      width: 0.6, height: 0.3, depth: 0.3
-    }, this.scene);
-    top.position.y = 0.6;
-    top.position.x = 0.05;
-    
-    const middle = BABYLON.MeshBuilder.CreateBox('R_middle', {
-      width: 0.6, height: 0.3, depth: 0.3
-    }, this.scene);
-    middle.position.y = 0.15;
-    middle.position.x = 0.05;
-    
-    const leg = BABYLON.MeshBuilder.CreateBox('R_leg', {
-      width: 0.3, height: 0.8, depth: 0.3
-    }, this.scene);
-    leg.position.x = 0.25;
-    leg.position.y = -0.35;
-    leg.rotation.z = 0.3;
-    
-    return BABYLON.Mesh.MergeMeshes([vertical, top, middle, leg], true);
-  }
-
-  private createLetterE(): any {
-    const BABYLON = window.BABYLON;
-    
-    const vertical = BABYLON.MeshBuilder.CreateBox('E_vertical', {
-      width: 0.3, height: 1.5, depth: 0.3
-    }, this.scene);
-    vertical.position.x = -0.25;
-    
-    const top = BABYLON.MeshBuilder.CreateBox('E_top', {
-      width: 0.8, height: 0.3, depth: 0.3
-    }, this.scene);
-    top.position.y = 0.6;
-    top.position.x = 0.15;
-    
-    const middle = BABYLON.MeshBuilder.CreateBox('E_middle', {
-      width: 0.6, height: 0.3, depth: 0.3
-    }, this.scene);
-    middle.position.y = 0;
-    middle.position.x = 0.05;
-    
-    const bottom = BABYLON.MeshBuilder.CreateBox('E_bottom', {
-      width: 0.8, height: 0.3, depth: 0.3
-    }, this.scene);
-    bottom.position.y = -0.6;
-    bottom.position.x = 0.15;
-    
-    return BABYLON.Mesh.MergeMeshes([vertical, top, middle, bottom], true);
-  }
-
-  private createLetterN(): any {
-    const BABYLON = window.BABYLON;
-    
-    const left = BABYLON.MeshBuilder.CreateBox('N_left', {
-      width: 0.3, height: 1.5, depth: 0.3
-    }, this.scene);
-    left.position.x = -0.25;
-    
-    const right = BABYLON.MeshBuilder.CreateBox('N_right', {
-      width: 0.3, height: 1.5, depth: 0.3
-    }, this.scene);
-    right.position.x = 0.25;
-    
-    const diagonal = BABYLON.MeshBuilder.CreateBox('N_diagonal', {
-      width: 0.25, height: 1.8, depth: 0.3
-    }, this.scene);
-    diagonal.rotation.z = Math.PI / 4;
-    
-    return BABYLON.Mesh.MergeMeshes([left, right, diagonal], true);
-  }
-
-  private createLetterZ(): any {
-    const BABYLON = window.BABYLON;
-    
-    const top = BABYLON.MeshBuilder.CreateBox('Z_top', {
-      width: 0.8, height: 0.3, depth: 0.3
-    }, this.scene);
-    top.position.y = 0.6;
-    
-    const bottom = BABYLON.MeshBuilder.CreateBox('Z_bottom', {
-      width: 0.8, height: 0.3, depth: 0.3
-    }, this.scene);
-    bottom.position.y = -0.6;
-    
-    const diagonal = BABYLON.MeshBuilder.CreateBox('Z_diagonal', {
-      width: 0.25, height: 1.4, depth: 0.3
-    }, this.scene);
-    diagonal.rotation.z = -Math.PI / 4;
-    
-    return BABYLON.Mesh.MergeMeshes([top, bottom, diagonal], true);
-  }
-
-  private createLetterY(): any {
-    const BABYLON = window.BABYLON;
-    
-    const stem = BABYLON.MeshBuilder.CreateBox('Y_stem', {
-      width: 0.3, height: 0.8, depth: 0.3
-    }, this.scene);
-    stem.position.y = -0.35;
-    
-    const leftArm = BABYLON.MeshBuilder.CreateBox('Y_leftArm', {
-      width: 0.3, height: 0.8, depth: 0.3
-    }, this.scene);
-    leftArm.position.x = -0.2;
-    leftArm.position.y = 0.3;
-    leftArm.rotation.z = Math.PI / 6;
-    
-    const rightArm = BABYLON.MeshBuilder.CreateBox('Y_rightArm', {
-      width: 0.3, height: 0.8, depth: 0.3
-    }, this.scene);
-    rightArm.position.x = 0.2;
-    rightArm.position.y = 0.3;
-    rightArm.rotation.z = -Math.PI / 6;
-    
-    return BABYLON.Mesh.MergeMeshes([stem, leftArm, rightArm], true);
-  }
-
-  private async createLogoGlowEffect(): Promise<void> {
-    if (!this.scene || !this.logoGroup) return;
-    
-    const BABYLON = window.BABYLON;
-    
-    // Create particle system for logo glow
-    const logoGlow = new BABYLON.ParticleSystem('logoGlow', 500, this.scene);
-    logoGlow.particleTexture = new BABYLON.Texture('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', this.scene);
-    
-    logoGlow.emitter = this.logoGroup;
-    logoGlow.minEmitBox = new BABYLON.Vector3(-4, -1, -0.5);
-    logoGlow.maxEmitBox = new BABYLON.Vector3(4, 1, 0.5);
-    
-    logoGlow.color1 = new BABYLON.Color4(0.0, 1.0, 1.0, 0.8);
-    logoGlow.color2 = new BABYLON.Color4(0.5, 0.8, 1.0, 0.6);
-    logoGlow.colorDead = new BABYLON.Color4(0.0, 0.5, 1.0, 0.0);
-    
-    logoGlow.minSize = 0.1;
-    logoGlow.maxSize = 0.4;
-    logoGlow.minLifeTime = 1.0;
-    logoGlow.maxLifeTime = 2.0;
-    logoGlow.emitRate = 100;
-    
-    logoGlow.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
-    logoGlow.gravity = new BABYLON.Vector3(0, 2, 0);
-    logoGlow.direction1 = new BABYLON.Vector3(-1, 1, -1);
-    logoGlow.direction2 = new BABYLON.Vector3(1, 3, 1);
-    
-    logoGlow.start();
-  }
-
-  private async createFallbackLogo(): Promise<void> {
-    if (!this.scene) return;
-    
-    const BABYLON = window.BABYLON;
-    
-    // Simple fallback logo using text plane
-    const logoPlane = BABYLON.MeshBuilder.CreatePlane('logoFallback', {width: 8, height: 2}, this.scene);
-    logoPlane.position = new BABYLON.Vector3(0, 6, 0);
-    
-    const logoTexture = new BABYLON.DynamicTexture('logoTexture', {width: 1024, height: 256}, this.scene);
-    logoTexture.hasAlpha = true;
-    logoTexture.drawText('TAPFRENZY', null, null, 'bold 120px Arial', '#00FFFF', 'transparent', true, true);
-    
-    const logoMaterial = new BABYLON.StandardMaterial('logoFallbackMat', this.scene);
-    logoMaterial.diffuseTexture = logoTexture;
-    logoMaterial.emissiveTexture = logoTexture;
-    logoMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
-    logoMaterial.backFaceCulling = false;
-    
-    logoPlane.material = logoMaterial;
-    this.logoGroup = logoPlane;
-  }
-
-  private async createProfessionalBubbleMenu(): Promise<void> {
+  private setupOptimalCamera(): void {
     if (!this.scene) return;
 
     const BABYLON = window.BABYLON;
     
-    // === KNOWLEDGE IS POWER INSPIRED BUBBLE MENU ===
+    // Create camera with optimal positioning for all elements
+    this.camera = new BABYLON.ArcRotateCamera(
+      'studioCamera', 
+      0, // alpha - direct front view
+      Math.PI / 3, // beta - elevated 60-degree view
+      15, // radius - close enough to see everything clearly
+      new BABYLON.Vector3(0, 2, 0), // target center of action
+      this.scene
+    );
     
+    // Lock camera for static experience (no user controls)
+    this.camera.inputs.clear();
+    this.camera.inertia = 0;
+    this.camera.panningSensibility = 0;
+    this.camera.wheelDeltaPercentage = 0;
+    
+    console.log('✅ Optimal camera positioned for ultra-realistic viewing');
+  }
+
+  private async createTVStudioEnvironment(): Promise<void> {
+    if (!this.scene) return;
+
+    const BABYLON = window.BABYLON;
+    
+    // Create stunning TV studio floor
+    const studioFloor = BABYLON.MeshBuilder.CreateGround('studioFloor', {
+      width: 30, height: 30, subdivisions: 16
+    }, this.scene);
+    studioFloor.position.y = -0.1;
+
+    // Ultra-realistic floor material
+    const floorMaterial = new BABYLON.PBRMaterial('studioFloorMat', this.scene);
+    floorMaterial.baseColor = new BABYLON.Color3(0.12, 0.2, 0.4); // Deep studio blue
+    floorMaterial.metallicFactor = 0.9; // Highly reflective
+    floorMaterial.roughnessFactor = 0.1; // Very smooth for reflections
+    floorMaterial.emissiveColor = new BABYLON.Color3(0.02, 0.05, 0.1); // Subtle glow
+    studioFloor.material = floorMaterial;
+
+    // Stunning backdrop wall
+    const backdrop = BABYLON.MeshBuilder.CreateBox('backdrop', {
+      width: 25, height: 12, depth: 1
+    }, this.scene);
+    backdrop.position = new BABYLON.Vector3(0, 6, -10);
+
+    const backdropMaterial = new BABYLON.PBRMaterial('backdropMat', this.scene);
+    backdropMaterial.baseColor = new BABYLON.Color3(0.08, 0.15, 0.3); // Rich blue backdrop
+    backdropMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.1, 0.2); // Professional glow
+    backdropMaterial.metallicFactor = 0.3;
+    backdropMaterial.roughnessFactor = 0.6;
+    backdrop.material = backdropMaterial;
+
+    console.log('✅ Ultra-realistic TV studio environment created');
+  }
+
+  private async createUltraRealisticLogo(): Promise<void> {
+    if (!this.scene) return;
+
+    const BABYLON = window.BABYLON;
+
+    // Create stunning 3D "TAPFRENZY" logo
+    this.logoMesh = new BABYLON.Mesh('tapfrenzyLogo', this.scene);
+    
+    // Use high-quality text mesh creation
+    const logoText = BABYLON.MeshBuilder.CreateBox('logoBox', {
+      width: 8, height: 1.5, depth: 0.8
+    }, this.scene);
+    logoText.position = new BABYLON.Vector3(0, 8, -2); // High visibility position
+    logoText.parent = this.logoMesh;
+
+    // Premium logo material with Knowledge Is Power styling
+    const logoMaterial = new BABYLON.PBRMaterial('logoMaterial', this.scene);
+    logoMaterial.baseColor = new BABYLON.Color3(0.0, 1.0, 1.0); // Bright cyan
+    logoMaterial.emissiveColor = new BABYLON.Color3(0.3, 1.2, 1.5); // Intense glow
+    logoMaterial.metallicFactor = 0.8;
+    logoMaterial.roughnessFactor = 0.1;
+    logoText.material = logoMaterial;
+
+    // Add dynamic texture with "TAPFRENZY" text
+    const logoTexture = new BABYLON.DynamicTexture('logoTexture', {
+      width: 2048, height: 512
+    }, this.scene);
+    logoTexture.drawText('TAPFRENZY', null, null, 
+      'bold 160px Impact', '#00FFFF', 'transparent', true, true);
+    
+    // Create text plane for crisp logo display
+    const logoPlane = BABYLON.MeshBuilder.CreatePlane('logoPlane', {
+      width: 8, height: 2
+    }, this.scene);
+    logoPlane.position = new BABYLON.Vector3(0, 8, 0); // Prominent position
+    
+    const planeMaterial = new BABYLON.StandardMaterial('logoPlane', this.scene);
+    planeMaterial.diffuseTexture = logoTexture;
+    planeMaterial.emissiveTexture = logoTexture;
+    planeMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+    planeMaterial.backFaceCulling = false;
+    logoPlane.material = planeMaterial;
+
+    // Floating animation
+    const floatAnimation = new BABYLON.Animation(
+      'logoFloat', 'position.y', 30,
+      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+      BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+    );
+    floatAnimation.setKeys([
+      { frame: 0, value: 8 },
+      { frame: 60, value: 8.3 },
+      { frame: 120, value: 8 }
+    ]);
+    logoPlane.animations = [floatAnimation];
+    this.scene.beginAnimation(logoPlane, 0, 120, true);
+
+    this.logoMesh.addChild(logoPlane);
+
+    console.log('✅ Ultra-realistic TAPFRENZY logo created and positioned');
+  }
+
+  private async createProfessionalMenuSystem(): Promise<void> {
+    if (!this.scene) return;
+
+    const BABYLON = window.BABYLON;
+    this.menuButtons = [];
+
     const menuItems = [
-      { 
-        name: 'Play', 
-        position: new BABYLON.Vector3(-3, 2, 0), 
-        color: [0.0, 0.8, 0.3], // Bright green
-        icon: '▶️',
-        description: 'Start een nieuw spel'
-      },
-      { 
-        name: 'Party Packs', 
-        position: new BABYLON.Vector3(0, 2, 0), 
-        color: [0.9, 0.2, 0.8], // Bright magenta
-        icon: '🎉',
-        description: 'Thema pakketten'
-      },
-      { 
-        name: 'Options', 
-        position: new BABYLON.Vector3(3, 2, 0), 
-        color: [0.2, 0.4, 1.0], // Bright blue
-        icon: '⚙️',
-        description: 'Spelinstelling'
-      },
-      { 
-        name: 'How to Play', 
-        position: new BABYLON.Vector3(-1.5, 0, 0), 
-        color: [1.0, 0.6, 0.0], // Bright orange
-        icon: '❓',
-        description: 'Leer hoe te spelen'
-      },
-      { 
-        name: 'Quit', 
-        position: new BABYLON.Vector3(1.5, 0, 0), 
-        color: [1.0, 0.2, 0.2], // Bright red
-        icon: '❌',
-        description: 'Afsluiten'
-      }
+      { name: 'Play', position: new BABYLON.Vector3(-4, 4, 2), color: [0.0, 1.0, 0.3] },
+      { name: 'Options', position: new BABYLON.Vector3(-1, 4, 2), color: [0.2, 0.5, 1.0] },
+      { name: 'Help', position: new BABYLON.Vector3(2, 4, 2), color: [1.0, 0.7, 0.0] },
+      { name: 'Quit', position: new BABYLON.Vector3(5, 4, 2), color: [1.0, 0.2, 0.2] }
     ];
 
     for (let i = 0; i < menuItems.length; i++) {
       const item = menuItems[i]!;
-      await this.createProfessionalMenuItem(item, i);
+      
+      // Create stunning bubble button
+      const button = BABYLON.MeshBuilder.CreateSphere(`button_${item.name}`, {
+        diameter: 1.8, segments: 32
+      }, this.scene);
+      button.position = item.position;
+
+      // Ultra-realistic glassmorphism material
+      const buttonMaterial = new BABYLON.PBRMaterial(`buttonMat_${item.name}`, this.scene);
+      buttonMaterial.baseColor = new BABYLON.Color3(item.color[0], item.color[1], item.color[2]);
+      buttonMaterial.alpha = 0.3; // Glass transparency
+      buttonMaterial.metallicFactor = 0.0;
+      buttonMaterial.roughnessFactor = 0.1;
+      buttonMaterial.emissiveColor = new BABYLON.Color3(
+        (item.color[0] || 0) * 0.8, 
+        (item.color[1] || 0) * 0.8, 
+        (item.color[2] || 0) * 0.8
+      );
+      button.material = buttonMaterial;
+
+      // Create text label
+      const textPlane = BABYLON.MeshBuilder.CreatePlane(`text_${item.name}`, {
+        width: 1.5, height: 0.4
+      }, this.scene);
+      textPlane.position = item.position.clone();
+      textPlane.position.z += 0.95; // In front of button
+
+      const textTexture = new BABYLON.DynamicTexture(`textTexture_${item.name}`, {
+        width: 512, height: 128
+      }, this.scene);
+      textTexture.drawText(item.name, null, null, 
+        'bold 60px Arial', '#FFFFFF', 'transparent', true, true);
+
+      const textMaterial = new BABYLON.StandardMaterial(`textMat_${item.name}`, this.scene);
+      textMaterial.diffuseTexture = textTexture;
+      textMaterial.emissiveTexture = textTexture;
+      textMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+      textMaterial.backFaceCulling = false;
+      textPlane.material = textMaterial;
+
+      // Add hover and click interactions
+      button.actionManager = new BABYLON.ActionManager(this.scene);
+      
+      // Hover effects
+      button.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
+        BABYLON.ActionManager.OnPointerOverTrigger, () => {
+          buttonMaterial.emissiveColor = new BABYLON.Color3(
+            (item.color[0] || 0) * 1.2, 
+            (item.color[1] || 0) * 1.2, 
+            (item.color[2] || 0) * 1.2
+          );
+          button.scaling = new BABYLON.Vector3(1.1, 1.1, 1.1);
+        }
+      ));
+
+      button.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
+        BABYLON.ActionManager.OnPointerOutTrigger, () => {
+          buttonMaterial.emissiveColor = new BABYLON.Color3(
+            (item.color[0] || 0) * 0.8, 
+            (item.color[1] || 0) * 0.8, 
+            (item.color[2] || 0) * 0.8
+          );
+          button.scaling = new BABYLON.Vector3(1.0, 1.0, 1.0);
+        }
+      ));
+
+      // Click handler
+      button.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
+        BABYLON.ActionManager.OnPickTrigger, () => {
+          this.handleMenuClick(item.name);
+        }
+      ));
+
+      // Floating animation with phase offset
+      const floatAnim = new BABYLON.Animation(
+        `menuFloat_${i}`, 'position.y', 30,
+        BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+        BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+      );
+      floatAnim.setKeys([
+        { frame: 0, value: item.position.y },
+        { frame: 60 + i * 10, value: item.position.y + 0.2 },
+        { frame: 120 + i * 10, value: item.position.y }
+      ]);
+      button.animations = [floatAnim];
+      textPlane.animations = [floatAnim];
+      
+      this.scene.beginAnimation(button, 0, 120 + i * 10, true);
+      this.scene.beginAnimation(textPlane, 0, 120 + i * 10, true);
+
+      this.menuButtons.push({ button, textPlane, item });
     }
 
-    console.log('✅ Professional bubble menu created (Knowledge Is Power style)');
+    console.log('✅ Professional menu system created with Knowledge Is Power styling');
   }
 
-  private async createProfessionalMenuItem(item: any, index: number): Promise<void> {
+  private async createBroadcastQualityBuzzer(): Promise<void> {
     if (!this.scene) return;
 
     const BABYLON = window.BABYLON;
 
-    // === HIGH-QUALITY BUBBLE BUTTON ===
+    // Create professional buzzer character at optimal viewing position
+    this.buzzer = new BABYLON.Mesh('buzzerCharacter', this.scene);
     
-    // Main bubble geometry - high-poly sphere with perfect roundness
-    const bubbleButton = BABYLON.MeshBuilder.CreateSphere(`bubble_${item.name}`, {
-      diameter: 1.6,
-      segments: 64 // High-poly for perfect curves
+    // Main body with broadcast quality materials
+    const buzzerBody = BABYLON.MeshBuilder.CreateCapsule('buzzerBody', {
+      radius: 0.8, height: 2.5, tessellation: 48
     }, this.scene);
-    bubbleButton.position = item.position.clone();
+    buzzerBody.position = new BABYLON.Vector3(8, 1.5, 0); // Side position for TV studio layout
 
-    // === PREMIUM PBR GLASSMORPHISM MATERIAL ===
-    
-    const bubbleMaterial = new BABYLON.PBRMaterial(`bubbleMat_${item.name}`, this.scene);
-    
-    // Glassmorphism effect with bright game show colors
-    bubbleMaterial.baseColor = new BABYLON.Color3(item.color[0], item.color[1], item.color[2]);
-    bubbleMaterial.alpha = 0.2; // Very transparent for glass effect
-    bubbleMaterial.metallicFactor = 0.0; // No metallic for glass
-    bubbleMaterial.roughnessFactor = 0.05; // Very smooth glass
-    
-    // Bright emissive glow (Knowledge Is Power style)
-    bubbleMaterial.emissiveColor = new BABYLON.Color3(
-      item.color[0] * 0.6,
-      item.color[1] * 0.6,
-      item.color[2] * 0.6
-    );
-    
-    // Premium clearcoat for extra glass depth
-    bubbleMaterial.clearCoat.isEnabled = true;
-    bubbleMaterial.clearCoat.intensity = 1.0;
-    bubbleMaterial.clearCoat.roughness = 0.0;
-    
-    // Transparency settings
-    bubbleMaterial.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
-    
-    bubbleButton.material = bubbleMaterial;
-
-    // === FLOATING BACKDROP RING FOR VISUAL DEPTH ===
-    
-    const backRing = BABYLON.MeshBuilder.CreateTorus(`backRing_${item.name}`, {
-      diameter: 2.0,
-      thickness: 0.1,
-      tessellation: 32
+    // Head with personality
+    const buzzerHead = BABYLON.MeshBuilder.CreateSphere('buzzerHead', {
+      diameter: 1.6, segments: 48
     }, this.scene);
-    backRing.position = item.position.clone();
-    backRing.position.z -= 0.3;
-    
-    const ringMaterial = new BABYLON.PBRMaterial(`ringMat_${item.name}`, this.scene);
-    ringMaterial.baseColor = new BABYLON.Color3(item.color[0], item.color[1], item.color[2]);
-    ringMaterial.emissiveColor = new BABYLON.Color3(
-      item.color[0] * 0.4,
-      item.color[1] * 0.4,
-      item.color[2] * 0.4
-    );
-    ringMaterial.metallicFactor = 0.8;
-    ringMaterial.roughnessFactor = 0.2;
-    backRing.material = ringMaterial;
+    buzzerHead.position = new BABYLON.Vector3(8, 3.2, 0);
 
-    // === PROFESSIONAL TEXT LABEL ===
-    
-    const textPlane = BABYLON.MeshBuilder.CreatePlane(`text_${item.name}`, {
-      width: 1.8, 
-      height: 0.4
+    // Eyes with character
+    const eyeLeft = BABYLON.MeshBuilder.CreateSphere('eyeLeft', {
+      diameter: 0.25, segments: 16
     }, this.scene);
-    textPlane.position = item.position.clone();
-    textPlane.position.z += 0.82; // Floating in front
-    textPlane.position.y -= 0.1; // Slightly below center
-    
-    // Create high-resolution text texture
-    const textTexture = new BABYLON.DynamicTexture(`textTexture_${item.name}`, {
-      width: 1024, 
-      height: 256
+    eyeLeft.position = new BABYLON.Vector3(7.7, 3.4, 0.4);
+
+    const eyeRight = BABYLON.MeshBuilder.CreateSphere('eyeRight', {
+      diameter: 0.25, segments: 16
     }, this.scene);
-    textTexture.hasAlpha = true;
-    
-    // Draw text with premium styling
-    const ctx = textTexture.getContext();
-    ctx.clearRect(0, 0, 1024, 256);
-    
-    // Main text
-    ctx.font = 'bold 80px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    // Text glow effect
-    ctx.shadowColor = '#000000';
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
-    
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(item.name, 512, 128);
-    
-    textTexture.update();
-    
-    const textMaterial = new BABYLON.PBRMaterial(`textMat_${item.name}`, this.scene);
-    textMaterial.baseTexture = textTexture;
-    textMaterial.emissiveTexture = textTexture;
-    textMaterial.emissiveColor = new BABYLON.Color3(1.2, 1.2, 1.2); // Bright white glow
-    textMaterial.roughnessFactor = 1.0;
-    textMaterial.metallicFactor = 0.0;
-    textMaterial.backFaceCulling = false;
-    textMaterial.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
-    
-    textPlane.material = textMaterial;
+    eyeRight.position = new BABYLON.Vector3(8.3, 3.4, 0.4);
 
-    // === SOPHISTICATED INTERACTION SYSTEM ===
-    
-    bubbleButton.actionManager = new BABYLON.ActionManager(this.scene);
-    
-    // Hover enter - Knowledge Is Power style expansion
-    bubbleButton.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
-      BABYLON.ActionManager.OnPointerOverTrigger,
-      () => {
-        // Bright emissive boost
-        bubbleMaterial.emissiveColor = new BABYLON.Color3(
-          item.color[0] * 1.2,
-          item.color[1] * 1.2,
-          item.color[2] * 1.2
-        );
-        
-        // Professional scale animation (1.0 → 1.06)
-        const hoverAnimation = new BABYLON.Animation(
-          'bubbleHover',
-          'scaling',
-          60,
-          BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-          BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-        );
-        
-        // Cubic bezier easing for premium feel
-        hoverAnimation.setEasingFunction(new BABYLON.CubicEase());
-        const easing = hoverAnimation.getEasingFunction();
-        if (easing && 'setEasingMode' in easing) {
-          easing.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-        }
-        
-        const keys = [
-          { frame: 0, value: bubbleButton.scaling },
-          { frame: 15, value: new BABYLON.Vector3(1.06, 1.06, 1.06) } // 250ms
-        ];
-        hoverAnimation.setKeys(keys);
-        
-        this.scene!.beginAnimation(bubbleButton, 0, 15, false);
-        this.scene!.beginAnimation(textPlane, 0, 15, false, 1, undefined, hoverAnimation);
-      }
-    ));
-    
-    // Hover exit - return to normal
-    bubbleButton.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
-      BABYLON.ActionManager.OnPointerOutTrigger,
-      () => {
-        bubbleMaterial.emissiveColor = new BABYLON.Color3(
-          item.color[0] * 0.6,
-          item.color[1] * 0.6,
-          item.color[2] * 0.6
-        );
-        
-        const exitAnimation = new BABYLON.Animation(
-          'bubbleExit',
-          'scaling',
-          60,
-          BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-          BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-        );
-        
-        exitAnimation.setEasingFunction(new BABYLON.CubicEase());
-        const easing = exitAnimation.getEasingFunction();
-        if (easing && 'setEasingMode' in easing) {
-          easing.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-        }
-        
-        const keys = [
-          { frame: 0, value: bubbleButton.scaling },
-          { frame: 12, value: new BABYLON.Vector3(1.0, 1.0, 1.0) } // 200ms
-        ];
-        exitAnimation.setKeys(keys);
-        
-        this.scene!.beginAnimation(bubbleButton, 0, 12, false);
-        this.scene!.beginAnimation(textPlane, 0, 12, false, 1, undefined, exitAnimation);
-      }
-    ));
-    
-    // Click handler with satisfying feedback
-    bubbleButton.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
-      BABYLON.ActionManager.OnPickTrigger,
-      () => {
-        this.handleMenuClick(item.name);
-        
-        // Click animation: bounce effect (94% → 100%)
-        const clickAnimation = new BABYLON.Animation(
-          'bubbleClick',
-          'scaling',
-          60,
-          BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-          BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-        );
-        
-        clickAnimation.setEasingFunction(new BABYLON.CubicEase());
-        const easing = clickAnimation.getEasingFunction();
-        if (easing && 'setEasingMode' in easing) {
-          easing.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-        }
-        
-        const keys = [
-          { frame: 0, value: bubbleButton.scaling },
-          { frame: 5, value: new BABYLON.Vector3(0.94, 0.94, 0.94) }, // Quick press
-          { frame: 15, value: new BABYLON.Vector3(1.0, 1.0, 1.0) }   // Return
-        ];
-        clickAnimation.setKeys(keys);
-        
-        this.scene!.beginAnimation(bubbleButton, 0, 15, false);
-      }
-    ));
+    // Professional materials
+    const bodyMaterial = new BABYLON.PBRMaterial('buzzerBodyMat', this.scene);
+    bodyMaterial.baseColor = new BABYLON.Color3(1.0, 0.5, 0.1); // Warm orange
+    bodyMaterial.metallicFactor = 0.8;
+    bodyMaterial.roughnessFactor = 0.2;
+    bodyMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.1, 0.02);
 
-    // === SUBTLE FLOATING ANIMATION ===
-    
-    const floatAnimation = new BABYLON.Animation(
-      `menuFloat_${index}`,
-      'position.y',
-      30, // Slower for elegance
+    const headMaterial = new BABYLON.PBRMaterial('buzzerHeadMat', this.scene);
+    headMaterial.baseColor = new BABYLON.Color3(0.95, 0.95, 1.0); // Pearl white
+    headMaterial.metallicFactor = 0.3;
+    headMaterial.roughnessFactor = 0.1;
+
+    const eyeMaterial = new BABYLON.PBRMaterial('eyeMat', this.scene);
+    eyeMaterial.baseColor = new BABYLON.Color3(0.1, 0.8, 1.0); // Bright cyan
+    eyeMaterial.emissiveColor = new BABYLON.Color3(0.5, 1.2, 2.0);
+    eyeMaterial.roughnessFactor = 0.0;
+
+    // Apply materials
+    buzzerBody.material = bodyMaterial;
+    buzzerHead.material = headMaterial;
+    eyeLeft.material = eyeMaterial;
+    eyeRight.material = eyeMaterial;
+
+    // Parent to main buzzer mesh
+    buzzerBody.parent = this.buzzer;
+    buzzerHead.parent = this.buzzer;
+    eyeLeft.parent = this.buzzer;
+    eyeRight.parent = this.buzzer;
+
+    // Subtle breathing animation
+    const breathingAnim = new BABYLON.Animation(
+      'buzzerBreathing', 'scaling.y', 20,
       BABYLON.Animation.ANIMATIONTYPE_FLOAT,
       BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
     );
-    
-    const keys = [
-      { frame: 0, value: item.position.y },
-      { frame: 60 + index * 12, value: item.position.y + 0.15 },
-      { frame: 120 + index * 12, value: item.position.y }
-    ];
-    
-    floatAnimation.setKeys(keys);
-    bubbleButton.animations = [floatAnimation];
-    textPlane.animations = [floatAnimation];
-    backRing.animations = [floatAnimation];
-    
-    this.scene.beginAnimation(bubbleButton, 0, 120 + index * 12, true);
-    this.scene.beginAnimation(textPlane, 0, 120 + index * 12, true);
-    this.scene.beginAnimation(backRing, 0, 120 + index * 12, true);
-  }
-
-  private async createAAABuzzerCharacter(): Promise<void> {
-    if (!this.scene) return;
-
-    const BABYLON = window.BABYLON;
-
-    try {
-      this.buzzer = new BABYLON.Mesh('buzzerGroup', this.scene);
-      
-      // === AAA HIGH-POLY BUZZER CHARACTER (80k-120k TRIS TARGET) ===
-      
-      // MAIN BODY - Premium capsule with high tessellation
-      const buzzerBody = BABYLON.MeshBuilder.CreateCapsule('buzzerBody', {
-        radius: 0.6,
-        height: 1.8,
-        tessellation: 128, // Quadrupled for AAA quality
-        capSubdivisions: 32
-      }, this.scene);
-      buzzerBody.position = new BABYLON.Vector3(5, 1.0, 1);
-
-      // HEAD - High-poly sphere with micro details
-      const buzzerHead = BABYLON.MeshBuilder.CreateSphere('buzzerHead', {
-        diameter: 1.2,
-        segments: 128 // Quadrupled for smooth curves
-      }, this.scene);
-      buzzerHead.position = new BABYLON.Vector3(5, 2.2, 1);
-      buzzerHead.scaling.y = 0.95; // Slightly flattened for character
-
-      // === FACIAL FEATURES (HIGH DETAIL) ===
-      
-      // EYES - Crystal-like with internal reflections
-      const eyeLeft = BABYLON.MeshBuilder.CreateSphere('eyeLeft', {
-        diameter: 0.18, 
-        segments: 32
-      }, this.scene);
-      eyeLeft.position = new BABYLON.Vector3(4.72, 2.35, 1.25);
-      
-      const eyeRight = BABYLON.MeshBuilder.CreateSphere('eyeRight', {
-        diameter: 0.18,
-        segments: 32
-      }, this.scene);
-      eyeRight.position = new BABYLON.Vector3(5.28, 2.35, 1.25);
-
-      // Eye pupils - inner spheres for depth
-      const pupilLeft = BABYLON.MeshBuilder.CreateSphere('pupilLeft', {
-        diameter: 0.08,
-        segments: 16
-      }, this.scene);
-      pupilLeft.position = new BABYLON.Vector3(4.72, 2.35, 1.3);
-      
-      const pupilRight = BABYLON.MeshBuilder.CreateSphere('pupilRight', {
-        diameter: 0.08,
-        segments: 16
-      }, this.scene);
-      pupilRight.position = new BABYLON.Vector3(5.28, 2.35, 1.3);
-
-      // MOUTH - Advanced speaker grille with multiple rings
-      const mouthOuter = BABYLON.MeshBuilder.CreateTorus('mouthOuter', {
-        diameter: 0.4,
-        thickness: 0.04,
-        tessellation: 64
-      }, this.scene);
-      mouthOuter.position = new BABYLON.Vector3(5, 2.0, 1.3);
-
-      const mouthInner = BABYLON.MeshBuilder.CreateTorus('mouthInner', {
-        diameter: 0.25,
-        thickness: 0.03,
-        tessellation: 48
-      }, this.scene);
-      mouthInner.position = new BABYLON.Vector3(5, 2.0, 1.32);
-
-      // === ARTICULATED LIMBS (HIGH DETAIL) ===
-      
-      // ARMS - Multi-segment with joints
-      const shoulderLeft = BABYLON.MeshBuilder.CreateSphere('shoulderLeft', {
-        diameter: 0.3, segments: 24
-      }, this.scene);
-      shoulderLeft.position = new BABYLON.Vector3(4.2, 1.8, 1);
-
-      const armUpperLeft = BABYLON.MeshBuilder.CreateCapsule('armUpperLeft', {
-        radius: 0.12, height: 0.6, tessellation: 32
-      }, this.scene);
-      armUpperLeft.position = new BABYLON.Vector3(3.8, 1.5, 1);
-      armUpperLeft.rotation.z = Math.PI / 8;
-
-      const elbowLeft = BABYLON.MeshBuilder.CreateSphere('elbowLeft', {
-        diameter: 0.2, segments: 20
-      }, this.scene);
-      elbowLeft.position = new BABYLON.Vector3(3.5, 1.2, 1);
-
-      const armLowerLeft = BABYLON.MeshBuilder.CreateCapsule('armLowerLeft', {
-        radius: 0.1, height: 0.5, tessellation: 32
-      }, this.scene);
-      armLowerLeft.position = new BABYLON.Vector3(3.2, 0.9, 1);
-      armLowerLeft.rotation.z = Math.PI / 6;
-
-      // Mirror right arm
-      const shoulderRight = shoulderLeft.clone('shoulderRight');
-      shoulderRight.position = new BABYLON.Vector3(5.8, 1.8, 1);
-
-      const armUpperRight = armUpperLeft.clone('armUpperRight');
-      armUpperRight.position = new BABYLON.Vector3(6.2, 1.5, 1);
-      armUpperRight.rotation.z = -Math.PI / 8;
-
-      const elbowRight = elbowLeft.clone('elbowRight');
-      elbowRight.position = new BABYLON.Vector3(6.5, 1.2, 1);
-
-      const armLowerRight = armLowerLeft.clone('armLowerRight');
-      armLowerRight.position = new BABYLON.Vector3(6.8, 0.9, 1);
-      armLowerRight.rotation.z = -Math.PI / 6;
-
-      // HANDS - Articulated with fingers
-      const handLeft = BABYLON.MeshBuilder.CreateSphere('handLeft', {
-        diameter: 0.25, segments: 24
-      }, this.scene);
-      handLeft.position = new BABYLON.Vector3(2.9, 0.7, 1);
-
-      const handRight = BABYLON.MeshBuilder.CreateSphere('handRight', {
-        diameter: 0.25, segments: 24
-      }, this.scene);
-      handRight.position = new BABYLON.Vector3(7.1, 0.7, 1);
-
-      // === ADVANCED ANTENNA SYSTEM ===
-      
-      const antennaBase = BABYLON.MeshBuilder.CreateCylinder('antennaBase', {
-        height: 0.2, diameterTop: 0.08, diameterBottom: 0.12, tessellation: 16
-      }, this.scene);
-      antennaBase.position = new BABYLON.Vector3(5, 2.8, 1);
-
-      const antennaStalk = BABYLON.MeshBuilder.CreateCylinder('antennaStalk', {
-        height: 0.6, diameterTop: 0.03, diameterBottom: 0.05, tessellation: 16
-      }, this.scene);
-      antennaStalk.position = new BABYLON.Vector3(5, 3.2, 1);
-
-      const antennaTip = BABYLON.MeshBuilder.CreateSphere('antennaTip', {
-        diameter: 0.15, segments: 20
-      }, this.scene);
-      antennaTip.position = new BABYLON.Vector3(5, 3.6, 1);
-
-      // === AAA QUALITY PBR MATERIALS ===
-      
-      // Main body - Premium orange metallic finish
-      const bodyMaterial = new BABYLON.PBRMaterial('buzzerBodyMat', this.scene);
-      bodyMaterial.baseColor = new BABYLON.Color3(1.0, 0.5, 0.1);
-      bodyMaterial.metallicFactor = 0.95;
-      bodyMaterial.roughnessFactor = 0.08;
-      bodyMaterial.emissiveColor = new BABYLON.Color3(0.3, 0.15, 0.03);
-      bodyMaterial.clearCoat.isEnabled = true;
-      bodyMaterial.clearCoat.intensity = 0.8;
-      bodyMaterial.clearCoat.roughness = 0.02;
-      
-      // Head - Ceramic-metal composite with micro-reflections
-      const headMaterial = new BABYLON.PBRMaterial('buzzerHeadMat', this.scene);
-      headMaterial.baseColor = new BABYLON.Color3(0.98, 0.98, 1.0);
-      headMaterial.metallicFactor = 0.7;
-      headMaterial.roughnessFactor = 0.05;
-      headMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.1, 0.15);
-      headMaterial.clearCoat.isEnabled = true;
-      headMaterial.clearCoat.intensity = 1.0;
-      headMaterial.clearCoat.roughness = 0.0;
-      
-      // Eyes - Brilliant cyan crystal with internal glow
-      const eyeMaterial = new BABYLON.PBRMaterial('eyeMat', this.scene);
-      eyeMaterial.baseColor = new BABYLON.Color3(0.1, 0.8, 1.0);
-      eyeMaterial.emissiveColor = new BABYLON.Color3(0.5, 1.2, 2.0);
-      eyeMaterial.roughnessFactor = 0.0;
-      eyeMaterial.metallicFactor = 0.0;
-      eyeMaterial.alpha = 0.9;
-      eyeMaterial.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
-      
-      // Pupils - Deep black with subtle reflection
-      const pupilMaterial = new BABYLON.PBRMaterial('pupilMat', this.scene);
-      pupilMaterial.baseColor = new BABYLON.Color3(0.02, 0.02, 0.02);
-      pupilMaterial.metallicFactor = 0.8;
-      pupilMaterial.roughnessFactor = 0.1;
-      
-      // Mouth - Professional speaker grille
-      const mouthMaterial = new BABYLON.PBRMaterial('mouthMat', this.scene);
-      mouthMaterial.baseColor = new BABYLON.Color3(0.05, 0.05, 0.05);
-      mouthMaterial.metallicFactor = 1.0;
-      mouthMaterial.roughnessFactor = 0.3;
-      mouthMaterial.clearCoat.isEnabled = true;
-      mouthMaterial.clearCoat.intensity = 0.4;
-      
-      // Limbs - Premium metallic silver
-      const limbMaterial = new BABYLON.PBRMaterial('limbMat', this.scene);
-      limbMaterial.baseColor = new BABYLON.Color3(0.85, 0.85, 0.9);
-      limbMaterial.metallicFactor = 0.9;
-      limbMaterial.roughnessFactor = 0.15;
-      limbMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.05, 0.08);
-      
-      // Antenna - High-tech carbon fiber
-      const antennaMaterial = new BABYLON.PBRMaterial('antennaMat', this.scene);
-      antennaMaterial.baseColor = new BABYLON.Color3(0.2, 0.2, 0.25);
-      antennaMaterial.metallicFactor = 0.8;
-      antennaMaterial.roughnessFactor = 0.2;
-      
-      // Antenna tip - Pulsing communication beacon
-      const antennaTipMaterial = new BABYLON.PBRMaterial('antennaTipMat', this.scene);
-      antennaTipMaterial.baseColor = new BABYLON.Color3(1.0, 0.3, 0.1);
-      antennaTipMaterial.emissiveColor = new BABYLON.Color3(2.0, 0.8, 0.2);
-      antennaTipMaterial.roughnessFactor = 0.0;
-      antennaTipMaterial.metallicFactor = 0.1;
-
-      // Apply materials to meshes
-      buzzerBody.material = bodyMaterial;
-      buzzerHead.material = headMaterial;
-      eyeLeft.material = eyeMaterial;
-      eyeRight.material = eyeMaterial;
-      pupilLeft.material = pupilMaterial;
-      pupilRight.material = pupilMaterial;
-      mouthOuter.material = mouthMaterial;
-      mouthInner.material = mouthMaterial;
-      
-      shoulderLeft.material = limbMaterial;
-      armUpperLeft.material = limbMaterial;
-      elbowLeft.material = limbMaterial;
-      armLowerLeft.material = limbMaterial;
-      shoulderRight.material = limbMaterial;
-      armUpperRight.material = limbMaterial;
-      elbowRight.material = limbMaterial;
-      armLowerRight.material = limbMaterial;
-      handLeft.material = limbMaterial;
-      handRight.material = limbMaterial;
-      
-      antennaBase.material = antennaMaterial;
-      antennaStalk.material = antennaMaterial;
-      antennaTip.material = antennaTipMaterial;
-
-      // Parent all parts to main buzzer group
-      const buzzerParts = [
-        buzzerBody, buzzerHead, eyeLeft, eyeRight, pupilLeft, pupilRight,
-        mouthOuter, mouthInner, shoulderLeft, armUpperLeft, elbowLeft, armLowerLeft,
-        shoulderRight, armUpperRight, elbowRight, armLowerRight, handLeft, handRight,
-        antennaBase, antennaStalk, antennaTip
-      ];
-      
-      buzzerParts.forEach(part => {
-        part.parent = this.buzzer;
-      });
-
-      // Position the entire character
-      this.buzzer.position = new BABYLON.Vector3(0, 0, 0);
-      this.buzzer.scaling = new BABYLON.Vector3(0.8, 0.8, 0.8);
-
-      // === PROFESSIONAL IDLE ANIMATIONS ===
-      
-      this.createBuzzerIdleAnimations(buzzerParts, eyeMaterial, antennaTipMaterial);
-
-      console.log('✅ AAA Buzzer character created (80k+ triangles, PBR materials, idle animations)');
-      
-    } catch (error) {
-      console.error('Failed to create AAA Buzzer character:', error);
-      await this.createFallbackBuzzer();
-    }
-  }
-
-  private createBuzzerIdleAnimations(parts: any[], eyeMaterial: any, antennaTipMaterial: any): void {
-    if (!this.scene) return;
-
-    const BABYLON = window.BABYLON;
-
-    // === BREATHING ANIMATION (SUBTLE BODY MOVEMENT) ===
-    const breathingAnimation = new BABYLON.Animation(
-      'buzzerBreathing',
-      'scaling.y',
-      30,
-      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-      BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-    );
-    
-    const breathingKeys = [
-      { frame: 0, value: 0.8 },
-      { frame: 120, value: 0.82 }, // Subtle expansion
-      { frame: 240, value: 0.8 }
-    ];
-    
-    breathingAnimation.setKeys(breathingKeys);
-    this.buzzer.animations = [breathingAnimation];
-    this.scene.beginAnimation(this.buzzer, 0, 240, true);
-
-    // === EYE SACCADES (REALISTIC EYE MOVEMENT) ===
-    const eyeSaccadeAnimation = new BABYLON.Animation(
-      'eyeSaccades',
-      'emissiveColor',
-      60,
-      BABYLON.Animation.ANIMATIONTYPE_COLOR3,
-      BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-    );
-    
-    const saccadeKeys = [
-      { frame: 0, value: new BABYLON.Color3(0.5, 1.2, 2.0) },
-      { frame: 180, value: new BABYLON.Color3(0.7, 1.4, 2.2) }, // Brighter look
-      { frame: 200, value: new BABYLON.Color3(0.3, 1.0, 1.8) }, // Dimmer blink
-      { frame: 220, value: new BABYLON.Color3(0.5, 1.2, 2.0) },
-      { frame: 400, value: new BABYLON.Color3(0.5, 1.2, 2.0) }
-    ];
-    
-    eyeSaccadeAnimation.setKeys(saccadeKeys);
-    eyeMaterial.animations = [eyeSaccadeAnimation];
-    this.scene.beginAnimation(eyeMaterial, 0, 400, true);
-
-    // === BLINKING ANIMATION (PERIODIC BLINKS) ===
-    const blinkAnimation = new BABYLON.Animation(
-      'buzzerBlink',
-      'scaling.y',
-      60,
-      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-      BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-    );
-    
-    const blinkKeys = [
+    breathingAnim.setKeys([
       { frame: 0, value: 1.0 },
-      { frame: 240, value: 1.0 },
-      { frame: 245, value: 0.1 }, // Quick blink
-      { frame: 250, value: 1.0 },
-      { frame: 480, value: 1.0 }
-    ];
-    
-    blinkAnimation.setKeys(blinkKeys);
-    
-    // Apply blink to both eyes
-    const eyeLeft = parts.find(p => p.name === 'eyeLeft');
-    const eyeRight = parts.find(p => p.name === 'eyeRight');
-    if (eyeLeft) {
-      eyeLeft.animations = [blinkAnimation];
-      this.scene.beginAnimation(eyeLeft, 0, 480, true);
-    }
-    if (eyeRight) {
-      eyeRight.animations = [blinkAnimation];
-      this.scene.beginAnimation(eyeRight, 0, 480, true);
-    }
+      { frame: 80, value: 1.05 },
+      { frame: 160, value: 1.0 }
+    ]);
+    this.buzzer.animations = [breathingAnim];
+    this.scene.beginAnimation(this.buzzer, 0, 160, true);
 
-    // === ANTENNA COMMUNICATION BLINKING ===
-    const antennaBlinkAnimation = new BABYLON.Animation(
-      'antennaBlink',
-      'emissiveColor',
-      30,
-      BABYLON.Animation.ANIMATIONTYPE_COLOR3,
-      BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-    );
-    
-    const antennaKeys = [
-      { frame: 0, value: new BABYLON.Color3(2.0, 0.8, 0.2) },
-      { frame: 15, value: new BABYLON.Color3(0.5, 0.2, 0.1) }, // Dim flash
-      { frame: 30, value: new BABYLON.Color3(2.0, 0.8, 0.2) },
-      { frame: 90, value: new BABYLON.Color3(2.0, 0.8, 0.2) }
-    ];
-    
-    antennaBlinkAnimation.setKeys(antennaKeys);
-    antennaTipMaterial.animations = [antennaBlinkAnimation];
-    this.scene.beginAnimation(antennaTipMaterial, 0, 90, true);
-
-    console.log('✅ Professional idle animations created (breathing, eye saccades, blinking)');
+    console.log('✅ Broadcast-quality buzzer character created and positioned');
   }
 
-  private async createFallbackBuzzer(): Promise<void> {
-    if (!this.scene) return;
-    
-    const BABYLON = window.BABYLON;
-    
-    // Simple fallback buzzer
-    const fallbackBuzzer = BABYLON.MeshBuilder.CreateSphere('fallbackBuzzer', {
-      diameter: 2, segments: 32
-    }, this.scene);
-    fallbackBuzzer.position = new BABYLON.Vector3(5, 2, 1);
-    
-    const fallbackMaterial = new BABYLON.PBRMaterial('fallbackBuzzerMat', this.scene);
-    fallbackMaterial.baseColor = new BABYLON.Color3(1.0, 0.5, 0.1);
-    fallbackMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.1, 0.02);
-    fallbackBuzzer.material = fallbackMaterial;
-    
-    this.buzzer = fallbackBuzzer;
-    
-    console.log('⚠️  Fallback Buzzer created');
-  }
-
-  private async createTVStudioSet(): Promise<void> {
+  private createCinematicParticleSystem(): void {
     if (!this.scene) return;
 
     const BABYLON = window.BABYLON;
+    this.particleSystems = [];
 
-    // === KNOWLEDGE IS POWER INSPIRED TV STUDIO SET ===
+    // Main sparkle system for cinematic atmosphere
+    const sparkles = new BABYLON.ParticleSystem('cinematicSparkles', 2000, this.scene);
     
-    // Main stage platform - Large circular stage
-    const mainStage = BABYLON.MeshBuilder.CreateCylinder('mainStage', {
-      height: 0.4,
-      diameterTop: 16,
-      diameterBottom: 16,
-      tessellation: 128 // High-poly for smooth curves
-    }, this.scene);
-    mainStage.position.y = -0.2;
+    // Create simple white particle texture
+    const particleTexture = new BABYLON.Texture('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI/hkyKWwAAAABJRU5ErkJggg==', this.scene);
+    sparkles.particleTexture = particleTexture;
 
-    const stageMaterial = new BABYLON.PBRMaterial('stageMat', this.scene);
-    stageMaterial.baseColor = new BABYLON.Color3(0.15, 0.25, 0.45); // TV studio blue
-    stageMaterial.metallicFactor = 0.8;
-    stageMaterial.roughnessFactor = 0.15;
-    stageMaterial.emissiveColor = new BABYLON.Color3(0.05, 0.1, 0.2);
-    stageMaterial.clearCoat.isEnabled = true;
-    stageMaterial.clearCoat.intensity = 0.9;
-    stageMaterial.clearCoat.roughness = 0.05;
-    mainStage.material = stageMaterial;
+    sparkles.emitter = new BABYLON.Vector3(0, 8, 0);
+    sparkles.minEmitBox = new BABYLON.Vector3(-12, 2, -8);
+    sparkles.maxEmitBox = new BABYLON.Vector3(12, 8, 8);
 
-    // === TV STUDIO BACKDROP WALLS ===
-    
-    // Curved backdrop wall segments (like Knowledge Is Power)
-    for (let i = 0; i < 8; i++) {
-      const angle = (i / 8) * Math.PI * 2;
-      const backWall = BABYLON.MeshBuilder.CreateBox(`backWall${i}`, {
-        width: 3.0,
-        height: 8.0,
-        depth: 0.3
-      }, this.scene);
-      
-      backWall.position = new BABYLON.Vector3(
-        Math.cos(angle) * 12,
-        4.0,
-        Math.sin(angle) * 12
-      );
-      backWall.rotation.y = angle + Math.PI;
+    // Knowledge Is Power colors - bright and energetic
+    sparkles.color1 = new BABYLON.Color4(0.0, 1.0, 1.0, 0.9); // Bright cyan
+    sparkles.color2 = new BABYLON.Color4(1.0, 0.2, 0.8, 0.9); // Bright magenta
+    sparkles.colorDead = new BABYLON.Color4(0.8, 0.8, 1.0, 0.0);
 
-      const wallMaterial = new BABYLON.PBRMaterial(`wallMat${i}`, this.scene);
-      wallMaterial.baseColor = new BABYLON.Color3(0.1, 0.2, 0.4);
-      wallMaterial.emissiveColor = new BABYLON.Color3(0.02, 0.08, 0.15);
-      wallMaterial.metallicFactor = 0.3;
-      wallMaterial.roughnessFactor = 0.7;
-      backWall.material = wallMaterial;
-    }
+    sparkles.minSize = 0.1;
+    sparkles.maxSize = 0.4;
+    sparkles.minLifeTime = 4.0;
+    sparkles.maxLifeTime = 8.0;
+    sparkles.emitRate = 150;
 
-    // === DECORATIVE STUDIO COLUMNS ===
-    
-    for (let i = 0; i < 6; i++) {
-      const angle = (i / 6) * Math.PI * 2;
-      
-      // Main column shaft
-      const column = BABYLON.MeshBuilder.CreateCylinder(`studioColumn${i}`, {
-        height: 10.0,
-        diameterTop: 0.6,
-        diameterBottom: 0.8,
-        tessellation: 32
-      }, this.scene);
-      column.position = new BABYLON.Vector3(
-        Math.cos(angle) * 9,
-        5.0,
-        Math.sin(angle) * 9
-      );
+    sparkles.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+    sparkles.gravity = new BABYLON.Vector3(0, -2, 0);
+    sparkles.direction1 = new BABYLON.Vector3(-2, 2, -2);
+    sparkles.direction2 = new BABYLON.Vector3(2, 6, 2);
 
-      // Decorative capital
-      const capital = BABYLON.MeshBuilder.CreateCylinder(`capital${i}`, {
-        height: 0.8,
-        diameterTop: 1.2,
-        diameterBottom: 0.6,
-        tessellation: 32
-      }, this.scene);
-      capital.position = new BABYLON.Vector3(
-        Math.cos(angle) * 9,
-        10.4,
-        Math.sin(angle) * 9
-      );
+    sparkles.start();
+    this.particleSystems.push(sparkles);
 
-      // Column base
-      const base = BABYLON.MeshBuilder.CreateCylinder(`base${i}`, {
-        height: 0.6,
-        diameterTop: 0.8,
-        diameterBottom: 1.0,
-        tessellation: 32
-      }, this.scene);
-      base.position = new BABYLON.Vector3(
-        Math.cos(angle) * 9,
-        0.3,
-        Math.sin(angle) * 9
-      );
+    // Floating orbs for extra magic
+    const orbs = new BABYLON.ParticleSystem('floatingOrbs', 50, this.scene);
+    orbs.particleTexture = particleTexture;
 
-      // Premium column materials
-      const columnMaterial = new BABYLON.PBRMaterial(`columnMat${i}`, this.scene);
-      columnMaterial.baseColor = new BABYLON.Color3(0.9, 0.9, 0.95);
-      columnMaterial.metallicFactor = 0.4;
-      columnMaterial.roughnessFactor = 0.2;
-      columnMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.1, 0.15);
-      columnMaterial.clearCoat.isEnabled = true;
-      columnMaterial.clearCoat.intensity = 0.6;
-      
-      column.material = columnMaterial;
-      capital.material = columnMaterial;
-      base.material = columnMaterial;
-    }
+    orbs.emitter = new BABYLON.Vector3(0, 4, 0);
+    orbs.minEmitBox = new BABYLON.Vector3(-10, 0, -6);
+    orbs.maxEmitBox = new BABYLON.Vector3(10, 4, 6);
 
-    // === STUDIO LIGHTING RIGS ===
-    
-    // Create lighting trusses above
-    for (let i = 0; i < 4; i++) {
-      const angle = (i / 4) * Math.PI * 2;
-      const truss = BABYLON.MeshBuilder.CreateBox(`truss${i}`, {
-        width: 8.0,
-        height: 0.3,
-        depth: 0.3
-      }, this.scene);
-      truss.position = new BABYLON.Vector3(
-        Math.cos(angle) * 6,
-        11.0,
-        Math.sin(angle) * 6
-      );
-      truss.rotation.y = angle + Math.PI / 4;
+    orbs.color1 = new BABYLON.Color4(1.0, 0.6, 0.1, 0.8); // Golden
+    orbs.color2 = new BABYLON.Color4(0.2, 0.8, 1.0, 0.8); // Electric blue
+    orbs.colorDead = new BABYLON.Color4(1.0, 1.0, 1.0, 0.0);
 
-      const trussMaterial = new BABYLON.PBRMaterial(`trussMat${i}`, this.scene);
-      trussMaterial.baseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-      trussMaterial.metallicFactor = 1.0;
-      trussMaterial.roughnessFactor = 0.4;
-      truss.material = trussMaterial;
+    orbs.minSize = 0.3;
+    orbs.maxSize = 0.8;
+    orbs.minLifeTime = 6.0;
+    orbs.maxLifeTime = 10.0;
+    orbs.emitRate = 8;
 
-      // Add studio light fixtures
-      for (let j = 0; j < 3; j++) {
-        const lightFixture = BABYLON.MeshBuilder.CreateCylinder(`lightFixture${i}_${j}`, {
-          height: 0.4,
-          diameter: 0.3,
-          tessellation: 16
-        }, this.scene);
-        lightFixture.position = new BABYLON.Vector3(
-          truss.position.x + (j - 1) * 2.5 * Math.cos(angle + Math.PI / 4),
-          10.5,
-          truss.position.z + (j - 1) * 2.5 * Math.sin(angle + Math.PI / 4)
-        );
+    orbs.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+    orbs.gravity = new BABYLON.Vector3(0, -0.5, 0);
+    orbs.direction1 = new BABYLON.Vector3(-0.5, 1, -0.5);
+    orbs.direction2 = new BABYLON.Vector3(0.5, 3, 0.5);
 
-        const fixtureMaterial = new BABYLON.PBRMaterial(`fixtureMat${i}_${j}`, this.scene);
-        fixtureMaterial.baseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-        fixtureMaterial.emissiveColor = new BABYLON.Color3(1.0, 0.9, 0.8);
-        fixtureMaterial.metallicFactor = 0.9;
-        fixtureMaterial.roughnessFactor = 0.1;
-        lightFixture.material = fixtureMaterial;
-      }
-    }
+    orbs.start();
+    this.particleSystems.push(orbs);
 
-    // === STUDIO MONITORS AND SCREENS ===
-    
-    // Large display screens around the perimeter
-    for (let i = 0; i < 4; i++) {
-      const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
-      const screen = BABYLON.MeshBuilder.CreateBox(`studioScreen${i}`, {
-        width: 4.0,
-        height: 2.5,
-        depth: 0.2
-      }, this.scene);
-      screen.position = new BABYLON.Vector3(
-        Math.cos(angle) * 11,
-        6.0,
-        Math.sin(angle) * 11
-      );
-      screen.rotation.y = angle + Math.PI;
-
-      const screenMaterial = new BABYLON.PBRMaterial(`screenMat${i}`, this.scene);
-      screenMaterial.baseColor = new BABYLON.Color3(0.0, 0.1, 0.2);
-      screenMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.4, 0.8);
-      screenMaterial.metallicFactor = 0.8;
-      screenMaterial.roughnessFactor = 0.1;
-      screen.material = screenMaterial;
-    }
-
-    console.log('✅ TV Studio set created (Knowledge Is Power inspired architecture)');
+    console.log('✅ Cinematic particle system created (2000+ particles)');
   }
 
-  private createPremiumParticleEffects(): void {
+  private setupBroadcastLighting(): void {
     if (!this.scene) return;
 
     const BABYLON = window.BABYLON;
+    this.studioLights = [];
 
-    // === PREMIUM ATMOSPHERIC PARTICLES ===
-    
-    // Main ambient sparkle system
-    const sparkleSystem = new BABYLON.ParticleSystem('premiumSparkles', 4000, this.scene);
-    sparkleSystem.particleTexture = new BABYLON.Texture('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', this.scene);
+    // Key light - main illumination
+    const keyLight = new BABYLON.DirectionalLight('keyLight', 
+      new BABYLON.Vector3(-1, -1.5, -0.5), this.scene);
+    keyLight.intensity = 1.5;
+    keyLight.diffuse = new BABYLON.Color3(1.0, 0.95, 0.85); // Warm white
+    keyLight.specular = new BABYLON.Color3(1, 1, 1);
+    this.studioLights.push(keyLight);
 
-    sparkleSystem.emitter = BABYLON.Vector3.Zero();
-    sparkleSystem.minEmitBox = new BABYLON.Vector3(-10, 2, -10);
-    sparkleSystem.maxEmitBox = new BABYLON.Vector3(10, 8, 10);
+    // Fill light - soften shadows
+    const fillLight = new BABYLON.DirectionalLight('fillLight',
+      new BABYLON.Vector3(0.8, -0.8, 0.3), this.scene);
+    fillLight.intensity = 0.8;
+    fillLight.diffuse = new BABYLON.Color3(0.8, 0.9, 1.0); // Cool blue-white
+    this.studioLights.push(fillLight);
 
-    // Knowledge Is Power inspired colors - bright and energetic
-    sparkleSystem.color1 = new BABYLON.Color4(0.0, 1.0, 1.0, 0.9); // Bright cyan
-    sparkleSystem.color2 = new BABYLON.Color4(1.0, 0.2, 0.8, 0.9); // Bright magenta
-    sparkleSystem.colorDead = new BABYLON.Color4(0.8, 0.8, 1.0, 0.0);
+    // Rim light - edge definition
+    const rimLight = new BABYLON.DirectionalLight('rimLight',
+      new BABYLON.Vector3(0, 1, -1), this.scene);
+    rimLight.intensity = 1.0;
+    rimLight.diffuse = new BABYLON.Color3(1.0, 1.0, 1.2); // Bright white
+    this.studioLights.push(rimLight);
 
-    sparkleSystem.minSize = 0.05;
-    sparkleSystem.maxSize = 0.2;
-    sparkleSystem.minLifeTime = 3.0;
-    sparkleSystem.maxLifeTime = 6.0;
-    sparkleSystem.emitRate = 300; // High density for premium look
+    // Ambient environment
+    const ambientLight = new BABYLON.HemisphericLight('ambientLight',
+      new BABYLON.Vector3(0, 1, 0), this.scene);
+    ambientLight.intensity = 0.4;
+    ambientLight.diffuse = new BABYLON.Color3(0.9, 0.9, 1.0);
+    this.studioLights.push(ambientLight);
 
-    sparkleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
-    sparkleSystem.gravity = new BABYLON.Vector3(0, -1.5, 0);
-    sparkleSystem.direction1 = new BABYLON.Vector3(-1, 3, -1);
-    sparkleSystem.direction2 = new BABYLON.Vector3(1, 6, 1);
-
-    sparkleSystem.start();
-
-    // === ENERGY ORB SYSTEM ===
-    
-    const orbSystem = new BABYLON.ParticleSystem('energyOrbs', 200, this.scene);
-    orbSystem.particleTexture = new BABYLON.Texture('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', this.scene);
-
-    orbSystem.emitter = BABYLON.Vector3.Zero();
-    orbSystem.minEmitBox = new BABYLON.Vector3(-15, 1, -15);
-    orbSystem.maxEmitBox = new BABYLON.Vector3(15, 6, 15);
-
-    // Magical energy colors for game show atmosphere
-    orbSystem.color1 = new BABYLON.Color4(0.2, 0.8, 1.0, 0.7);
-    orbSystem.color2 = new BABYLON.Color4(1.0, 0.6, 0.1, 0.8);
-    orbSystem.colorDead = new BABYLON.Color4(0.5, 0.5, 1.0, 0.0);
-
-    orbSystem.minSize = 0.3;
-    orbSystem.maxSize = 0.8;
-    orbSystem.minLifeTime = 8.0;
-    orbSystem.maxLifeTime = 12.0;
-    orbSystem.emitRate = 30;
-
-    orbSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
-    orbSystem.gravity = new BABYLON.Vector3(0, -0.3, 0);
-    orbSystem.direction1 = new BABYLON.Vector3(-0.3, 1, -0.3);
-    orbSystem.direction2 = new BABYLON.Vector3(0.3, 3, 0.3);
-
-    orbSystem.start();
-
-    // === LIGHT BEAM SYSTEM ===
-    
-    const beamSystem = new BABYLON.ParticleSystem('lightBeams', 150, this.scene);
-    beamSystem.particleTexture = new BABYLON.Texture('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', this.scene);
-
-    beamSystem.emitter = new BABYLON.Vector3(0, 12, 0); // From ceiling
-    beamSystem.minEmitBox = new BABYLON.Vector3(-8, 0, -8);
-    beamSystem.maxEmitBox = new BABYLON.Vector3(8, 0, 8);
-
-    beamSystem.color1 = new BABYLON.Color4(1.0, 0.9, 0.7, 0.3);
-    beamSystem.color2 = new BABYLON.Color4(0.8, 0.8, 1.0, 0.4);
-    beamSystem.colorDead = new BABYLON.Color4(1.0, 1.0, 1.0, 0.0);
-
-    beamSystem.minSize = 0.1;
-    beamSystem.maxSize = 0.3;
-    beamSystem.minLifeTime = 2.0;
-    beamSystem.maxLifeTime = 4.0;
-    beamSystem.emitRate = 80;
-
-    beamSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
-    beamSystem.gravity = new BABYLON.Vector3(0, -8, 0); // Downward light beams
-    beamSystem.direction1 = new BABYLON.Vector3(-0.5, -1, -0.5);
-    beamSystem.direction2 = new BABYLON.Vector3(0.5, -1, 0.5);
-
-    beamSystem.start();
-
-    console.log('✅ Premium particle effects system created (4000+ particles)');
+    console.log('✅ Broadcast-quality 3-point lighting system created');
   }
 
-  private setupAAAPostProcessing(): void {
+  private setupPremiumPostProcessing(): void {
     if (!this.scene || !this.camera) return;
 
     const BABYLON = window.BABYLON;
 
     try {
-      // === PROFESSIONAL POST-PROCESSING PIPELINE ===
-      
-      // Check for MSAA support
+      // Enable MSAA if supported
       const samples = this.engine.getCaps().maxMSAASamples;
-      if (samples >= 8) {
+      if (samples >= 4) {
         this.scene.getEngine().setHardwareScalingLevel(1);
-        console.log(`✅ MSAA x${samples} enabled`);
+        console.log(`✅ MSAA x${Math.min(samples, 8)} enabled`);
       }
 
-      // Create advanced rendering pipeline
-      const renderPipeline = new BABYLON.DefaultRenderingPipeline(
-        'aaaRenderPipeline',
-        true, // HDR enabled
-        this.scene,
-        [this.camera]
+      // Create rendering pipeline for premium effects
+      const pipeline = new BABYLON.DefaultRenderingPipeline(
+        'premiumPipeline', true, this.scene, [this.camera]
       );
 
-      // === ACES TONE MAPPING (FILM-QUALITY) ===
-      renderPipeline.imageProcessingEnabled = true;
-      if (renderPipeline.imageProcessing) {
-        renderPipeline.imageProcessing.toneMappingEnabled = true;
-        renderPipeline.imageProcessing.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
-        renderPipeline.imageProcessing.exposure = 1.0;
-        renderPipeline.imageProcessing.contrast = 1.2;
-        renderPipeline.imageProcessing.colorGradingEnabled = true;
+      // Premium tone mapping
+      pipeline.imageProcessingEnabled = true;
+      if (pipeline.imageProcessing) {
+        pipeline.imageProcessing.toneMappingEnabled = true;
+        pipeline.imageProcessing.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
+        pipeline.imageProcessing.exposure = 1.1;
+        pipeline.imageProcessing.contrast = 1.15;
       }
 
-      // === PROFESSIONAL BLOOM SETTINGS ===
-      renderPipeline.bloomEnabled = true;
-      renderPipeline.bloomThreshold = 0.8;
-      renderPipeline.bloomWeight = 0.3; // Increased for game show brightness
-      renderPipeline.bloomKernel = 64;
-      renderPipeline.bloomScale = 0.6;
+      // Professional bloom for glow effects
+      pipeline.bloomEnabled = true;
+      pipeline.bloomThreshold = 0.7;
+      pipeline.bloomWeight = 0.4;
+      pipeline.bloomKernel = 64;
+      pipeline.bloomScale = 0.7;
 
-      // === ADVANCED ANTI-ALIASING ===
-      renderPipeline.fxaaEnabled = true;
-      renderPipeline.samples = Math.min(samples, 8);
+      // Anti-aliasing
+      pipeline.fxaaEnabled = true;
+      pipeline.samples = Math.min(samples, 8);
 
-      // === DEPTH OF FIELD (SUBTLE) ===
-      renderPipeline.depthOfFieldEnabled = true;
-      if (renderPipeline.depthOfField) {
-        renderPipeline.depthOfField.focusDistance = 8000; // Focus on menu area
-        renderPipeline.depthOfField.focalLength = 150;
-        renderPipeline.depthOfField.fStop = 2.8; // Subtle DOF
-      }
-
-      // === COLOR GRADING FOR TV STUDIO LOOK ===
-      if (renderPipeline.imageProcessing && renderPipeline.imageProcessing.colorGradingTexture) {
-        // Create subtle color grading for professional TV look
-        renderPipeline.imageProcessing.colorCurvesEnabled = true;
-        if (renderPipeline.imageProcessing.colorCurves) {
-          renderPipeline.imageProcessing.colorCurves.globalHue = 5;
-          renderPipeline.imageProcessing.colorCurves.globalSaturation = 10;
-          renderPipeline.imageProcessing.colorCurves.highlightsGain = 0.1;
-        }
-      }
-
-      console.log('✅ AAA post-processing pipeline enabled (ACES, Bloom, FXAA, DOF)');
+      console.log('✅ Premium post-processing pipeline enabled');
       
     } catch (error) {
-      console.warn('⚠️  Advanced post-processing failed, using fallback:', error);
-      
-      // Fallback post-processing
+      console.warn('⚠️ Premium post-processing failed, using basic FXAA:', error);
       try {
-        const fallbackPipeline = new BABYLON.FXAAPostProcess('fallbackFXAA', 1.0, this.camera);
-        console.log('✅ Fallback FXAA enabled');
+        new BABYLON.FXAAPostProcess('basicFXAA', 1.0, this.camera);
       } catch (fallbackError) {
-        console.warn('⚠️  All post-processing failed:', fallbackError);
+        console.warn('⚠️ All post-processing failed');
       }
     }
   }
 
-  private async createQROverlay(): Promise<void> {
+  private async createProfessionalQROverlay(): Promise<void> {
     if (!this.scene) return;
 
     const BABYLON = window.BABYLON;
     const GUI = BABYLON.GUI;
 
     try {
-      // Create fullscreen GUI
-      this.guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+      this.guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("professionalUI");
 
-      // === PREMIUM QR + ROOM CODE CONTAINER (TOP-RIGHT) ===
-      
-      const container = new GUI.Rectangle("qr-container");
-      container.widthInPixels = 300; // Increased for 4K visibility
-      container.heightInPixels = 320; // Taller for better layout
-      container.color = "rgba(255, 255, 255, 0.1)"; // Subtle border
-      container.thickness = 2;
-      container.cornerRadius = 15; // Rounded corners
-      container.background = "rgba(0, 0, 0, 0.3)"; // Dark glass background
-      container.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-      container.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
-      container.topInPixels = 30; // TV-safe margin
-      container.rightInPixels = 30;
+      // Premium QR container with Knowledge Is Power styling
+      const qrContainer = new GUI.Rectangle("qrContainer");
+      qrContainer.widthInPixels = 320;
+      qrContainer.heightInPixels = 360;
+      qrContainer.color = "rgba(0, 255, 255, 0.3)"; // Cyan border
+      qrContainer.thickness = 3;
+      qrContainer.cornerRadius = 20;
+      qrContainer.background = "rgba(0, 20, 40, 0.85)"; // Dark professional background
+      qrContainer.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+      qrContainer.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
+      qrContainer.topInPixels = 40;
+      qrContainer.rightInPixels = 40;
 
-      // QR Code image with premium styling
-      this.qrCodeImage = new GUI.Image("qr-image", "");
-      this.qrCodeImage.widthInPixels = 240; // Larger for 4K
-      this.qrCodeImage.heightInPixels = 240;
-      this.qrCodeImage.topInPixels = -20;
+      // QR Code placeholder
+      this.qrCodeImage = new GUI.Image("qrCodeImage", "");
+      this.qrCodeImage.widthInPixels = 260;
+      this.qrCodeImage.heightInPixels = 260;
+      this.qrCodeImage.topInPixels = -30;
       this.qrCodeImage.color = "#FFFFFF";
       this.qrCodeImage.background = "#000000";
-      this.qrCodeImage.cornerRadius = 8;
-      container.addControl(this.qrCodeImage);
+      this.qrCodeImage.cornerRadius = 10;
+      qrContainer.addControl(this.qrCodeImage);
 
-      // Room code text with premium game show styling
-      this.roomCodeText = new GUI.TextBlock("room-code", "Room: ----");
+      // Room code display
+      this.roomCodeText = new GUI.TextBlock("roomCodeText", "Room: ----");
       this.roomCodeText.color = "#00FFFF"; // Bright cyan
-      this.roomCodeText.fontSize = 28; // Larger for visibility
-      this.roomCodeText.fontFamily = "Consolas, 'Courier New', monospace";
+      this.roomCodeText.fontSize = 32;
+      this.roomCodeText.fontFamily = "Consolas, monospace";
       this.roomCodeText.fontWeight = "bold";
-      this.roomCodeText.topInPixels = 140;
-      this.roomCodeText.heightInPixels = 40;
+      this.roomCodeText.topInPixels = 160;
+      this.roomCodeText.heightInPixels = 50;
       this.roomCodeText.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-      this.roomCodeText.background = "rgba(0, 255, 255, 0.1)"; // Cyan glow
-      this.roomCodeText.cornerRadius = 12;
-      container.addControl(this.roomCodeText);
+      this.roomCodeText.background = "rgba(0, 255, 255, 0.15)"; // Subtle cyan glow
+      this.roomCodeText.cornerRadius = 15;
+      qrContainer.addControl(this.roomCodeText);
 
-      // Add instruction text
-      const instructionText = new GUI.TextBlock("instruction", "Scan to join game");
+      // Instructions
+      const instructionText = new GUI.TextBlock("instructions", "Scan to join game");
       instructionText.color = "#FFFFFF";
-      instructionText.fontSize = 18;
+      instructionText.fontSize = 20;
       instructionText.fontFamily = "Arial, sans-serif";
-      instructionText.fontWeight = "normal";
-      instructionText.topInPixels = 190;
+      instructionText.topInPixels = 220;
       instructionText.heightInPixels = 30;
       instructionText.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-      instructionText.alpha = 0.8;
-      container.addControl(instructionText);
+      instructionText.alpha = 0.9;
+      qrContainer.addControl(instructionText);
 
-      this.guiTexture.addControl(container);
+      this.guiTexture.addControl(qrContainer);
 
-      // Add subtle pulsing animation to QR container
-      const pulseAnimation = new BABYLON.Animation(
-        "qrPulse",
-        "alpha",
-        30,
-        BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-        BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-      );
+      console.log('✅ Professional QR overlay created and positioned');
       
-      const keys = [
-        { frame: 0, value: 0.9 },
-        { frame: 60, value: 1.0 },
-        { frame: 120, value: 0.9 }
-      ];
-      
-      pulseAnimation.setKeys(keys);
-      // Note: GUI animations would be applied differently in a real implementation
-      
-      console.log('✅ Premium QR overlay created (4K-ready, TV-safe)');
     } catch (error) {
-      console.error('Failed to create premium QR overlay:', error);
+      console.error('Failed to create professional QR overlay:', error);
     }
   }
 
-  private startGameShowMusic(): void {
-    // Initialize premium audio context
+  private initializeGameShowAudio(): void {
     try {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       
-      // Create sophisticated audio for game show atmosphere
-      const oscillator1 = this.audioContext.createOscillator();
-      const oscillator2 = this.audioContext.createOscillator();
+      // Create upbeat game show atmosphere
+      const oscillator = this.audioContext.createOscillator();
       const gainNode = this.audioContext.createGain();
       const filterNode = this.audioContext.createBiquadFilter();
       
-      // Create chord progression for upbeat game show feel
-      oscillator1.frequency.setValueAtTime(261.63, this.audioContext.currentTime); // C4
-      oscillator2.frequency.setValueAtTime(329.63, this.audioContext.currentTime); // E4
+      oscillator.frequency.setValueAtTime(261.63, this.audioContext.currentTime); // C4
+      oscillator.type = 'sine';
       
-      oscillator1.type = 'sine';
-      oscillator2.type = 'triangle';
-      
-      // Apply filtering for warmth
       filterNode.type = 'lowpass';
-      if (this.audioContext) {
-        filterNode.frequency.setValueAtTime(2000, this.audioContext.currentTime);
-      }
+      filterNode.frequency.setValueAtTime(2000, this.audioContext.currentTime);
       
-      // Connect audio graph
-      oscillator1.connect(filterNode);
-      oscillator2.connect(filterNode);
+      oscillator.connect(filterNode);
       filterNode.connect(gainNode);
       gainNode.connect(this.audioContext.destination);
       
-      // Set volume appropriately (-14 LUFS integrated)
-      if (this.audioContext) {
-        gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.05, this.audioContext.currentTime + 3);
-      }
+      // Professional volume levels
+      gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.03, this.audioContext.currentTime + 2);
       
-      // Create musical progression
-      const chordChanges = [
-        { time: 0, freq1: 261.63, freq2: 329.63 }, // C major
-        { time: 4, freq1: 293.66, freq2: 369.99 }, // F major  
-        { time: 8, freq1: 246.94, freq2: 311.13 }, // G major
-        { time: 12, freq1: 261.63, freq2: 329.63 } // Back to C
+      // Musical progression for atmosphere
+      const chords = [
+        { time: 0, freq: 261.63 }, // C
+        { time: 3, freq: 293.66 }, // F  
+        { time: 6, freq: 246.94 }, // G
+        { time: 9, freq: 261.63 }  // C
       ];
       
-      chordChanges.forEach(change => {
-        if (this.audioContext) {
-          oscillator1.frequency.setValueAtTime(change.freq1, this.audioContext.currentTime + change.time);
-          oscillator2.frequency.setValueAtTime(change.freq2, this.audioContext.currentTime + change.time);
-        }
+      chords.forEach(chord => {
+        oscillator.frequency.setValueAtTime(chord.freq, this.audioContext!.currentTime + chord.time);
       });
       
-      if (this.audioContext) {
-        oscillator1.start(this.audioContext.currentTime);
-        oscillator2.start(this.audioContext.currentTime);
-      }
+      oscillator.start(this.audioContext.currentTime);
       
-      console.log('🎵 Game show background music started (professional quality)');
+      console.log('🎵 Game show audio atmosphere initialized');
     } catch (error) {
       console.warn('Audio context not available:', error);
     }
   }
 
-  private buzzerWelcome(): void {
-    const welcomeMessage = 'Welkom bij TapFrenzy! Het ultieme kennisquiz spel is klaar om te beginnen!';
+  private buzzerWelcomeMessage(): void {
+    const welcomeMessage = 'Welkom bij TapFrenzy! Het ultieme quiz avontuur begint nu!';
     console.log(`🎙️ Buzzer: ${welcomeMessage}`);
     
-    // Show premium subtitle
-    this.showPremiumSubtitle(welcomeMessage);
+    // Show professional subtitle
+    this.showProfessionalSubtitle(welcomeMessage);
 
-    // Use Web Speech API with professional settings
+    // Professional Dutch TTS
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(welcomeMessage);
       utterance.lang = 'nl-NL';
-      utterance.rate = 0.85; // Slightly slower for clarity
-      utterance.pitch = 1.0; // Natural pitch
-      utterance.volume = 0.8; // Comfortable volume
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      utterance.volume = 0.7;
       
-      // Try to use a high-quality voice
+      // Find best Dutch voice
       const voices = speechSynthesis.getVoices();
-      const dutchVoice = voices.find(voice => 
-        voice.lang.startsWith('nl') && 
-        (voice.name.includes('Premium') || voice.name.includes('Neural'))
-      );
-      if (dutchVoice) {
-        utterance.voice = dutchVoice;
-      }
+      const dutchVoice = voices.find(voice => voice.lang.startsWith('nl'));
+      if (dutchVoice) utterance.voice = dutchVoice;
       
       speechSynthesis.speak(utterance);
     }
 
-    // Animate Buzzer speaking if available
-    if (this.buzzer) {
-      this.animateBuzzerSpeaking();
+    // Animate buzzer speaking
+    if (this.buzzer && this.scene) {
+      const BABYLON = window.BABYLON;
+      const speakAnim = new BABYLON.Animation('buzzerSpeak', 'rotation.y', 60,
+        BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+      speakAnim.setKeys([
+        { frame: 0, value: 0 },
+        { frame: 30, value: 0.1 },
+        { frame: 60, value: 0 }
+      ]);
+      this.scene.beginAnimation(this.buzzer, 0, 60, true);
+      setTimeout(() => this.scene.stopAnimation(this.buzzer), 4000);
     }
   }
 
-  private showPremiumSubtitle(text: string): void {
-    // Create premium subtitle overlay with game show styling
-    const subtitleDiv = document.createElement('div');
-    subtitleDiv.style.cssText = `
+  private showProfessionalSubtitle(text: string): void {
+    const subtitle = document.createElement('div');
+    subtitle.style.cssText = `
       position: fixed;
-      bottom: 40px;
+      bottom: 60px;
       left: 50%;
       transform: translateX(-50%);
-      background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(0, 50, 100, 0.8));
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.92), rgba(0, 40, 80, 0.85));
       color: #00FFFF;
-      padding: 20px 40px;
-      border-radius: 15px;
-      font-size: 24px;
-      font-family: 'Arial', sans-serif;
-      font-weight: bold;
+      padding: 25px 50px;
+      border-radius: 20px;
+      font-size: 28px;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      font-weight: 600;
       z-index: 1000;
-      max-width: 80%;
+      max-width: 85%;
       text-align: center;
-      border: 2px solid rgba(0, 255, 255, 0.3);
-      box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
-      animation: subtitleSlideIn 0.5s ease-out;
+      border: 3px solid rgba(0, 255, 255, 0.4);
+      box-shadow: 0 10px 40px rgba(0, 255, 255, 0.3);
+      backdrop-filter: blur(15px);
+      animation: subtitleEntrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     `;
     
-    // Add CSS animation
     const style = document.createElement('style');
     style.textContent = `
-      @keyframes subtitleSlideIn {
-        from { 
-          opacity: 0; 
-          transform: translateX(-50%) translateY(20px); 
-        }
-        to { 
-          opacity: 1; 
-          transform: translateX(-50%) translateY(0); 
-        }
+      @keyframes subtitleEntrance {
+        from { opacity: 0; transform: translateX(-50%) translateY(30px) scale(0.9); }
+        to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+      }
+      @keyframes subtitleExit {
+        to { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.95); }
       }
     `;
     document.head.appendChild(style);
     
-    subtitleDiv.textContent = text;
-    document.body.appendChild(subtitleDiv);
+    subtitle.textContent = text;
+    document.body.appendChild(subtitle);
 
-    // Remove subtitle after duration
     setTimeout(() => {
-      subtitleDiv.style.animation = 'subtitleSlideIn 0.5s ease-in reverse';
+      subtitle.style.animation = 'subtitleExit 0.4s ease-in forwards';
       setTimeout(() => {
-        subtitleDiv.remove();
+        subtitle.remove();
         style.remove();
-      }, 500);
-    }, 5000);
-  }
-
-  private animateBuzzerSpeaking(): void {
-    if (!this.buzzer || !this.scene) return;
-    
-    const BABYLON = window.BABYLON;
-    
-    // Create speaking animation - subtle head bobbing
-    const speakAnimation = new BABYLON.Animation(
-      'buzzerSpeak',
-      'rotation.y',
-      60,
-      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-      BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-    );
-    
-    const keys = [
-      { frame: 0, value: 0 },
-      { frame: 20, value: 0.1 },
-      { frame: 40, value: -0.1 },
-      { frame: 60, value: 0 }
-    ];
-    
-    speakAnimation.setKeys(keys);
-    this.scene.beginAnimation(this.buzzer, 0, 60, true);
-    
-    // Stop animation after speaking
-    setTimeout(() => {
-      this.scene.stopAnimation(this.buzzer);
-    }, 6000);
+      }, 400);
+    }, 4500);
   }
 
   private handleMenuClick(itemName: string): void {
-    console.log(`Menu clicked: ${itemName}`);
-    this.showPremiumSubtitle(`Je hebt ${itemName} gekozen!`);
+    console.log(`🎯 Menu clicked: ${itemName}`);
+    this.showProfessionalSubtitle(`${itemName} geselecteerd!`);
     
-    // Buzzer contextual response
-    if (this.buzzer) {
-      this.animateBuzzerSpeaking();
-    }
-
-    // Professional menu navigation with contextual responses
+    // Contextual buzzer responses
     switch (itemName) {
       case 'Play':
-        this.showPremiumSubtitle('🎮 Lobby wordt geladen... Bereid je voor op TapFrenzy!');
-        this.transitionToLobby();
+        this.showProfessionalSubtitle('🚀 Lobby wordt geladen... Bereid je voor op de ultieme quiz ervaring!');
+        this.transitionToGameLobby();
         break;
       case 'Options':
-        this.showPremiumSubtitle('⚙️ Instellingen menu komt binnenkort beschikbaar!');
+        this.showProfessionalSubtitle('⚙️ Geavanceerde instellingen komen binnenkort beschikbaar!');
         break;
-      case 'How to Play':
-        this.showPremiumSubtitle('❓ Interactieve tutorial komt binnenkort!');
-        break;
-      case 'Party Packs':
-        this.showPremiumSubtitle('🎉 Thematische vraagpakketten komen binnenkort!');
+      case 'Help':
+        this.showProfessionalSubtitle('❓ Interactieve tutorial wordt binnenkort toegevoegd!');
         break;
       case 'Quit':
-        this.showPremiumSubtitle('👋 Bedankt voor het spelen van TapFrenzy!');
-        setTimeout(() => {
-          if (typeof window !== 'undefined' && window.close) {
-            window.close();
-          }
-        }, 3000);
+        this.showProfessionalSubtitle('👋 Bedankt voor het spelen van TapFrenzy!');
+        setTimeout(() => window.close?.(), 2500);
         break;
     }
   }
 
-  private transitionToLobby(): void {
-    console.log('🎮 Transitioning to AAA 3D Lobby...');
+  private transitionToGameLobby(): void {
+    console.log('🎮 Transitioning to ultra-realistic lobby...');
     
-    // Create room first
     const net = (window as any).gameNet;
     if (net) {
       net.send({ t: 'host:create' });
     }
     
-    // Import and switch to lobby scene with loading animation
+    // Smooth transition to lobby
     import('./lobby3d').then(({ Lobby3DScene }) => {
-      // Get scene manager from host.ts context
-      const sceneRoot = document.getElementById('scene') as HTMLElement;
-      if (sceneRoot && (window as any).gameSceneManager) {
-        // Smooth transition to lobby
-        (window as any).gameSceneManager.set(new Lobby3DScene());
-      } else {
-        console.error('Scene manager not available for transition');
+      const sceneManager = (window as any).gameSceneManager;
+      if (sceneManager) {
+        sceneManager.set(new Lobby3DScene());
       }
     }).catch(error => {
-      console.error('Failed to load lobby scene:', error);
-      this.showPremiumSubtitle('❌ Er ging iets mis bij het laden van de lobby. Probeer opnieuw.');
+      console.error('Failed to load lobby:', error);
+      this.showProfessionalSubtitle('❌ Fout bij het laden van de lobby. Probeer opnieuw.');
     });
-  }
-
-  private handleResize(): void {
-    if (this.engine && this.canvas) {
-      this.engine.resize();
-      console.log('✅ Engine resized for new viewport');
-    }
   }
 
   private updateRoomCode(code: string): void {
@@ -1975,48 +820,83 @@ export class Menu3DScene implements Scene {
       this.roomCodeText.text = `Room: ${code}`;
     }
 
-    // Update QR code image
     if (code && this.qrCodeImage) {
       const joinUrl = `${window.location.origin}/player.html?code=${code}`;
       const qrUrl = `/qr?text=${encodeURIComponent(joinUrl)}`;
-      
-      // Set QR image source
       this.qrCodeImage.source = qrUrl;
-      console.log('✅ QR code updated:', qrUrl);
+      console.log('✅ QR code updated for room:', code);
     }
   }
 
+  private createFallbackExperience(root: HTMLElement): void {
+    root.innerHTML = `
+      <div style="
+        display: flex; align-items: center; justify-content: center; 
+        height: 100vh; color: white; text-align: center; 
+        background: linear-gradient(135deg, #0a1428, #1a2850, #2a3870);
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+      ">
+        <div>
+          <h1 style="font-size: 5em; margin: 0; text-shadow: 0 0 30px #00ffff; color: #00ffff;">
+            TAPFRENZY
+          </h1>
+          <p style="font-size: 1.8em; margin: 30px 0; opacity: 0.9;">
+            Ultra-Realistic 3D Experience
+          </p>
+          <p style="font-size: 1.2em; margin: 20px 0; opacity: 0.7;">
+            Your device doesn't support advanced 3D rendering
+          </p>
+          <button onclick="location.reload()" style="
+            margin-top: 40px; padding: 20px 40px; font-size: 20px; 
+            background: linear-gradient(135deg, #00ffff, #0088ff); 
+            border: none; border-radius: 15px; cursor: pointer; 
+            color: white; font-weight: bold; text-transform: uppercase;
+            box-shadow: 0 8px 25px rgba(0, 255, 255, 0.3);
+          ">
+            Retry Experience
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   unmount(): void {
-    console.log('🔄 Unmounting AAA 3D Menu Scene...');
+    console.log('🔄 Unmounting ultra-realistic menu scene...');
     
-    window.removeEventListener('resize', this.handleResize.bind(this));
+    // Clean up event listeners
+    window.removeEventListener('resize', () => this.engine?.resize());
     
-    if (this.animationLoop) {
-      cancelAnimationFrame(this.animationLoop);
+    // Stop and dispose of particle systems
+    if (this.particleSystems) {
+      this.particleSystems.forEach(system => {
+        system.stop();
+        system.dispose();
+      });
     }
 
+    // Close audio context
     if (this.audioContext) {
-      this.audioContext.close();
+      this.audioContext.close().catch(() => {});
+    }
+
+    // Dispose of 3D resources
+    if (this.scene) {
+      this.scene.dispose();
     }
 
     if (this.engine) {
       this.engine.dispose();
     }
 
-    if (this.scene) {
-      this.scene.dispose();
-    }
-
-    console.log('✅ AAA 3D Menu Scene unmounted cleanly');
+    console.log('✅ Ultra-realistic menu scene unmounted cleanly');
   }
 
   onMessage(msg: S2C): void {
-    console.log('Menu3D received message:', msg);
+    console.log('🎮 Menu received message:', msg);
     
-    // Update room code when received
     if (msg.t === 'room' && msg.code) {
       this.updateRoomCode(msg.code);
-      this.showPremiumSubtitle(`🎮 Room ${msg.code} is klaar! Spelers kunnen nu joinen.`);
+      this.showProfessionalSubtitle(`🎮 Room ${msg.code} is ready! Players can now join the ultimate quiz experience.`);
     }
   }
 }
