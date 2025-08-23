@@ -660,11 +660,15 @@ export class Question3DScene implements Scene {
   private transitionToReveal(): void {
     const sceneManager = (window as any).gameSceneManager;
     if (sceneManager) {
-      // For now, fallback to existing reveal scene
-      import('./reveal').then(({ RevealScene }) => {
-        sceneManager.set(new RevealScene());
+      // Try 3D reveal scene first
+      import('./reveal3d').then(({ Reveal3DScene }) => {
+        sceneManager.set(new Reveal3DScene());
       }).catch(error => {
-        console.error('❌ Failed to load reveal scene:', error);
+        console.error('❌ Failed to load 3D reveal scene:', error);
+        // Fallback to existing reveal scene
+        import('./reveal').then(({ RevealScene }) => {
+          sceneManager.set(new RevealScene());
+        });
       });
     }
   }
