@@ -186,10 +186,11 @@ export class EnhancedJoinScene implements Scene {
     const playerNameInput = this.el.querySelector('#player-name') as HTMLInputElement;
     const joinBtn = this.el.querySelector('#join-btn') as HTMLButtonElement;
 
-    // Room code input - only allow letters (A-Z, no numbers) - Enhanced reliability
+    // Room code input - allow letters and auto-capitalize for better UX
     roomCodeInput.addEventListener('input', (e) => {
       const target = e.target as HTMLInputElement;
-      let value = target.value.replace(/[^A-Z]/g, '').toUpperCase();
+      // Allow both uppercase and lowercase letters, then convert to uppercase
+      let value = target.value.replace(/[^A-Za-z]/g, '').toUpperCase();
       
       // Ensure the value is properly set with immediate visual feedback
       if (target.value !== value) {
@@ -207,17 +208,28 @@ export class EnhancedJoinScene implements Scene {
       Audio.playSound('ui-type', { volume: 0.2, pitch: 0.9 + Math.random() * 0.2 });
     });
 
-    // Additional keydown handler to ensure proper input - Enhanced
+    // Additional keydown handler to allow typing and limit length
     roomCodeInput.addEventListener('keydown', (e) => {
       // Allow backspace, delete, arrows, tab, escape
       if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Escape'].includes(e.key)) {
         return;
       }
       
-      // Only allow A-Z letters, prevent everything else
-      if (!/[A-Za-z]/.test(e.key) || roomCodeInput.value.length >= 5) {
+      // Allow A-Z letters (both upper and lowercase), prevent everything else
+      if (!/[A-Za-z]/.test(e.key)) {
         e.preventDefault();
         // Visual feedback for blocked input
+        roomCodeInput.style.borderColor = '#ff6b6b';
+        setTimeout(() => {
+          roomCodeInput.style.borderColor = '#ccc';
+        }, 200);
+        return;
+      }
+      
+      // Prevent typing if already at max length
+      if (roomCodeInput.value.length >= 5) {
+        e.preventDefault();
+        // Visual feedback for max length
         roomCodeInput.style.borderColor = '#ff6b6b';
         setTimeout(() => {
           roomCodeInput.style.borderColor = '#ccc';

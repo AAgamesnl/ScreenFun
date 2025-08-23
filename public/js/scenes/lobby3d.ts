@@ -1070,7 +1070,12 @@ export class Lobby3DScene implements Scene {
           this.showSubtitle(`${readyCount}/${this.players.length} spelers klaar...`);
         }
       } else {
-        this.showSubtitle('Wacht op meer spelers... Scan de QR code om deel te nemen! 📱');
+        this.showSubtitle('Wacht op spelers... Scan de QR code om deel te nemen! 📱');
+        // Auto-start demo after 5 seconds for demonstration
+        setTimeout(() => {
+          console.log('🎮 Demo mode: Auto-starting game after 5 seconds');
+          this.startGame();
+        }, 5000);
       }
     }
   }

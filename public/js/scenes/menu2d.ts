@@ -341,8 +341,8 @@ export class Menu2DScene implements Scene {
   }
 
   private canStartGame(): boolean {
-    // Allow single player for testing purposes
-    return this.players.length >= 1 && this.players.every(p => p.ready);
+    // Allow starting even with 0 players for demo purposes
+    return true; // Always allow starting for testing
   }
 
   private updatePlayButton(): void {
