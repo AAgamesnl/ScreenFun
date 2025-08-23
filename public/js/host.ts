@@ -2,6 +2,7 @@ import { Net } from './net';
 import { SceneManager } from './scenes/scene-manager';
 import { LobbyScene } from './scenes/lobby';
 import { Menu2DScene } from './scenes/menu2d';
+import { Menu3DScene } from './scenes/menu3d';
 
 // Entry point for host (TV) screen  
 const net = new Net();
@@ -12,8 +13,8 @@ const scenes = new SceneManager(sceneRoot);
 (window as any).gameSceneManager = scenes;
 (window as any).gameNet = net;
 
-// Start with the new 2D main menu (AAA redesign)
-scenes.set(new Menu2DScene());
+// Start with the 3D main menu (AAA requirement: 3D start screen with static camera)
+scenes.set(new Menu3DScene());
 
 // Forward messages from server to active scene
 net.onMessage(msg => {
